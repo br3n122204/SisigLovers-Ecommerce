@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DPT ONE - Fashion Store</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2>Shop Other Brands</h2>
+            <span class="close-sidebar">&times;</span>
+        </div>
+        <ul class="brand-list">
+            <li><a href="#">Nike</a></li>
+            <li><a href="#">Adidas</a></li>
+            <li><a href="#">Puma</a></li>
+            <li><a href="#">Under Armour</a></li>
+            <li><a href="#">New Balance</a></li>
+        </ul>
+    </div>
+
+    <nav class="navbar">
+        <div class="menu-btn" id="menuBtn">
+            <div class="hamburger">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+        </div>
+        <div class="logo">
+            <img src="images/dpt-one-logo.png" alt="DPT ONE Logo">
+            <h1 class="brand-name">DPT ONE</h1>
+        </div>
+        <div class="nav-buttons">
+            <button class="login-btn">Log In</button>
+            <button class="signup-btn">Sign Up</button>
+        </div>
+    </nav>
+
+    <div class="nav-tabs">
+        <div class="tab active">Home</div>
+        <div class="tab">New Arrivals</div>
+        <div class="tab">Collections</div>
+        <div class="tab">Sale</div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Login</h2>
+            <form id="loginForm">
+                <input type="email" placeholder="Email" required>
+                <input type="password" placeholder="Password" required>
+                <button type="submit">Login</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sign Up Modal -->
+    <div id="signupModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Sign Up</h2>
+            <form id="signupForm">
+                <input type="text" placeholder="Full Name" required>
+                <input type="email" placeholder="Email" required>
+                <input type="password" placeholder="Password" required>
+                <input type="password" placeholder="Confirm Password" required>
+                <button type="submit">Sign Up</button>
+            </form>
+        </div>
+    </div>
+
+    <main>
+        <section class="hero-slider">
+            <div class="slides">
+                <div class="slide active">
+                    <img src="images/skater.jpg" alt="Skater in Action">
+                    <div class="slide-content">
+                        <h2>Street Culture</h2>
+                        <p>Authentic streetwear for skaters</p>
+                    </div>
+                </div>
+                <div class="slide">
+                    <img src="images/model-casual.jpg" alt="Casual Style">
+                    <div class="slide-content">
+                        <h2>Essential Basics</h2>
+                        <p>Timeless casual pieces for everyday wear</p>
+                    </div>
+                </div>
+                <div class="slide">
+                    <img src="images/hoodie.jpg" alt="Black Hoodie">
+                    <div class="slide-content">
+                        <h2>Urban Collection</h2>
+                        <p>Premium streetwear essentials</p>
+                    </div>
+                </div>
+            </div>
+            <div class="slider-nav">
+                <div class="slider-dots"></div>
+            </div>
+        </section>
+
+        <section class="products">
+            <h2>Featured Products</h2>
+            <div class="product-grid" id="productGrid">
+                <!-- Products will be dynamically added here via JavaScript -->
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 DPT ONE. All rights reserved.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html> 
