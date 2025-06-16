@@ -7,8 +7,8 @@ import { CartProvider } from '@/context/CartContext'
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "SisigLovers E-commerce",
-  description: "Your one-stop shop for delicious sisig",
+  title: "DPT ONE",
+  description: "Your one-stop shop for fashion and lifestyle",
 }
 
 export default function RootLayout({

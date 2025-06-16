@@ -215,7 +215,7 @@ export default function DPTOneFashion() {
 
               {/* Logo */}
               <div className="flex-shrink-0 flex items-center">
-                <h1 className="text-2xl font-bold text-black tracking-wider">SisigLovers E-commerce</h1>
+                <h1 className="text-2xl font-bold text-black tracking-wider">DPT ONE</h1>
               </div>
 
               {/* Navigation */}
@@ -303,7 +303,7 @@ export default function DPTOneFashion() {
         <footer className="bg-gray-900 text-white py-8">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center">
-              <p className="text-sm text-gray-400">© 2025 SisigLovers E-commerce. All rights reserved.</p>
+              <p className="text-sm text-gray-400">© 2025 DPT ONE. All rights reserved.</p>
             </div>
           </div>
         </footer>
