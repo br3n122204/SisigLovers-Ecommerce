@@ -11,9 +11,9 @@ const firebaseConfig = {
   appId: "1:100600391381:web:a77039043d41715e48645c"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+// Initialize Firebase only on the client side
+const app = typeof window !== 'undefined' ? initializeApp(firebaseConfig) : null;
+const db = app ? getFirestore(app) : null;
+const auth = app ? getAuth(app) : null;
 
 export { app, db, auth }; 
