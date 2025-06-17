@@ -2,12 +2,12 @@ import { initializeApp } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCC7yrxwLctzMBuWvIZAMrcsCyRldaTfGY",
-  authDomain: "dpt-one-e-commer-website.firebaseapp.com",
-  projectId: "dpt-one-e-commer-website",
-  storageBucket: "dpt-one-e-commer-website.firebasestorage.app",
-  messagingSenderId: "1093944051787",
-  appId: "1:1093944051787:web:12bcf81fe18e41c275a5ce"
+  apiKey: "AIzaSyCriQCH5NI8zdjSL9SzfUIWG_hS8V0EjAA",
+  authDomain: "dpt-one-e-commerce.firebaseapp.com",
+  projectId: "dpt-one-e-commerce",
+  storageBucket: "dpt-one-e-commerce.firebasestorage.app",
+  messagingSenderId: "100600391381",
+  appId: "1:100600391381:web:a77039043d41715e48645c"
 };
 
 // Initialize Firebase
