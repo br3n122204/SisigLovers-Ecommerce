@@ -143,16 +143,15 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
         {/* Left Section: Logo and Navigation */}
         <div className="flex items-center space-x-8">
-          <Link href="/" className="flex items-center space-x-3 group">
+          <Link href="/" className="flex items-center group">
             <Image
               src="/dptone-logo.png"
               alt="DPT ONE Logo"
-              width={40}
-              height={40}
+              width={72}
+              height={72}
               className="object-contain"
               priority
             />
-            <span className="text-2xl font-bold text-black tracking-wider group-hover:text-gray-800 transition-colors">DPT ONE</span>
           </Link>
           <nav className="hidden md:flex space-x-6 text-sm font-medium text-gray-700">
             {/* Shop by Brand Dropdown */}
