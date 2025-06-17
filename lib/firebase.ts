@@ -1,4 +1,4 @@
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps } from 'firebase/app';
 import { getFirestore } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
@@ -11,9 +11,9 @@ const firebaseConfig = {
   appId: "1:100600391381:web:a77039043d41715e48645c"
 };
 
-// Initialize Firebase only on the client side
-const app = typeof window !== 'undefined' ? initializeApp(firebaseConfig) : null;
-const db = app ? getFirestore(app) : null;
-const auth = app ? getAuth(app) : null;
+// Initialize Firebase
+let app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+const db = getFirestore(app);
+const auth = getAuth(app);
 
 export { app, db, auth }; 
