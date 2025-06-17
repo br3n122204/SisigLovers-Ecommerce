@@ -6,7 +6,7 @@ import {
   onAuthStateChanged,
 } from "firebase/auth";
 import { auth } from "@/lib/firebase";
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -16,8 +16,9 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   const searchParams = useSearchParams();
-  const initialIsRegistering = searchParams.get('signup') === 'true';
-  const [isRegistering, setIsRegistering] = useState(initialIsRegistering);
+  const router = useRouter();
+  // isRegistering is now a state variable
+  const [isRegistering, setIsRegistering] = useState(false);
 
   useEffect(() => {
     // Log auth state changes
@@ -30,12 +31,17 @@ export default function LoginPage() {
           uid: user.uid
         });
         // Redirect to home page if user is already logged in
-        window.location.href = "/";
+        router.push("/");
       }
     });
 
+    // Sync isRegistering state with 'signup' URL parameter
+    const signupParam = searchParams.get('signup');
+    console.log('useEffect: signupParam =', signupParam, 'Setting isRegistering to', signupParam === 'true');
+    setIsRegistering(signupParam === 'true');
+
     return () => unsubscribe();
-  }, []);
+  }, [searchParams, router]); // Depend on searchParams and router
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,7 +67,7 @@ export default function LoginPage() {
         await signInWithEmailAndPassword(auth, email, password);
         console.log('User logged in successfully');
       }
-      window.location.href = "/"; // Redirect to home page after successful auth
+      router.push("/"); // Redirect to home page after successful auth
     } catch (err: any) {
       console.error("Authentication error details:", {
         code: err.code,
@@ -134,9 +140,9 @@ export default function LoginPage() {
         </form>
         <div className="text-center text-sm mt-4">
           {isRegistering ? (
-            <>Already have an account? <button onClick={() => { console.log('Sign In button clicked, setting isRegistering to false'); setIsRegistering(false); }} className="text-blue-600 hover:underline">Sign In</button></>
+            <>Already have an account? <button onClick={() => { console.log('Internal Sign In clicked. Setting isRegistering to false'); setIsRegistering(false); }} className="text-blue-600 hover:underline">Sign In</button></>
           ) : (
-            <>Don't have an account? <button onClick={() => setIsRegistering(true)} className="text-blue-600 hover:underline">Sign Up</button></>
+            <>Don't have an account? <button onClick={() => { console.log('Internal Sign Up clicked. Setting isRegistering to true'); setIsRegistering(true); }} className="text-blue-600 hover:underline">Sign Up</button></>
           )}
         </div>
         <div className="text-xs text-gray-500 text-center mt-4">
