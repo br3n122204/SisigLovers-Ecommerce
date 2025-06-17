@@ -40,24 +40,6 @@ export default function CartPage() {
                 </p>
               </div>
             )}
-
-            {!user && (
-              <div className="border-t border-gray-200 pt-8 mt-8 space-y-4">
-                <h2 className="text-xl font-bold text-gray-900">Subscribe to our emails</h2>
-                <form className="flex justify-center">
-                  <input
-                    type="email"
-                    placeholder="Email"
-                    className="border border-gray-300 px-4 py-2 rounded-l-md w-full max-w-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
-                  />
-                  <button type="submit" className="bg-gray-800 text-white px-4 py-2 rounded-r-md hover:bg-gray-900 transition-colors">
-                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
-                    </svg>
-                  </button>
-                </form>
-              </div>
-            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
