@@ -1,13 +1,23 @@
 "use client";
 import { useState, useEffect } from "react";
-import { sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, onAuthStateChanged } from "firebase/auth";
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+} from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { useSearchParams } from 'next/navigation';
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [emailSent, setEmailSent] = useState(false);
+
+  const searchParams = useSearchParams();
+  const initialIsRegistering = searchParams.get('signup') === 'true';
+  const [isRegistering, setIsRegistering] = useState(initialIsRegistering);
 
   useEffect(() => {
     // Log auth state changes
@@ -19,149 +29,116 @@ export default function LoginPage() {
           emailVerified: user.emailVerified,
           uid: user.uid
         });
+        // Redirect to home page if user is already logged in
+        window.location.href = "/";
       }
     });
 
-    // Check if the URL contains a sign-in link
-    const checkSignInLink = async () => {
-      try {
-        if (typeof window !== "undefined" && isSignInWithEmailLink(auth, window.location.href)) {
-          let emailForSignIn = window.localStorage.getItem("emailForSignIn");
-          
-          // If email is missing from localStorage, prompt user
-          if (!emailForSignIn) {
-            emailForSignIn = window.prompt("Please provide your email for confirmation");
-            if (!emailForSignIn) {
-              throw new Error("Email is required to complete sign in.");
-            }
-          }
-
-          setIsLoading(true);
-          await signInWithEmailLink(auth, emailForSignIn, window.location.href);
-          window.localStorage.removeItem("emailForSignIn");
-          window.location.href = "/"; // Redirect to home page after successful sign in
-        }
-      } catch (err: any) {
-        console.error("Sign in error:", err);
-        setError(err.message || "Failed to complete sign in. Please try again.");
-        setIsLoading(false);
-      }
-    };
-
-    checkSignInLink();
     return () => unsubscribe();
   }, []);
 
-  const handleSendLink = async (e: React.FormEvent) => {
+  const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    
-    if (!email) {
-      setError("Please enter your email address.");
+
+    if (!email || !password) {
+      setError("Please enter both email and password.");
       return;
     }
 
-    if (!/\S+@\S+\.\S+/.test(email)) {
-      setError("Please enter a valid email address.");
+    if (isRegistering && password !== confirmPassword) {
+      setError("Passwords do not match.");
       return;
     }
 
     setIsLoading(true);
 
     try {
-      // Log Firebase configuration
-      console.log('Firebase Auth Configuration:', {
-        currentDomain: window.location.origin,
-        authDomain: auth.config.authDomain,
-        apiKey: auth.config.apiKey !== undefined
-      });
-
-      const actionCodeSettings = {
-        url: window.location.origin + '/login',
-        handleCodeInApp: true
-      };
-
-      console.log('Current origin:', window.location.origin);
-      console.log('Sending sign-in link to:', email);
-      console.log('Action code settings:', actionCodeSettings);
-      console.log('Auth state:', auth.currentUser);
-      
-      await sendSignInLinkToEmail(auth, email, actionCodeSettings);
-      
-      // Save the email for sign-in completion
-      window.localStorage.setItem("emailForSignIn", email);
-      setEmailSent(true);
-      console.log('Email link sent successfully');
+      if (isRegistering) {
+        await createUserWithEmailAndPassword(auth, email, password);
+        console.log('User registered and logged in successfully');
+      } else {
+        await signInWithEmailAndPassword(auth, email, password);
+        console.log('User logged in successfully');
+      }
+      window.location.href = "/"; // Redirect to home page after successful auth
     } catch (err: any) {
-      console.error("Send link error details:", {
+      console.error("Authentication error details:", {
         code: err.code,
         message: err.message,
         fullError: err
       });
-      setError(err.message || "Failed to send sign in link. Please try again.");
+      // Ensure a useful error message is always set
+      setError(err instanceof Error ? err.message : "Authentication failed. Please check your credentials and try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleTryAgain = () => {
-    setEmailSent(false);
-    setError("");
-  };
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-lg">
-        {!emailSent ? (
-          <>
-            <h2 className="text-2xl font-bold mb-2 text-center text-gray-800">Sign in</h2>
-            <p className="text-center text-gray-600 mb-6">
-              Enter your email and we'll send you a sign-in link
-            </p>
-            <form onSubmit={handleSendLink} className="space-y-4">
-              <input
-                id="email"
-                type="email"
-                required
-                className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={isLoading}
-              />
-              {error && (
-                <div className="text-red-600 text-sm text-center p-2 bg-red-50 rounded-md">
-                  {error}
-                </div>
-              )}
-              <button
-                type="submit"
-                className={`w-full bg-black text-white py-3 px-4 rounded-md font-semibold hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors duration-200 ${
-                  isLoading ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-                disabled={isLoading}
-              >
-                {isLoading ? "Sending..." : "Continue"}
-              </button>
-            </form>
-          </>
-        ) : (
-          <div className="flex flex-col items-center space-y-4">
-            <h2 className="text-2xl font-bold mb-2 text-center text-gray-800">Check your email</h2>
-            <p className="text-center text-gray-600">
-              We've sent a sign-in link to <span className="font-semibold">{email}</span>
-            </p>
-            <p className="text-sm text-gray-500 text-center">
-              Click the link in your email to sign in. The link will expire after 24 hours.
-            </p>
-            <button
-              onClick={handleTryAgain}
-              className="text-sm text-gray-600 hover:text-gray-800 mt-4"
-            >
-              Try with a different email
-            </button>
-          </div>
-        )}
+        <h2 className="text-2xl font-bold mb-2 text-center text-gray-800">
+          {isRegistering ? "Sign Up" : "Sign In"}
+        </h2>
+        <p className="text-center text-gray-600 mb-6">
+          {isRegistering ? "Create your account to get started." : "Log in to your account."}
+        </p>
+        <form onSubmit={handleAuth} className="space-y-4">
+          <input
+            id="email"
+            type="email"
+            required
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            disabled={isLoading}
+          />
+          <input
+            id="password"
+            type="password"
+            required
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            disabled={isLoading}
+          />
+          {isRegistering && (
+            <input
+              id="confirm-password"
+              type="password"
+              required
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+              placeholder="Confirm Password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              disabled={isLoading}
+            />
+          )}
+          {error && (
+            <div className="text-red-600 text-sm text-center p-2 bg-red-50 rounded-md">
+              {error}
+            </div>
+          )}
+          <button
+            type="submit"
+            className={`w-full bg-black text-white py-3 px-4 rounded-md font-semibold hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2 transition-colors duration-200 ${
+              isLoading ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+            disabled={isLoading}
+          >
+            {isLoading ? (isRegistering ? "Registering..." : "Logging In...") : (isRegistering ? "Sign Up" : "Sign In")}
+          </button>
+        </form>
+        <div className="text-center text-sm mt-4">
+          {isRegistering ? (
+            <>Already have an account? <button onClick={() => { console.log('Sign In button clicked, setting isRegistering to false'); setIsRegistering(false); }} className="text-blue-600 hover:underline">Sign In</button></>
+          ) : (
+            <>Don't have an account? <button onClick={() => setIsRegistering(true)} className="text-blue-600 hover:underline">Sign Up</button></>
+          )}
+        </div>
         <div className="text-xs text-gray-500 text-center mt-4">
           By continuing, you agree to our Terms of Service
         </div>
