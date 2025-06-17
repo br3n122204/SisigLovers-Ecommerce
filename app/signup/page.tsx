@@ -2,7 +2,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
-import app from "@/lib/firebase";
+import { app } from "@/lib/firebase";
 
 export default function SignupPage() {
   const [username, setUsername] = useState("");
