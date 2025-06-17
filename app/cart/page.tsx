@@ -25,6 +25,11 @@ export default function CartPage() {
 
   return (
     <div className="min-h-screen bg-white">
+      <div className="flex justify-center pt-8">
+        <a href="/">
+          <img src="/dptone-logo.png" alt="DPT ONE Logo" width={40} height={40} style={{objectFit: 'contain'}} />
+        </a>
+      </div>
       {/* Main Content */}
       <div className="max-w-4xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
         {cartItems.length === 0 ? (

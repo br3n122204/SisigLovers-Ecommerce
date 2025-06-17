@@ -112,6 +112,11 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-lg">
+        <div className="flex justify-center mb-4">
+          <a href="/">
+            <img src="/dptone-logo.png" alt="DPT ONE Logo" width={40} height={40} style={{objectFit: 'contain'}} />
+          </a>
+        </div>
         {!emailSent ? (
           <>
             <h2 className="text-2xl font-bold mb-2 text-center text-gray-800">Sign in</h2>
