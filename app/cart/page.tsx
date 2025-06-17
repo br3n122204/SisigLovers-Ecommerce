@@ -5,16 +5,22 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 export default function CartPage() {
   const { cartItems, removeFromCart, updateQuantity } = useCart();
   const { user } = useAuth();
+  const router = useRouter();
 
   const calculateTotal = () => {
     return cartItems.reduce((total, item) => {
       const price = parseFloat(item.price.replace(/[^\d.]/g, '')); // Clean price string
       return total + (price * item.quantity);
     }, 0).toFixed(2);
+  };
+
+  const handleProceedToCheckout = () => {
+    router.push('/checkout');
   };
 
   return (
@@ -99,7 +105,7 @@ export default function CartPage() {
             </div>
 
             {/* Cart Summary */}
-            <div className="md:col-span-1 bg-gray-50 p-6 rounded-lg shadow-sm">
+            <div className="md:col-span-1 bg-gray-50 p-6 rounded-lg shadow-sm h-fit sticky top-20">
               <h2 className="text-xl font-bold text-gray-900 mb-4">Order Summary</h2>
               <div className="space-y-2 text-gray-700">
                 <div className="flex justify-between">
@@ -115,7 +121,7 @@ export default function CartPage() {
                   <span>₱{calculateTotal()}</span>
                 </div>
               </div>
-              <Button className="w-full bg-black text-white py-3 rounded-md hover:bg-gray-800 transition-colors mt-6">
+              <Button onClick={handleProceedToCheckout} className="w-full bg-black text-white py-3 rounded-md hover:bg-gray-800 transition-colors mt-6">
                 Proceed to Checkout
               </Button>
             </div>

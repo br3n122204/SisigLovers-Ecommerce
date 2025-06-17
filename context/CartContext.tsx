@@ -18,6 +18,7 @@ interface CartContextType {
   addToCart: (product: CartItem) => void;
   removeFromCart: (productId: number) => void;
   updateQuantity: (productId: number, quantity: number) => void;
+  calculateTotal: () => string;
 }
 
 // Create the context with a default undefined value
@@ -26,6 +27,13 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 // CartProvider component to wrap your application
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+
+  const calculateTotal = () => {
+    return cartItems.reduce((total, item) => {
+      const price = parseFloat(item.price.replace(/[^\d.]/g, '')); // Clean price string
+      return total + (price * item.quantity);
+    }, 0).toFixed(2);
+  };
 
   const addToCart = (productToAdd: CartItem) => {
     setCartItems((prevItems) => {
@@ -60,7 +68,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, updateQuantity }}>
+    <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, updateQuantity, calculateTotal }}>
       {children}
     </CartContext.Provider>
   );
