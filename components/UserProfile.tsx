@@ -1,12 +1,12 @@
 "use client";
 import { useAuth } from "@/context/AuthContext";
-import { getAuth, signOut } from "firebase/auth";
+import { signOut } from "firebase/auth";
 import Link from "next/link";
 import { useState } from "react";
+import { auth } from "@/lib/firebase";
 
 export default function UserProfile() {
   const { user } = useAuth();
-  const auth = getAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const handleSignOut = async () => {
