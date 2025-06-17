@@ -6,12 +6,99 @@ import { ShoppingCart, Search, X } from "lucide-react";
 import UserProfile from "@/components/UserProfile";
 import { useCart } from '@/context/CartContext';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+
+// All products data - In a real application, this would come from a database or a shared utility
+const allProducts = [
+  {
+    id: 1,
+    name: "Strap White Tee",
+    price: "₱550.00",
+    image: "/images/products/strap-white-tee.jpg",
+    backImage: "/images/products/strap-white-tee-back.jpg",
+    category: "T-Shirts",
+    brand: "Strap",
+    color: "White",
+  },
+  {
+    id: 2,
+    name: "Richboyz White Tee",
+    price: "₱550.00",
+    image: "/images/products/richboyz-white-tee.jpg",
+    backImage: "/images/products/richboyz-white-tee-back.jpg",
+    category: "T-Shirts",
+    brand: "Richboyz",
+    color: "White",
+  },
+  {
+    id: 3,
+    name: "Charlotte Folk White Tee",
+    price: "₱550.00",
+    image: "/images/products/charlottefolk-white-tee.jpg",
+    backImage: "/images/products/charlottefolk-white-tee-back.jpg",
+    category: "T-Shirts",
+    brand: "Charlotte Folk",
+    color: "White",
+  },
+  {
+    id: 4,
+    name: "Strap Black Tee",
+    price: "₱550.00",
+    image: "/images/products/strap-black-tee.jpg",
+    backImage: "/images/products/strap-black-tee-back.jpg",
+    category: "T-Shirts",
+    brand: "Strap",
+    color: "Black",
+  },
+  {
+    id: 5,
+    name: "MN+LA Black Tee",
+    price: "₱550.00",
+    image: "/images/products/mnla-black-tee.jpg",
+    backImage: "/images/products/mnla-black-tee-back.jpg",
+    category: "T-Shirts",
+    brand: "MN+LA",
+    color: "Black",
+  },
+  {
+    id: 6,
+    name: "Richboyz Black Tee",
+    price: "₱550.00",
+    image: "/images/products/richboyz-black-tee.jpg",
+    backImage: "/images/products/richboyz-black-tee-back.jpg",
+    category: "T-Shirts",
+    brand: "Richboyz",
+    color: "Black",
+  },
+  {
+    id: 7,
+    name: "MN+LA White Tee",
+    price: "₱550.00",
+    image: "/images/products/mnla-white-tee.jpg",
+    backImage: "/images/products/mnla-white-tee-back.jpg",
+    category: "T-Shirts",
+    brand: "MN+LA",
+    color: "White",
+  },
+  {
+    id: 8,
+    name: "Charlotte Folk Black Tee",
+    price: "₱550.00",
+    image: "/images/products/charlottefolk-black-tee.jpg",
+    backImage: "/images/products/charlottefolk-black-tee-back.jpg",
+    category: "T-Shirts",
+    brand: "Charlotte Folk",
+    color: "Black",
+  },
+];
 
 export default function Header() {
   const { cartItems } = useCart();
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,6 +106,23 @@ export default function Header() {
       router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
       setSearchQuery('');
       setIsSearchOpen(false);
+      setSearchResults([]);
+      setShowSuggestions(false);
+    }
+  };
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    if (query.trim().length > 0) {
+      const filtered = allProducts.filter(product =>
+        product.name.toLowerCase().includes(query.toLowerCase())
+      );
+      setSearchResults(filtered);
+      setShowSuggestions(true);
+    } else {
+      setSearchResults([]);
+      setShowSuggestions(false);
     }
   };
 
@@ -26,6 +130,8 @@ export default function Header() {
     setIsSearchOpen(!isSearchOpen);
     if (isSearchOpen) {
       setSearchQuery('');
+      setSearchResults([]);
+      setShowSuggestions(false);
     }
   };
 
@@ -48,16 +154,34 @@ export default function Header() {
               type="text"
               placeholder="Search products..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2 pl-10 pr-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+              onChange={handleInputChange}
+              onFocus={() => setShowSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 100)}
+              className="w-full px-5 py-2.5 pl-12 pr-5 border-2 border-gray-300 rounded-full bg-gray-100 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-3 focus:ring-blue-600 focus:border-blue-600 transition-all duration-300 ease-in-out shadow-md"
             />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-600" />
             <button
               type="submit"
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-blue-700 transition-colors"
             >
-              <Search className="h-4 w-4" />
+              <Search className="h-5 w-5" />
             </button>
+
+            {/* Search Suggestions Dropdown (Desktop) */}
+            {showSuggestions && searchQuery.length > 0 && searchResults.length > 0 && (
+              <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
+                <p className="px-4 py-2 text-xs text-gray-500 uppercase font-bold">Products</p>
+                {searchResults.map((product) => (
+                  <Link href={`/products/${product.id}`} key={product.id} className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                    <Image src={product.image} alt={product.name} width={40} height={40} className="mr-3 rounded" />
+                    <span className="text-sm font-medium text-gray-800">{product.name}</span>
+                  </Link>
+                ))}
+                <Link href={`/search?q=${encodeURIComponent(searchQuery)}`} className="block px-4 py-3 bg-gray-50 text-blue-600 hover:bg-gray-100 text-sm font-medium text-center border-t border-gray-200">
+                  Search for "{searchQuery}"
+                </Link>
+              </div>
+            )}
           </form>
         </div>
 
@@ -92,17 +216,35 @@ export default function Header() {
               type="text"
               placeholder="Search products..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2 pl-10 pr-4 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
+              onChange={handleInputChange}
+              onFocus={() => setShowSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 100)}
+              className="w-full px-5 py-2.5 pl-12 pr-5 border-2 border-gray-300 rounded-full bg-gray-100 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-3 focus:ring-blue-600 focus:border-blue-600 transition-all duration-300 ease-in-out shadow-md"
               autoFocus
             />
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-600" />
             <button
               type="submit"
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-blue-700 transition-colors"
             >
-              <Search className="h-4 w-4" />
+              <Search className="h-5 w-5" />
             </button>
+
+            {/* Search Suggestions Dropdown (Mobile) */}
+            {showSuggestions && searchQuery.length > 0 && searchResults.length > 0 && (
+              <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
+                <p className="px-4 py-2 text-xs text-gray-500 uppercase font-bold">Products</p>
+                {searchResults.map((product) => (
+                  <Link href={`/products/${product.id}`} key={product.id} className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                    <Image src={product.image} alt={product.name} width={40} height={40} className="mr-3 rounded" />
+                    <span className="text-sm font-medium text-gray-800">{product.name}</span>
+                  </Link>
+                ))}
+                <Link href={`/search?q=${encodeURIComponent(searchQuery)}`} className="block px-4 py-3 bg-gray-50 text-blue-600 hover:bg-gray-100 text-sm font-medium text-center border-t border-gray-200">
+                  Search for "{searchQuery}"
+                </Link>
+              </div>
+            )}
           </form>
         </div>
       )}
