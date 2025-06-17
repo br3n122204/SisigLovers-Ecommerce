@@ -98,10 +98,11 @@ const allProducts = [
 export default function SearchPage() {
   const searchParams = useSearchParams()
   const query = searchParams.get('q') || ''
+  const initialBrand = searchParams.get('brand') || ''
   const [filteredProducts, setFilteredProducts] = useState(allProducts)
   const [hoveredProduct, setHoveredProduct] = useState<number | null>(null)
   const [showFilters, setShowFilters] = useState(false)
-  const [selectedBrand, setSelectedBrand] = useState<string>('')
+  const [selectedBrand, setSelectedBrand] = useState<string>(initialBrand)
   const [selectedColor, setSelectedColor] = useState<string>('')
   const [priceRange, setPriceRange] = useState<string>('')
   
@@ -146,7 +147,7 @@ export default function SearchPage() {
     }
 
     setFilteredProducts(results)
-  }, [query, selectedBrand, selectedColor, priceRange])
+  }, [query, selectedBrand, selectedColor, priceRange, searchParams])
 
   const handleAddToCart = (product: any) => {
     if (!user) {

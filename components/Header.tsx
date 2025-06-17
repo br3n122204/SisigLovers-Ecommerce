@@ -2,11 +2,12 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ShoppingCart, Search, X } from "lucide-react";
+import { ShoppingCart, Search, X, ChevronDown } from "lucide-react";
 import UserProfile from "@/components/UserProfile";
 import { useCart } from '@/context/CartContext';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { useAuth } from '@/context/AuthContext';
 
 // All products data - In a real application, this would come from a database or a shared utility
 const allProducts = [
@@ -95,10 +96,12 @@ const allProducts = [
 export default function Header() {
   const { cartItems } = useCart();
   const router = useRouter();
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isBrandDropdownOpen, setIsBrandDropdownOpen] = useState(false);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -142,8 +145,27 @@ export default function Header() {
         <div className="flex items-center space-x-8">
           <Link href="/" className="text-2xl font-bold text-black tracking-wider">DPT ONE</Link>
           <nav className="hidden md:flex space-x-6 text-sm font-medium text-gray-700">
-            <Link href="/shop" className="hover:text-gray-900">Shop</Link>
-            <Link href="/orders" className="hover:text-gray-900">Orders</Link>
+            {/* Shop by Brand Dropdown */}
+            <div className="relative">
+              <button
+                onClick={() => setIsBrandDropdownOpen(!isBrandDropdownOpen)}
+                className="flex items-center space-x-1 hover:text-gray-900 focus:outline-none"
+              >
+                <span>Shop by Brand</span>
+                <ChevronDown
+                  className={`h-4 w-4 transform transition-transform duration-200 ${isBrandDropdownOpen ? 'rotate-180' : ''}`}
+                />
+              </button>
+              <div className={`absolute ${isBrandDropdownOpen ? 'block' : 'hidden'} bg-white shadow-lg rounded-md py-1 mt-2 w-40 z-20`}>
+                <Link href="/search?brand=MN%2BLA" className="block px-4 py-2 hover:bg-gray-100">MN+LA</Link>
+                <Link href="/search?brand=Charlotte%20Folk" className="block px-4 py-2 hover:bg-gray-100">Charlotte Folk</Link>
+                <Link href="/search?brand=Strap" className="block px-4 py-2 hover:bg-gray-100">Strap</Link>
+                <Link href="/search?brand=Richboyz" className="block px-4 py-2 hover:bg-gray-100">Richboyz</Link>
+              </div>
+            </div>
+            {user && (
+              <Link href="/orders" className="hover:text-gray-900">Orders</Link>
+            )}
           </nav>
         </div>
 
