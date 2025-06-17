@@ -4,9 +4,11 @@ import { useCart } from '@/context/CartContext';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/context/AuthContext';
 
 export default function CartPage() {
   const { cartItems, removeFromCart, updateQuantity } = useCart();
+  const { user } = useAuth();
 
   const calculateTotal = () => {
     return cartItems.reduce((total, item) => {
@@ -17,23 +19,40 @@ export default function CartPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Black Side Panels */}
-      <div className="fixed left-0 top-0 w-16 h-full bg-black z-10"></div>
-      <div className="fixed right-0 top-0 w-16 h-full bg-black z-10"></div>
-
-      {/* Main Content Container */}
-      <div className="mx-16 pt-8 pb-16">
-        {/* Back to Home Button */}
-        <Link href="/" passHref>
-          <Button variant="outline" className="mb-8 border-gray-300 text-gray-700 hover:bg-gray-50">
-            ← Back to Home
-          </Button>
-        </Link>
-
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Your Shopping Cart</h1>
-
+      {/* Main Content */}
+      <div className="max-w-4xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
         {cartItems.length === 0 ? (
-          <p className="text-lg text-gray-600">Your cart is empty. <Link href="/" className="text-blue-600 hover:underline">Start shopping!</Link></p>
+          <div className="text-center space-y-8">
+            <h1 className="text-4xl font-bold text-gray-900">Your cart is empty</h1>
+            <Link href="/" className="text-lg text-blue-600 hover:underline">Continue shopping</Link>
+            
+            {!user && (
+              <div className="border-t border-gray-200 pt-8 mt-8 space-y-4">
+                <h2 className="text-xl font-bold text-gray-900">Have an account?</h2>
+                <p className="text-gray-700">
+                  <Link href="/login" className="text-blue-600 hover:underline">Log in</Link> to check out faster.
+                </p>
+              </div>
+            )}
+
+            {!user && (
+              <div className="border-t border-gray-200 pt-8 mt-8 space-y-4">
+                <h2 className="text-xl font-bold text-gray-900">Subscribe to our emails</h2>
+                <form className="flex justify-center">
+                  <input
+                    type="email"
+                    placeholder="Email"
+                    className="border border-gray-300 px-4 py-2 rounded-l-md w-full max-w-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent"
+                  />
+                  <button type="submit" className="bg-gray-800 text-white px-4 py-2 rounded-r-md hover:bg-gray-900 transition-colors">
+                    <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path>
+                    </svg>
+                  </button>
+                </form>
+              </div>
+            )}
+          </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Cart Items List */}
@@ -56,7 +75,7 @@ export default function CartPage() {
                       >
                         -
                       </Button>
-                      <span className="mx-2 px-3 py-1 border border-gray-300 rounded-md text-sm">{item.quantity}</span>
+                      <span className="mx-2 px-3 py-1 border border-gray-300 rounded-md text-sm">{isNaN(item.quantity) ? 0 : item.quantity}</span>
                       <Button
                         variant="outline"
                         size="sm"

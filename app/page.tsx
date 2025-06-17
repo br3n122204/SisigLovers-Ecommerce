@@ -5,8 +5,11 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ChevronLeft, ChevronRight, Menu, ShoppingCart } from "lucide-react"
 import Image from "next/image"
-import Link from "next/link" // Import Link for navigation
-import { useCart } from '@/context/CartContext'; // Import useCart hook
+import Link from "next/link"
+import { useCart } from '@/context/CartContext'
+import { useAuth } from '@/context/AuthContext'
+import UserProfile from '@/components/UserProfile'
+import { useRouter } from 'next/navigation'
 
 // Sample slider images data
 const sliderImages = [
@@ -192,7 +195,17 @@ function ImageSlider() {
 
 export default function DPTOneFashion() {
   const [hoveredProduct, setHoveredProduct] = useState<number | null>(null)
-  const { cartItems } = useCart(); // Use useCart hook
+  const { cartItems, addToCart } = useCart()
+  const { user } = useAuth()
+  const router = useRouter()
+
+  const handleAddToCart = (product: any) => {
+    if (!user) {
+      router.push('/login')
+      return
+    }
+    addToCart(product)
+  }
 
   return (
     <div className="min-h-screen bg-white">
@@ -203,110 +216,48 @@ export default function DPTOneFashion() {
       {/* Main Content Container */}
       <div className="mx-16">
         {/* Header */}
-        <header className="bg-white border-b border-gray-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between h-16">
-              {/* Mobile Menu Button */}
-              <div className="flex items-center">
-                <Button variant="ghost" size="sm" className="md:hidden">
-                  <Menu className="h-5 w-5" />
-                </Button>
-              </div>
+        {/* The previous header content has been moved to app/layout.tsx */}
 
-              {/* Logo */}
-              <div className="flex-shrink-0 flex items-center">
-                <h1 className="text-2xl font-bold text-black tracking-wider">DPT ONE</h1>
-              </div>
-
-              {/* Navigation */}
-              <nav className="hidden md:flex space-x-8">
-                <a href="#" className="text-gray-900 hover:text-gray-600 px-3 py-2 text-sm font-medium">
-                  Home
-                </a>
-                <a href="#" className="text-gray-900 hover:text-gray-600 px-3 py-2 text-sm font-medium">
-                  New Arrivals
-                </a>
-                <a href="#" className="text-gray-900 hover:text-gray-600 px-3 py-2 text-sm font-medium">
-                  Collections
-                </a>
-                <a href="#" className="text-gray-900 hover:text-gray-600 px-3 py-2 text-sm font-medium">
-                  Sale
-                </a>
-              </nav>
-
-              {/* Auth Buttons */}
-              <div className="flex items-center space-x-4">
-                <Link href="/login">
-                  <Button variant="outline" size="sm" className="border-gray-300 text-gray-700 hover:bg-gray-50">
-                    Log In
-                  </Button>
-                </Link>
-                <Link href="/signup">
-                  <Button size="sm" className="bg-black text-white hover:bg-gray-800">
-                    Sign Up
-                  </Button>
-                </Link>
-                {/* Cart Icon */}
-                <Link href="/cart" className="relative flex items-center justify-center">
-                  <ShoppingCart className="h-6 w-6 text-gray-700 hover:text-gray-900 transition-colors" />
-                  {cartItems.length > 0 && (
-                    <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                      {cartItems.length}
-                    </span>
-                  )}
-                </Link>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        {/* Hero Section with Image Slider */}
-        <section className="relative">
-          <ImageSlider />
-        </section>
+        {/* Image Slider */}
+        <ImageSlider />
 
         {/* Featured Products Section */}
-        <section className="py-12 md:py-16">
+        <section className="py-12">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-bold text-center text-gray-900 mb-8">Featured Products</h2>
-            {/* Products Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+            <h2 className="text-3xl font-bold text-center mb-8">Featured Products</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {featuredProducts.map((product) => (
-                <Link key={product.id} href={`/products/${product.id}`} passHref>
-                  <Card key={product.id} className="w-full border-2 border-black shadow-none hover:shadow-md transition-shadow">
-                    <CardContent className="p-0">
-                      <div
-                        className="aspect-square relative mb-4 bg-gray-100 rounded-lg overflow-hidden border border-gray-100"
-                        onMouseEnter={() => setHoveredProduct(product.id)}
-                        onMouseLeave={() => setHoveredProduct(null)}
+                <Card key={product.id} className="overflow-hidden">
+                  <CardContent className="p-0">
+                    <div
+                      className="relative aspect-square"
+                      onMouseEnter={() => setHoveredProduct(product.id)}
+                      onMouseLeave={() => setHoveredProduct(null)}
+                    >
+                      <Image
+                        src={hoveredProduct === product.id ? product.backImage : product.image}
+                        alt={product.name}
+                        fill
+                        className="object-cover transition-opacity duration-300"
+                      />
+                      <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-all duration-300" />
+                    </div>
+                    <div className="p-4">
+                      <h3 className="text-lg font-semibold">{product.name}</h3>
+                      <p className="text-gray-600">{product.price}</p>
+                      <Button
+                        onClick={() => handleAddToCart(product)}
+                        className="w-full mt-2 bg-black text-white hover:bg-gray-800"
                       >
-                        <Image
-                          src={hoveredProduct === product.id && product.backImage ? product.backImage : product.image}
-                          alt={product.name}
-                          fill
-                          className="absolute inset-0 object-cover block transition-transform duration-300 hover:scale-105"
-                        />
-                      </div>
-                      <div className="text-center">
-                        <h3 className="text-sm font-medium text-gray-900 mb-1">{product.name}</h3>
-                        <p className="text-sm text-gray-600">{product.price}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
+                        Add to Cart
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           </div>
         </section>
-
-        {/* Footer */}
-        <footer className="bg-gray-900 text-white py-8">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center">
-              <p className="text-sm text-gray-400">© 2025 DPT ONE. All rights reserved.</p>
-            </div>
-          </div>
-        </footer>
       </div>
     </div>
   )
