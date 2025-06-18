@@ -143,7 +143,16 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
         {/* Left Section: Logo and Navigation */}
         <div className="flex items-center space-x-8">
-          <Link href="/" className="text-2xl font-bold text-black tracking-wider">DPT ONE</Link>
+          <Link href="/" className="flex items-center">
+            <Image
+              src="/images/logo.png"
+              alt="Sisig Lovers Logo"
+              width={60}
+              height={60}
+              className="h-auto"
+              priority
+            />
+          </Link>
           <nav className="hidden md:flex space-x-6 text-sm font-medium text-gray-700">
             {/* Shop by Brand Dropdown */}
             <div className="relative">
