@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { ShoppingCart, Search, X, ChevronDown } from "lucide-react";
 import UserProfile from "@/components/UserProfile";
 import { useCart } from '@/context/CartContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 
@@ -102,6 +102,7 @@ export default function Header() {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isBrandDropdownOpen, setIsBrandDropdownOpen] = useState(false);
+  const pathname = usePathname();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -178,43 +179,45 @@ export default function Header() {
           </nav>
         </div>
 
-        {/* Center Section: Search Bar */}
-        <div className="flex-1 max-w-md mx-8 hidden md:block">
-          <form onSubmit={handleSearch} className="relative">
-            <input
-              type="text"
-              placeholder="Search products..."
-              value={searchQuery}
-              onChange={handleInputChange}
-              onFocus={() => setShowSuggestions(true)}
-              onBlur={() => setTimeout(() => setShowSuggestions(false), 100)}
-              className="w-full px-5 py-2.5 pl-12 pr-5 border-2 border-gray-300 rounded-full bg-gray-100 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-3 focus:ring-blue-600 focus:border-blue-600 transition-all duration-300 ease-in-out shadow-md"
-            />
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-600" />
-            <button
-              type="submit"
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-blue-700 transition-colors"
-            >
-              <Search className="h-5 w-5" />
-            </button>
+        {/* Center Section: Search Bar (hidden on /profile and /cart) */}
+        {!(pathname === '/profile' || pathname === '/cart' || pathname === '/settings') && (
+          <div className="flex-1 max-w-md mx-8 hidden md:block">
+            <form onSubmit={handleSearch} className="relative">
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={searchQuery}
+                onChange={handleInputChange}
+                onFocus={() => setShowSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 100)}
+                className="w-full px-5 py-2.5 pl-12 pr-5 border-2 border-gray-300 rounded-full bg-gray-100 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-3 focus:ring-blue-600 focus:border-blue-600 transition-all duration-300 ease-in-out shadow-md"
+              />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-600" />
+              <button
+                type="submit"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-blue-700 transition-colors"
+              >
+                <Search className="h-5 w-5" />
+              </button>
 
-            {/* Search Suggestions Dropdown (Desktop) */}
-            {showSuggestions && searchQuery.length > 0 && searchResults.length > 0 && (
-              <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
-                <p className="px-4 py-2 text-xs text-gray-500 uppercase font-bold">Products</p>
-                {searchResults.map((product) => (
-                  <Link href={`/products/${product.id}`} key={product.id} className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                    <Image src={product.image} alt={product.name} width={40} height={40} className="mr-3 rounded" />
-                    <span className="text-sm font-medium text-gray-800">{product.name}</span>
+              {/* Search Suggestions Dropdown (Desktop) */}
+              {showSuggestions && searchQuery.length > 0 && searchResults.length > 0 && (
+                <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
+                  <p className="px-4 py-2 text-xs text-gray-500 uppercase font-bold">Products</p>
+                  {searchResults.map((product) => (
+                    <Link href={`/products/${product.id}`} key={product.id} className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                      <Image src={product.image} alt={product.name} width={40} height={40} className="mr-3 rounded" />
+                      <span className="text-sm font-medium text-gray-800">{product.name}</span>
+                    </Link>
+                  ))}
+                  <Link href={`/search?q=${encodeURIComponent(searchQuery)}`} className="block px-4 py-3 bg-gray-50 text-blue-600 hover:bg-gray-100 text-sm font-medium text-center border-t border-gray-200">
+                    Search for "{searchQuery}"
                   </Link>
-                ))}
-                <Link href={`/search?q=${encodeURIComponent(searchQuery)}`} className="block px-4 py-3 bg-gray-50 text-blue-600 hover:bg-gray-100 text-sm font-medium text-center border-t border-gray-200">
-                  Search for "{searchQuery}"
-                </Link>
-              </div>
-            )}
-          </form>
-        </div>
+                </div>
+              )}
+            </form>
+          </div>
+        )}
 
         {/* Right Section: Search Icon (Mobile), UserProfile and Cart Icon */}
         <div className="flex items-center space-x-4">
@@ -239,8 +242,8 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Mobile Search Bar */}
-      {isSearchOpen && (
+      {/* Mobile Search Bar (hidden on /profile and /cart) */}
+      {isSearchOpen && !(pathname === '/profile' || pathname === '/cart' || pathname === '/settings') && (
         <div className="md:hidden px-4 py-3 border-t border-gray-200">
           <form onSubmit={handleSearch} className="relative">
             <input
