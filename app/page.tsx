@@ -209,12 +209,8 @@ export default function DPTOneFashion() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Black Side Panels */}
-      <div className="fixed left-0 top-0 w-16 h-full bg-black z-10"></div>
-      <div className="fixed right-0 top-0 w-16 h-full bg-black z-10"></div>
-
       {/* Main Content Container */}
-      <div className="mx-16">
+      <div className="w-full">
         {/* Header */}
         {/* The previous header content has been moved to app/layout.tsx */}
 
@@ -222,40 +218,38 @@ export default function DPTOneFashion() {
         <ImageSlider />
 
         {/* Featured Products Section */}
-        <section className="py-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-bold text-center mb-8">Featured Products</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {featuredProducts.map((product) => (
-                <Card key={product.id} className="overflow-hidden">
-                  <CardContent className="p-0">
-                    <div
-                      className="relative aspect-square"
-                      onMouseEnter={() => setHoveredProduct(product.id)}
-                      onMouseLeave={() => setHoveredProduct(null)}
+        <section className="w-full px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-bold text-center mb-8">Featured Products</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {featuredProducts.map((product) => (
+              <Card key={product.id} className="overflow-hidden">
+                <CardContent className="p-0">
+                  <div
+                    className="relative aspect-square"
+                    onMouseEnter={() => setHoveredProduct(product.id)}
+                    onMouseLeave={() => setHoveredProduct(null)}
+                  >
+                    <Image
+                      src={hoveredProduct === product.id ? product.backImage : product.image}
+                      alt={product.name}
+                      fill
+                      className="object-cover transition-opacity duration-300"
+                    />
+                    <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-all duration-300" />
+                  </div>
+                  <div className="p-4">
+                    <h3 className="text-lg font-semibold">{product.name}</h3>
+                    <p className="text-gray-600">{product.price}</p>
+                    <Button
+                      onClick={() => handleAddToCart(product)}
+                      className="w-full mt-2 bg-black text-white hover:bg-gray-800"
                     >
-                      <Image
-                        src={hoveredProduct === product.id ? product.backImage : product.image}
-                        alt={product.name}
-                        fill
-                        className="object-cover transition-opacity duration-300"
-                      />
-                      <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-all duration-300" />
-                    </div>
-                    <div className="p-4">
-                      <h3 className="text-lg font-semibold">{product.name}</h3>
-                      <p className="text-gray-600">{product.price}</p>
-                      <Button
-                        onClick={() => handleAddToCart(product)}
-                        className="w-full mt-2 bg-black text-white hover:bg-gray-800"
-                      >
-                        Add to Cart
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+                      Add to Cart
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </section>
       </div>

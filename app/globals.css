@@ -75,3 +75,14 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+/* Marquee animation for AnnouncementBar */
+.animate-marquee {
+  display: inline-block;
+  white-space: nowrap;
+  animation: marquee 20s linear infinite;
+}
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
