@@ -209,12 +209,8 @@ export default function DPTOneFashion() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Black Side Panels */}
-      <div className="fixed left-0 top-0 w-16 h-full bg-black z-10"></div>
-      <div className="fixed right-0 top-0 w-16 h-full bg-black z-10"></div>
-
       {/* Main Content Container */}
-      <div className="mx-16">
+      <div className="w-full">
         {/* Header */}
         {/* The previous header content has been moved to app/layout.tsx */}
 
@@ -223,7 +219,7 @@ export default function DPTOneFashion() {
 
         {/* Featured Products Section */}
         <section className="py-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="w-full px-4 sm:px-6 lg:px-8">
             <h2 className="text-3xl font-bold text-center mb-8">Featured Products</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {featuredProducts.map((product) => (
