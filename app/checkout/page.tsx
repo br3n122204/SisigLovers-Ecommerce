@@ -212,7 +212,7 @@ export default function CheckoutPage() {
               </div>
             </div>
             <div className="mb-4">
-              <label htmlFor="region" className="block text-sm font-medium text-gray-700">Region</label>
+              <label htmlFor="region" className="block text-sm font-medium text-gray-700">Province</label>
               <select
                 id="region"
                 name="region"
@@ -221,8 +221,89 @@ export default function CheckoutPage() {
                 onChange={handleInputChange}
                 required
               >
+                <option value="Abra">Abra</option>
+                <option value="Agusan del Norte">Agusan del Norte</option>
+                <option value="Agusan del Sur">Agusan del Sur</option>
+                <option value="Aklan">Aklan</option>
+                <option value="Albay">Albay</option>
+                <option value="Antique">Antique</option>
+                <option value="Apayao">Apayao</option>
+                <option value="Aurora">Aurora</option>
+                <option value="Basilan">Basilan</option>
+                <option value="Bataan">Bataan</option>
+                <option value="Batanes">Batanes</option>
+                <option value="Batangas">Batangas</option>
+                <option value="Benguet">Benguet</option>
+                <option value="Biliran">Biliran</option>
+                <option value="Bohol">Bohol</option>
+                <option value="Bukidnon">Bukidnon</option>
+                <option value="Bulacan">Bulacan</option>
+                <option value="Cagayan">Cagayan</option>
+                <option value="Camarines Norte">Camarines Norte</option>
+                <option value="Camarines Sur">Camarines Sur</option>
+                <option value="Camiguin">Camiguin</option>
+                <option value="Capiz">Capiz</option>
+                <option value="Catanduanes">Catanduanes</option>
+                <option value="Cavite">Cavite</option>
                 <option value="Cebu">Cebu</option>
-                {/* Add more regions as needed */}
+                <option value="Cotabato">Cotabato</option>
+                <option value="Davao de Oro">Davao de Oro</option>
+                <option value="Davao del Norte">Davao del Norte</option>
+                <option value="Davao del Sur">Davao del Sur</option>
+                <option value="Davao Occidental">Davao Occidental</option>
+                <option value="Davao Oriental">Davao Oriental</option>
+                <option value="Dinagat Islands">Dinagat Islands</option>
+                <option value="Eastern Samar">Eastern Samar</option>
+                <option value="Guimaras">Guimaras</option>
+                <option value="Ifugao">Ifugao</option>
+                <option value="Ilocos Norte">Ilocos Norte</option>
+                <option value="Ilocos Sur">Ilocos Sur</option>
+                <option value="Iloilo">Iloilo</option>
+                <option value="Isabela">Isabela</option>
+                <option value="Kalinga">Kalinga</option>
+                <option value="La Union">La Union</option>
+                <option value="Laguna">Laguna</option>
+                <option value="Lanao del Norte">Lanao del Norte</option>
+                <option value="Lanao del Sur">Lanao del Sur</option>
+                <option value="Leyte">Leyte</option>
+                <option value="Maguindanao del Norte">Maguindanao del Norte</option>
+                <option value="Maguindanao del Sur">Maguindanao del Sur</option>
+                <option value="Marinduque">Marinduque</option>
+                <option value="Masbate">Masbate</option>
+                <option value="Metro Manila">Metro Manila</option>
+                <option value="Misamis Occidental">Misamis Occidental</option>
+                <option value="Misamis Oriental">Misamis Oriental</option>
+                <option value="Mountain Province">Mountain Province</option>
+                <option value="Negros Occidental">Negros Occidental</option>
+                <option value="Negros Oriental">Negros Oriental</option>
+                <option value="Northern Samar">Northern Samar</option>
+                <option value="Nueva Ecija">Nueva Ecija</option>
+                <option value="Nueva Vizcaya">Nueva Vizcaya</option>
+                <option value="Occidental Mindoro">Occidental Mindoro</option>
+                <option value="Oriental Mindoro">Oriental Mindoro</option>
+                <option value="Palawan">Palawan</option>
+                <option value="Pampanga">Pampanga</option>
+                <option value="Pangasinan">Pangasinan</option>
+                <option value="Quezon">Quezon</option>
+                <option value="Quirino">Quirino</option>
+                <option value="Rizal">Rizal</option>
+                <option value="Romblon">Romblon</option>
+                <option value="Samar">Samar</option>
+                <option value="Sarangani">Sarangani</option>
+                <option value="Siquijor">Siquijor</option>
+                <option value="Sorsogon">Sorsogon</option>
+                <option value="South Cotabato">South Cotabato</option>
+                <option value="Southern Leyte">Southern Leyte</option>
+                <option value="Sultan Kudarat">Sultan Kudarat</option>
+                <option value="Sulu">Sulu</option>
+                <option value="Surigao del Norte">Surigao del Norte</option>
+                <option value="Surigao del Sur">Surigao del Sur</option>
+                <option value="Tarlac">Tarlac</option>
+                <option value="Tawi-Tawi">Tawi-Tawi</option>
+                <option value="Zambales">Zambales</option>
+                <option value="Zamboanga del Norte">Zamboanga del Norte</option>
+                <option value="Zamboanga del Sur">Zamboanga del Sur</option>
+                <option value="Zamboanga Sibugay">Zamboanga Sibugay</option>
               </select>
             </div>
             <div className="mb-4">
@@ -252,9 +333,14 @@ export default function CheckoutPage() {
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Payment</h2>
             <p className="text-sm text-gray-600 mb-4">All transactions are secure and encrypted.</p>
 
-            {/* Payment Options */}
-            <div className="border border-gray-300 rounded-md p-4 mb-4">
-              <div className="flex items-center mb-4">
+            {/* Payment Options - Improved */}
+            <div className="grid grid-cols-1 gap-4 mb-4">
+              <label
+                htmlFor="gcash"
+                className={`flex items-center border rounded-md p-4 cursor-pointer transition-shadow ${
+                  paymentMethod === "gcash" ? "border-blue-600 shadow-lg bg-blue-50" : "border-gray-300 bg-white"
+                }`}
+              >
                 <input
                   type="radio"
                   id="gcash"
@@ -264,12 +350,17 @@ export default function CheckoutPage() {
                   onChange={(e) => setPaymentMethod(e.target.value)}
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500"
                 />
-                <label htmlFor="gcash" className="ml-3 block text-base font-medium text-gray-900">
+                <span className="ml-3 text-base font-medium text-gray-900 flex items-center">
                   GCash
-                </label>
-                <img src="/images/gcash-logo.png" alt="GCash" className="ml-auto h-6" />
-              </div>
-              <div className="flex items-center">
+                  <img src="/images/gcash-logo.png" alt="GCash" className="ml-3 h-8" />
+                </span>
+              </label>
+              <label
+                htmlFor="cod"
+                className={`flex items-center border rounded-md p-4 cursor-pointer transition-shadow ${
+                  paymentMethod === "cod" ? "border-blue-600 shadow-lg bg-blue-50" : "border-gray-300 bg-white"
+                }`}
+              >
                 <input
                   type="radio"
                   id="cod"
@@ -279,10 +370,10 @@ export default function CheckoutPage() {
                   onChange={(e) => setPaymentMethod(e.target.value)}
                   className="h-4 w-4 text-blue-600 focus:ring-blue-500"
                 />
-                <label htmlFor="cod" className="ml-3 block text-base font-medium text-gray-900">
+                <span className="ml-3 text-base font-medium text-gray-900">
                   Cash on delivery (COD)
-                </label>
-              </div>
+                </span>
+              </label>
             </div>
 
             {/* Billing Address */}
@@ -431,7 +522,24 @@ export default function CheckoutPage() {
                     onChange={handleBillingInputChange}
                     required
                   >
-                    <option value="Cebu">Cebu</option>
+                    <option value="Ilocos Region">Ilocos Region</option>
+                    <option value="Cagayan Valley">Cagayan Valley</option>
+                    <option value="Central Luzon">Central Luzon</option>
+                    <option value="CALABARZON">CALABARZON</option>
+                    <option value="MIMAROPA">MIMAROPA</option>
+                    <option value="Bicol Region">Bicol Region</option>
+                    <option value="Western Visayas">Western Visayas</option>
+                    <option value="Central Visayas">Central Visayas</option>
+                    <option value="Eastern Visayas">Eastern Visayas</option>
+                    <option value="Zamboanga Peninsula">Zamboanga Peninsula</option>
+                    <option value="Northern Mindanao">Northern Mindanao</option>
+                    <option value="Davao Region">Davao Region</option>
+                    <option value="SOCCSKSARGEN">SOCCSKSARGEN</option>
+                    <option value="Caraga">Caraga</option>
+                    <option value="BARMM">BARMM</option>
+                    <option value="Cordillera Administrative Region">Cordillera Administrative Region</option>
+                    <option value="National Capital Region">National Capital Region</option>
+                    <option value="Autonomous Region in Muslim Mindanao">Autonomous Region in Muslim Mindanao</option>
                   </select>
                 </div>
                 <div className="mb-4">
