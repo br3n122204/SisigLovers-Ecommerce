@@ -5,6 +5,7 @@ import "./globals.css"
 import { CartProvider } from '@/context/CartContext'
 import { AuthProvider } from "@/context/AuthContext"
 import Header from "@/components/Header"
+import AnnouncementBar from "@/components/AnnouncementBar"
 import Image from "next/image"
 
 const inter = Inter({ subsets: ["latin"] })
@@ -19,6 +20,7 @@ export default function RootLayout({
       <body className={inter.className} suppressHydrationWarning>
         <AuthProvider>
           <CartProvider>
+            <AnnouncementBar />
             <Header />
             {children}
           </CartProvider>
