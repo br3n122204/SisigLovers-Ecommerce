@@ -167,10 +167,10 @@ export default function Header() {
                 />
               </button>
               <div className={`absolute ${isBrandDropdownOpen ? 'block' : 'hidden'} bg-white shadow-lg rounded-md py-1 mt-2 w-40 z-20`}>
-                <Link href="/search?brand=MN%2BLA" className="block px-4 py-2 hover:bg-gray-100">MN+LA</Link>
-                <Link href="/search?brand=Charlotte%20Folk" className="block px-4 py-2 hover:bg-gray-100">Charlotte Folk</Link>
-                <Link href="/search?brand=Strap" className="block px-4 py-2 hover:bg-gray-100">Strap</Link>
-                <Link href="/search?brand=Richboyz" className="block px-4 py-2 hover:bg-gray-100">Richboyz</Link>
+                <button type="button" className="block w-full text-left px-4 py-2 hover:bg-gray-100" onClick={() => { router.push('/search?brand=MN%2BLA'); setIsBrandDropdownOpen(false); }}>MN+LA</button>
+                <button type="button" className="block w-full text-left px-4 py-2 hover:bg-gray-100" onClick={() => { router.push('/search?brand=Charlotte%20Folk'); setIsBrandDropdownOpen(false); }}>Charlotte Folk</button>
+                <button type="button" className="block w-full text-left px-4 py-2 hover:bg-gray-100" onClick={() => { router.push('/search?brand=Strap'); setIsBrandDropdownOpen(false); }}>Strap</button>
+                <button type="button" className="block w-full text-left px-4 py-2 hover:bg-gray-100" onClick={() => { router.push('/search?brand=Richboyz'); setIsBrandDropdownOpen(false); }}>Richboyz</button>
               </div>
             </div>
             {user && (
