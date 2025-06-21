@@ -149,6 +149,11 @@ export default function SearchPage() {
     setFilteredProducts(results)
   }, [query, selectedBrand, selectedColor, priceRange, searchParams])
 
+  // Sync selectedBrand with brand query param from URL
+  useEffect(() => {
+    setSelectedBrand(initialBrand);
+  }, [initialBrand]);
+
   const handleAddToCart = (product: any) => {
     if (!user) {
       router.push('/login')
@@ -167,12 +172,8 @@ export default function SearchPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Black Side Panels */}
-      <div className="fixed left-0 top-0 w-16 h-full bg-black z-10"></div>
-      <div className="fixed right-0 top-0 w-16 h-full bg-black z-10"></div>
-
       {/* Main Content Container */}
-      <div className="mx-16 pt-8 pb-16">
+      <div className="w-full pt-8 pb-16">
         {/* Back to Home Button */}
         <Link href="/" passHref>
           <Button variant="outline" className="mb-8 border-gray-300 text-gray-700 hover:bg-gray-50">
