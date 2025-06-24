@@ -5,7 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button'; // Assuming you have a Button component
 import { getAuth, updateProfile } from 'firebase/auth';
 import { db } from '@/lib/firebase'; // Import db from firebase
-import { collection, addDoc, query, where, getDocs } from 'firebase/firestore'; // Import Firestore functions
+import { collection, addDoc, query, where, getDocs, serverTimestamp } from 'firebase/firestore'; // Import Firestore functions
 
 interface Address {
   id?: string;
@@ -108,7 +108,8 @@ export default function ProfilePage() {
     }); // Clear form on close
   };
 
-  const handleAddressSave = () => {
+  const handleAddressSave = async () => {
+    console.log("[DEBUG] handleAddressSave called");
     // Validation: check only required fields (address2 is optional)
     if (
       !newAddress.firstName.trim() ||
@@ -121,21 +122,50 @@ export default function ProfilePage() {
       !newAddress.phoneCode.trim() ||
       !newAddress.phone.trim()
     ) {
+      console.log("[DEBUG] Validation failed: missing required fields");
       alert("Please fill out all the fields.");
       return;
     }
 
     // Additional validation for +63 phone numbers
     if (newAddress.phoneCode === '+63' && !newAddress.phone.startsWith('0')) {
+      console.log("[DEBUG] Validation failed: +63 phone does not start with 0");
       alert('For Philippine numbers (+63), the phone number must start with 0.');
       return;
     }
 
-    setAddresses(prev => [
-      ...prev,
-      { ...newAddress, id: Date.now().toString() }
-    ]);
-    handleAddressModalClose();
+    if (!user) {
+      console.log("[DEBUG] No user found");
+      alert('You must be logged in to save an address.');
+      return;
+    }
+
+    try {
+      const addressToSave = {
+        firstName: newAddress.firstName,
+        lastName: newAddress.lastName,
+        address1: newAddress.address1,
+        address2: newAddress.address2 || '',
+        city: newAddress.city,
+        region: newAddress.region,
+        country: newAddress.country,
+        postalCode: newAddress.postalCode,
+        phone: `${newAddress.phoneCode}${newAddress.phone}`,
+        isDefault: newAddress.isDefault,
+        createdAt: serverTimestamp(),
+      };
+      console.log("[DEBUG] About to write to Firestore:", addressToSave);
+      const userAddressesCollection = collection(db, `users/${user.uid}/addresses`);
+      await addDoc(userAddressesCollection, addressToSave);
+      console.log("[DEBUG] Firestore write successful");
+      handleAddressModalClose();
+      console.log("[DEBUG] Modal closed after save");
+      await fetchAddresses();
+      console.log("[DEBUG] fetchAddresses called after save");
+    } catch (error) {
+      console.error('[DEBUG] Error saving address:', error);
+      alert('Failed to save address. Please try again.');
+    }
   };
 
   const fetchAddresses = async () => {
