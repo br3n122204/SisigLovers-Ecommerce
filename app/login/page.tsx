@@ -8,6 +8,11 @@ import {
 import { doc, setDoc, serverTimestamp, addDoc, collection } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { useSearchParams, useRouter } from 'next/navigation';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = 'https://YOUR_PROJECT_ID.supabase.co';
+const supabaseKey = 'YOUR_ANON_KEY';
+export const supabase = createClient(supabaseUrl, supabaseKey);
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
