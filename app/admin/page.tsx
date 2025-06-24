@@ -123,7 +123,7 @@ export default function AdminPage() {
   const [isLoadingActivities, setIsLoadingActivities] = useState(false);
   const router = useRouter();
 
-  const ADMIN_UID = "RacXfztiF4Poacj56A92385QtVM2";
+  const ADMIN_UID = "1BeqoY3h5gTa4LBUsAiaDLHHhnT2";
 
   const handleLogin = async (email: string, password: string) => {
     try {

@@ -64,35 +64,60 @@ export default function LoginPage() {
       if (isRegistering) {
         await createUserWithEmailAndPassword(auth, email, password);
         console.log('User registered and logged in successfully');
-        await setDoc(doc(db, "users", auth.currentUser?.uid || ""), {
-          email: auth.currentUser?.email,
-          emailVerified: auth.currentUser?.emailVerified,
+        // Main user document
+        const userDoc = {
+          email: auth.currentUser?.email || email,
+          emailVerified: auth.currentUser?.emailVerified || false,
           uid: auth.currentUser?.uid,
           createdAt: serverTimestamp()
-        });
-        // Log activity
-        await addDoc(collection(db, "activities"), {
-          type: "user_created",
-          email: auth.currentUser?.email,
-          uid: auth.currentUser?.uid,
-          timestamp: serverTimestamp()
-        });
-        console.log('User document written to Firestore:', auth.currentUser?.uid, auth.currentUser?.email);
+        };
+        await setDoc(doc(db, "users", auth.currentUser?.uid || ""), userDoc);
+        // Add to 'details' subcollection
+        if (auth.currentUser?.uid) {
+          await setDoc(doc(db, "users", auth.currentUser.uid, "details", "info"), {
+            gmail: auth.currentUser.email,
+            uid: auth.currentUser.uid
+          });
+        }
+        // Ensure auth.currentUser is available before logging activity
+        let attempts = 0;
+        while (!auth.currentUser && attempts < 5) {
+          await new Promise(res => setTimeout(res, 200));
+          attempts++;
+        }
+        if (auth.currentUser) {
+          try {
+            const activityDoc = {
+              type: "user_created",
+              email: auth.currentUser.email || email,
+              uid: auth.currentUser.uid,
+              timestamp: serverTimestamp()
+            };
+            await addDoc(collection(db, "activities"), activityDoc);
+            console.log('Activity logged for user:', activityDoc);
+          } catch (activityErr) {
+            console.error('Failed to log activity:', activityErr);
+          }
+        } else {
+          console.error('auth.currentUser not available after registration, activity not logged.');
+        }
+        console.log('User document and details written to Firestore:', userDoc);
       } else {
         await signInWithEmailAndPassword(auth, email, password);
         console.log('User logged in successfully');
       }
       router.push("/"); // Redirect to home page after successful auth
     } catch (err: any) {
-      console.error("Authentication error details:", {
-        code: err?.code,
-        message: err?.message,
-        fullError: err
-      });
-      setError(
-        err?.message ||
-        "Authentication failed. Please check your credentials and try again."
-      );
+      // Log the error object directly
+      console.error("Authentication error details:", err);
+
+      // Try to show a meaningful error message
+      let errorMsg = "Authentication failed. Please check your credentials and try again.";
+      if (err && typeof err === "object") {
+        if (err.code) errorMsg += ` (Code: ${err.code})`;
+        if (err.message) errorMsg = err.message;
+      }
+      setError(errorMsg);
     } finally {
       setIsLoading(false);
     }
