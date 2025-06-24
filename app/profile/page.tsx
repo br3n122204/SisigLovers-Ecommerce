@@ -18,10 +18,12 @@ interface Address {
   postalCode: string;
   city: string;
   region: string;
+  phoneCode: string;
   phone: string;
 }
 
 export default function ProfilePage() {
+  console.log("ProfilePage rendered");
   const { user, refreshUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [firstName, setFirstName] = useState("");
@@ -40,7 +42,8 @@ export default function ProfilePage() {
     postalCode: "",
     city: "",
     region: "Abra",
-    phone: "+63",
+    phoneCode: "+63",
+    phone: "",
   });
 
   // For simplicity, email is read-only as per image. Firebase email update is separate.
@@ -100,24 +103,39 @@ export default function ProfilePage() {
       postalCode: "",
       city: "",
       region: "Abra",
-      phone: "+63",
+      phoneCode: "+63",
+      phone: "",
     }); // Clear form on close
   };
 
-  const handleAddressSave = async () => {
-    if (!user) return;
-
-    try {
-      const userAddressesCollection = collection(db, `users/${user.uid}/addresses`);
-      await addDoc(userAddressesCollection, newAddress);
-      console.log("Address saved successfully!");
-      handleAddressModalClose(); // Close and clear form
-      // Optionally, refresh addresses list after saving
-      fetchAddresses();
-    } catch (error) {
-      console.error("Error saving address:", error);
-      // Handle error, e.g., show an error message to the user
+  const handleAddressSave = () => {
+    // Validation: check only required fields (address2 is optional)
+    if (
+      !newAddress.firstName.trim() ||
+      !newAddress.lastName.trim() ||
+      !newAddress.address1.trim() ||
+      !newAddress.postalCode.trim() ||
+      !newAddress.city.trim() ||
+      !newAddress.region.trim() ||
+      !newAddress.country.trim() ||
+      !newAddress.phoneCode.trim() ||
+      !newAddress.phone.trim()
+    ) {
+      alert("Please fill out all the fields.");
+      return;
     }
+
+    // Additional validation for +63 phone numbers
+    if (newAddress.phoneCode === '+63' && !newAddress.phone.startsWith('0')) {
+      alert('For Philippine numbers (+63), the phone number must start with 0.');
+      return;
+    }
+
+    setAddresses(prev => [
+      ...prev,
+      { ...newAddress, id: Date.now().toString() }
+    ]);
+    handleAddressModalClose();
   };
 
   const fetchAddresses = async () => {
@@ -130,6 +148,7 @@ export default function ProfilePage() {
       querySnapshot.forEach((doc) => {
         fetchedAddresses.push({ id: doc.id, ...doc.data() } as Address);
       });
+      console.log('Fetched addresses:', fetchedAddresses);
       setAddresses(fetchedAddresses);
     } catch (error) {
       console.error("Error fetching addresses:", error);
@@ -142,6 +161,12 @@ export default function ProfilePage() {
       fetchAddresses();
     }
   }, [user]);
+
+  useEffect(() => {
+    if (isAddingAddress) {
+      console.log('Add Address Modal mounted');
+    }
+  }, [isAddingAddress]);
 
   return (
     <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
@@ -278,7 +303,16 @@ export default function ProfilePage() {
                     onChange={(e) => setNewAddress({ ...newAddress, country: e.target.value })}
                   >
                     <option value="Philippines">Philippines</option>
-                    {/* Add more countries as needed */}
+                    <option value="Brunei">Brunei</option>
+                    <option value="Cambodia">Cambodia</option>
+                    <option value="Indonesia">Indonesia</option>
+                    <option value="Laos">Laos</option>
+                    <option value="Malaysia">Malaysia</option>
+                    <option value="Myanmar">Myanmar</option>
+                    <option value="Singapore">Singapore</option>
+                    <option value="Thailand">Thailand</option>
+                    <option value="Timor-Leste">Timor-Leste</option>
+                    <option value="Vietnam">Vietnam</option>
                   </select>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
@@ -354,27 +388,59 @@ export default function ProfilePage() {
                     onChange={(e) => setNewAddress({ ...newAddress, region: e.target.value })}
                   >
                     <option value="Abra">Abra</option>
+                    <option value="Cebu">Cebu</option>
+                    <option value="Davao del Sur">Davao del Sur</option>
+                    <option value="Jakarta">Jakarta</option>
+                    <option value="Bali">Bali</option>
+                    <option value="Johor">Johor</option>
+                    <option value="Sabah">Sabah</option>
+                    <option value="Bangkok">Bangkok</option>
+                    <option value="Chiang Mai">Chiang Mai</option>
+                    <option value="Hanoi">Hanoi</option>
+                    <option value="Ho Chi Minh">Ho Chi Minh</option>
+                    <option value="Central Singapore">Central Singapore</option>
+                    <option value="Phnom Penh">Phnom Penh</option>
+                    <option value="Vientiane">Vientiane</option>
+                    <option value="Dili">Dili</option>
+                    <option value="Yangon">Yangon</option>
                     {/* Add more regions as needed */}
                   </select>
                 </div>
                 <div>
                   <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone</label>
                   <div className="mt-1 flex rounded-md shadow-sm">
-                    <span className="inline-flex items-center px-3 rounded-l-md border border-r-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">+63</span>
-                    {/* Placeholder for flag - requires an icon or image library */}
+                    <select
+                      id="phoneCode"
+                      className="block w-28 border border-gray-300 rounded-l-md bg-gray-50 text-gray-700 p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      value={newAddress.phoneCode}
+                      onChange={e => setNewAddress({ ...newAddress, phoneCode: e.target.value })}
+                    >
+                      <option value="+673">+673</option>
+                      <option value="+855">+855</option>
+                      <option value="+62">+62</option>
+                      <option value="+856">+856</option>
+                      <option value="+60">+60</option>
+                      <option value="+95">+95</option>
+                      <option value="+63">+63</option>
+                      <option value="+65">+65</option>
+                      <option value="+66">+66</option>
+                      <option value="+670">+670</option>
+                      <option value="+84">+84</option>
+                    </select>
                     <input
                       type="text"
                       id="phone"
                       className="flex-1 block w-full rounded-none rounded-r-md border border-gray-300 p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                       value={newAddress.phone}
-                      onChange={(e) => setNewAddress({ ...newAddress, phone: e.target.value })}
+                      onChange={e => setNewAddress({ ...newAddress, phone: e.target.value })}
+                      placeholder="Phone number"
                     />
                   </div>
                 </div>
               </div>
               <div className="flex justify-end space-x-3 mt-6">
                 <Button variant="outline" onClick={handleAddressModalClose} className="border-gray-300 text-gray-700 hover:bg-gray-50">Cancel</Button>
-                <Button onClick={handleAddressSave} className="bg-blue-600 text-white hover:bg-blue-700">Save</Button>
+                <button type="button" onClick={handleAddressSave} className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md">Save</button>
               </div>
             </div>
           </div>

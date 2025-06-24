@@ -104,6 +104,9 @@ export default function Header() {
   const [isBrandDropdownOpen, setIsBrandDropdownOpen] = useState(false);
   const pathname = usePathname();
 
+  // Check if we're on the admin page
+  const isAdminPage = pathname === '/admin';
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -156,31 +159,38 @@ export default function Header() {
           </Link>
           <nav className="hidden md:flex space-x-6 text-sm font-medium text-gray-700">
             {/* Shop by Brand Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => setIsBrandDropdownOpen(!isBrandDropdownOpen)}
-                className="flex items-center space-x-1 hover:text-gray-900 focus:outline-none"
-              >
-                <span>Shop by Brand</span>
-                <ChevronDown
-                  className={`h-4 w-4 transform transition-transform duration-200 ${isBrandDropdownOpen ? 'rotate-180' : ''}`}
-                />
-              </button>
-              <div className={`absolute ${isBrandDropdownOpen ? 'block' : 'hidden'} bg-white shadow-lg rounded-md py-1 mt-2 w-40 z-20`}>
-                <button type="button" className="block w-full text-left px-4 py-2 hover:bg-gray-100" onClick={() => { router.push('/search?brand=MN%2BLA'); setIsBrandDropdownOpen(false); }}>MN+LA</button>
-                <button type="button" className="block w-full text-left px-4 py-2 hover:bg-gray-100" onClick={() => { router.push('/search?brand=Charlotte%20Folk'); setIsBrandDropdownOpen(false); }}>Charlotte Folk</button>
-                <button type="button" className="block w-full text-left px-4 py-2 hover:bg-gray-100" onClick={() => { router.push('/search?brand=Strap'); setIsBrandDropdownOpen(false); }}>Strap</button>
-                <button type="button" className="block w-full text-left px-4 py-2 hover:bg-gray-100" onClick={() => { router.push('/search?brand=Richboyz'); setIsBrandDropdownOpen(false); }}>Richboyz</button>
+            {!isAdminPage && (
+              <div className="relative">
+                <button
+                  onClick={() => setIsBrandDropdownOpen(!isBrandDropdownOpen)}
+                  className="flex items-center space-x-1 hover:text-gray-900 focus:outline-none"
+                >
+                  <span>Shop by Brand</span>
+                  <ChevronDown
+                    className={`h-4 w-4 transform transition-transform duration-200 ${isBrandDropdownOpen ? 'rotate-180' : ''}`}
+                  />
+                </button>
+                <div className={`absolute ${isBrandDropdownOpen ? 'block' : 'hidden'} bg-white shadow-lg rounded-md py-1 mt-2 w-40 z-20`}>
+                  <button type="button" className="block w-full text-left px-4 py-2 hover:bg-gray-100" onClick={() => { router.push('/search?brand=MN%2BLA'); setIsBrandDropdownOpen(false); }}>MN+LA</button>
+                  <button type="button" className="block w-full text-left px-4 py-2 hover:bg-gray-100" onClick={() => { router.push('/search?brand=Charlotte%20Folk'); setIsBrandDropdownOpen(false); }}>Charlotte Folk</button>
+                  <button type="button" className="block w-full text-left px-4 py-2 hover:bg-gray-100" onClick={() => { router.push('/search?brand=Strap'); setIsBrandDropdownOpen(false); }}>Strap</button>
+                  <button type="button" className="block w-full text-left px-4 py-2 hover:bg-gray-100" onClick={() => { router.push('/search?brand=Richboyz'); setIsBrandDropdownOpen(false); }}>Richboyz</button>
+                </div>
               </div>
-            </div>
-            {user && (
+            )}
+            {user && !isAdminPage && (
               <Link href="/orders" className="hover:text-gray-900">Orders</Link>
+            )}
+            {!isAdminPage && (
+              (!user || user.email === "sisiglovers@gmail.com") && (
+                <Link href="/admin" className="hover:text-gray-900 text-blue-600 font-semibold">Admin</Link>
+              )
             )}
           </nav>
         </div>
 
-        {/* Center Section: Search Bar (hidden on /profile and /cart) */}
-        {!(pathname === '/profile' || pathname === '/cart' || pathname === '/settings') && (
+        {/* Center Section: Search Bar (hidden on /profile, /cart, /settings, and /admin) */}
+        {!(pathname === '/profile' || pathname === '/cart' || pathname === '/settings' || isAdminPage) && (
           <div className="flex-1 max-w-md mx-8 hidden md:block">
             <form onSubmit={handleSearch} className="relative">
               <input
@@ -220,30 +230,32 @@ export default function Header() {
         )}
 
         {/* Right Section: Search Icon (Mobile), UserProfile and Cart Icon */}
-        <div className="flex items-center space-x-4">
-          {/* Mobile Search Toggle */}
-          <button
-            onClick={toggleSearch}
-            className="md:hidden p-2 text-gray-700 hover:text-gray-900 transition-colors"
-          >
-            {isSearchOpen ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
-          </button>
-          
-          <UserProfile />
-          {/* Cart Icon */}
-          <Link href="/cart" className="relative flex items-center justify-center">
-            <ShoppingCart className="h-6 w-6 text-gray-700 hover:text-gray-900 transition-colors" />
-            {cartItems.length > 0 && (
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                {cartItems.length}
-              </span>
-            )}
-          </Link>
-        </div>
+        {!isAdminPage && (
+          <div className="flex items-center space-x-4">
+            {/* Mobile Search Toggle */}
+            <button
+              onClick={toggleSearch}
+              className="md:hidden p-2 text-gray-700 hover:text-gray-900 transition-colors"
+            >
+              {isSearchOpen ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
+            </button>
+            
+            <UserProfile />
+            {/* Cart Icon */}
+            <Link href="/cart" className="relative flex items-center justify-center">
+              <ShoppingCart className="h-6 w-6 text-gray-700 hover:text-gray-900 transition-colors" />
+              {cartItems.length > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  {cartItems.length}
+                </span>
+              )}
+            </Link>
+          </div>
+        )}
       </div>
 
-      {/* Mobile Search Bar (hidden on /profile and /cart) */}
-      {isSearchOpen && !(pathname === '/profile' || pathname === '/cart' || pathname === '/settings') && (
+      {/* Mobile Search Bar (hidden on /profile, /cart, /settings, and /admin) */}
+      {isSearchOpen && !(pathname === '/profile' || pathname === '/cart' || pathname === '/settings' || isAdminPage) && (
         <div className="md:hidden px-4 py-3 border-t border-gray-200">
           <form onSubmit={handleSearch} className="relative">
             <input

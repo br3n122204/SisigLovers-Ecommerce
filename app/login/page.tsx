@@ -5,7 +5,8 @@ import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
 } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { doc, setDoc, serverTimestamp, addDoc, collection } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
 import { useSearchParams, useRouter } from 'next/navigation';
 
 export default function LoginPage() {
@@ -63,6 +64,20 @@ export default function LoginPage() {
       if (isRegistering) {
         await createUserWithEmailAndPassword(auth, email, password);
         console.log('User registered and logged in successfully');
+        await setDoc(doc(db, "users", auth.currentUser?.uid || ""), {
+          email: auth.currentUser?.email,
+          emailVerified: auth.currentUser?.emailVerified,
+          uid: auth.currentUser?.uid,
+          createdAt: serverTimestamp()
+        });
+        // Log activity
+        await addDoc(collection(db, "activities"), {
+          type: "user_created",
+          email: auth.currentUser?.email,
+          uid: auth.currentUser?.uid,
+          timestamp: serverTimestamp()
+        });
+        console.log('User document written to Firestore:', auth.currentUser?.uid, auth.currentUser?.email);
       } else {
         await signInWithEmailAndPassword(auth, email, password);
         console.log('User logged in successfully');
