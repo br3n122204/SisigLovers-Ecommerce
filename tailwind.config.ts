@@ -26,7 +26,7 @@ const config: Config = {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "#EE4D2D", // Shopee Orange
+          DEFAULT: "#EE4D2D", // DPT ONE Orange
           foreground: "hsl(var(--primary-foreground))",
         },
         secondary: {
@@ -53,8 +53,8 @@ const config: Config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // Shopee-specific colors
-        shopee: {
+        // DPT ONE-specific colors
+        dptone: {
           orange: "#EE4D2D",
           red: "#D0011B",
           pink: "#FF6B9D",
