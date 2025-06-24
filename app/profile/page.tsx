@@ -5,7 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button'; // Assuming you have a Button component
 import { getAuth, updateProfile } from 'firebase/auth';
 import { db } from '@/lib/firebase'; // Import db from firebase
-import { collection, addDoc, query, where, getDocs, serverTimestamp } from 'firebase/firestore'; // Import Firestore functions
+import { collection, addDoc, query, where, getDocs, serverTimestamp, doc, updateDoc, writeBatch } from 'firebase/firestore'; // Import Firestore functions
 
 interface Address {
   id?: string;
@@ -150,7 +150,9 @@ export default function ProfilePage() {
         region: newAddress.region,
         country: newAddress.country,
         postalCode: newAddress.postalCode,
-        phone: `${newAddress.phoneCode}${newAddress.phone}`,
+        phone: newAddress.phoneCode === '+63'
+          ? `+63${newAddress.phone.replace(/^0/, '')}`
+          : `${newAddress.phoneCode}${newAddress.phone}`,
         isDefault: newAddress.isDefault,
         createdAt: serverTimestamp(),
       };
@@ -198,6 +200,26 @@ export default function ProfilePage() {
     }
   }, [isAddingAddress]);
 
+  // Set selected address as default and unset others
+  const handleSetDefaultAddress = async (addressId: string) => {
+    if (!user) return;
+    try {
+      const addressesCollection = collection(db, `users/${user.uid}/addresses`);
+      const q = query(addressesCollection);
+      const querySnapshot = await getDocs(q);
+      const batch = writeBatch(db);
+      querySnapshot.forEach((docSnap) => {
+        const ref = doc(db, `users/${user.uid}/addresses/${docSnap.id}`);
+        batch.update(ref, { isDefault: docSnap.id === addressId });
+      });
+      await batch.commit();
+      await fetchAddresses();
+    } catch (error) {
+      alert('Failed to set default address.');
+      console.error(error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
@@ -234,7 +256,7 @@ export default function ProfilePage() {
             </div>
           ) : (
             <div className="space-y-4">
-              {addresses.map((addr) => (
+              {[...addresses].sort((a, b) => (b.isDefault ? 1 : 0) - (a.isDefault ? 1 : 0)).map((addr) => (
                 <div key={addr.id} className="border p-4 rounded-md">
                   <p className="font-semibold">{addr.firstName} {addr.lastName}</p>
                   <p>{addr.address1}</p>
@@ -243,6 +265,14 @@ export default function ProfilePage() {
                   <p>{addr.region}, {addr.country}</p>
                   <p>Phone: {addr.phone}</p>
                   {addr.isDefault && <span className="text-xs text-blue-600">Default Address</span>}
+                  {!addr.isDefault && (
+                    <button
+                      className="mt-2 text-xs text-blue-600 underline hover:text-blue-800"
+                      onClick={() => handleSetDefaultAddress(addr.id!)}
+                    >
+                      Set as Default
+                    </button>
+                  )}
                 </div>
               ))}
             </div>

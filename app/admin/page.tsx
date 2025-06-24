@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
 import { collection, query, orderBy, limit, getDocs, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 
 interface User {
   id: string;
@@ -118,24 +120,35 @@ export default function AdminPage() {
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [recentActivities, setRecentActivities] = useState<Activity[]>([]);
   const [isLoadingActivities, setIsLoadingActivities] = useState(false);
+  const router = useRouter();
 
-  // Hardcoded admin credentials
-  const ADMIN_EMAIL = "sisiglovers@gmail.com";
-  const ADMIN_PASSWORD = "msadsisiglovers2025";
-
-  const handleLogin = (email: string, password: string) => {
-    if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-      setIsAuthenticated(true);
-      console.log('Admin logged in successfully');
-    } else {
-      console.log('Invalid credentials');
+  const handleLogin = async (email: string, password: string) => {
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      if (userCredential.user.uid === "RacXfztiF4Poacj56A92385QtVM2") {
+        setIsAuthenticated(true);
+        console.log('Admin logged in successfully');
+      } else {
+        setIsAuthenticated(false);
+        alert("You are not authorized to access the admin panel.");
+      }
+    } catch (error) {
+      setIsAuthenticated(false);
+      alert("Invalid credentials or error logging in.");
+      console.error(error);
     }
   };
 
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    setRecentUsers([]);
-    setRecentActivities([]);
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      setIsAuthenticated(false);
+      setRecentUsers([]);
+      setRecentActivities([]);
+      router.push("/");
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
   };
 
   // Fetch recent users from Firestore
