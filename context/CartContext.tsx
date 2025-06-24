@@ -1,6 +1,9 @@
 "use client"
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
+import { db } from '@/lib/firebase';
+import { useAuth } from './AuthContext';
+import { collection, doc, setDoc, getDocs, deleteDoc, onSnapshot } from 'firebase/firestore';
 
 // Define the shape of a product in the cart
 interface CartItem {
@@ -26,7 +29,33 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 // CartProvider component to wrap your application
 export const CartProvider = ({ children }: { children: ReactNode }) => {
+  const { user } = useAuth();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+
+  // Load cart from Firestore on login
+  React.useEffect(() => {
+    if (user) {
+      const cartRef = collection(db, 'cartProducts', user.uid, 'items');
+      const unsubscribe = onSnapshot(cartRef, (snapshot) => {
+        const items: CartItem[] = [];
+        snapshot.forEach(doc => items.push(doc.data() as CartItem));
+        setCartItems(items);
+      });
+      return () => unsubscribe();
+    } else {
+      setCartItems([]);
+    }
+  }, [user]);
+
+  const syncCartToFirestore = async (items: CartItem[]) => {
+    if (!user) return;
+    const cartRef = collection(db, 'cartProducts', user.uid, 'items');
+    // Remove all docs first (simple sync)
+    const existing = await getDocs(cartRef);
+    await Promise.all(existing.docs.map(docSnap => deleteDoc(docSnap.ref)));
+    // Add all items
+    await Promise.all(items.map(item => setDoc(doc(cartRef, `${item.id}-${item.selectedSize || 'default'}`), item)));
+  };
 
   const calculateTotal = () => {
     return cartItems.reduce((total, item) => {
@@ -38,33 +67,39 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const addToCart = (productToAdd: CartItem) => {
     setCartItems((prevItems) => {
       const existingItem = prevItems.find(item => item.id === productToAdd.id && item.selectedSize === productToAdd.selectedSize);
-
+      let newItems;
       if (existingItem) {
-        // If item already exists (same ID and size), update quantity
-        return prevItems.map(item =>
+        newItems = prevItems.map(item =>
           item.id === productToAdd.id && item.selectedSize === productToAdd.selectedSize
             ? { ...item, quantity: item.quantity + productToAdd.quantity }
             : item
         );
       } else {
-        // Otherwise, add new item
-        return [...prevItems, { ...productToAdd, quantity: productToAdd.quantity || 1 }];
+        newItems = [...prevItems, { ...productToAdd, quantity: productToAdd.quantity || 1 }];
       }
+      if (user) syncCartToFirestore(newItems);
+      return newItems;
     });
   };
 
   const removeFromCart = (productId: number) => {
-    setCartItems((prevItems) => prevItems.filter(item => item.id !== productId));
+    setCartItems((prevItems) => {
+      const newItems = prevItems.filter(item => item.id !== productId);
+      if (user) syncCartToFirestore(newItems);
+      return newItems;
+    });
   };
 
   const updateQuantity = (productId: number, quantity: number) => {
-    setCartItems((prevItems) =>
-      prevItems.map(item =>
+    setCartItems((prevItems) => {
+      const newItems = prevItems.map(item =>
         item.id === productId
-          ? { ...item, quantity: Math.max(1, quantity) } // Ensure quantity is at least 1
+          ? { ...item, quantity: Math.max(1, quantity) }
           : item
-      )
-    );
+      );
+      if (user) syncCartToFirestore(newItems);
+      return newItems;
+    });
   };
 
   return (

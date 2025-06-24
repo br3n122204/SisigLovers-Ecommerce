@@ -5,7 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button'; // Assuming you have a Button component
 import { getAuth, updateProfile } from 'firebase/auth';
 import { db } from '@/lib/firebase'; // Import db from firebase
-import { collection, addDoc, query, where, getDocs, serverTimestamp, doc, updateDoc, writeBatch } from 'firebase/firestore'; // Import Firestore functions
+import { collection, addDoc, query, where, getDocs, serverTimestamp, doc, updateDoc, writeBatch, deleteDoc } from 'firebase/firestore'; // Import Firestore functions
 
 interface Address {
   id?: string;
@@ -220,6 +220,18 @@ export default function ProfilePage() {
     }
   };
 
+  // Remove address handler
+  const handleRemoveAddress = async (addressId: string) => {
+    if (!user) return;
+    try {
+      await deleteDoc(doc(db, `users/${user.uid}/addresses/${addressId}`));
+      await fetchAddresses();
+    } catch (error) {
+      alert('Failed to remove address.');
+      console.error(error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
@@ -265,14 +277,22 @@ export default function ProfilePage() {
                   <p>{addr.region}, {addr.country}</p>
                   <p>Phone: {addr.phone}</p>
                   {addr.isDefault && <span className="text-xs text-blue-600">Default Address</span>}
-                  {!addr.isDefault && (
+                  <div className="flex items-center space-x-4 mt-2">
+                    {!addr.isDefault && (
+                      <button
+                        className="text-xs text-blue-600 underline hover:text-blue-800"
+                        onClick={() => handleSetDefaultAddress(addr.id!)}
+                      >
+                        Set as Default
+                      </button>
+                    )}
                     <button
-                      className="mt-2 text-xs text-blue-600 underline hover:text-blue-800"
-                      onClick={() => handleSetDefaultAddress(addr.id!)}
+                      className="text-xs text-red-600 underline hover:text-red-800"
+                      onClick={() => handleRemoveAddress(addr.id!)}
                     >
-                      Set as Default
+                      Remove
                     </button>
-                  )}
+                  </div>
                 </div>
               ))}
             </div>

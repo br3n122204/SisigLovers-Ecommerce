@@ -189,8 +189,8 @@ export default function Header() {
           </nav>
         </div>
 
-        {/* Center Section: Search Bar (hidden on /profile, /cart, /settings, and /admin) */}
-        {!(pathname === '/profile' || pathname === '/cart' || pathname === '/settings' || isAdminPage) && (
+        {/* Center Section: Search Bar (hidden on /profile, /cart, /settings, /checkout, and /admin) */}
+        {!(pathname === '/profile' || pathname === '/cart' || pathname === '/settings' || pathname === '/checkout' || isAdminPage) && (
           <div className="flex-1 max-w-md mx-8 hidden md:block">
             <form onSubmit={handleSearch} className="relative">
               <input
@@ -255,7 +255,7 @@ export default function Header() {
       </div>
 
       {/* Mobile Search Bar (hidden on /profile, /cart, /settings, and /admin) */}
-      {isSearchOpen && !(pathname === '/profile' || pathname === '/cart' || pathname === '/settings' || isAdminPage) && (
+      {isSearchOpen && !(pathname === '/profile' || pathname === '/cart' || pathname === '/settings' || pathname === '/checkout' || isAdminPage) && (
         <div className="md:hidden px-4 py-3 border-t border-gray-200">
           <form onSubmit={handleSearch} className="relative">
             <input

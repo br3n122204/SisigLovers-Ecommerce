@@ -6,10 +6,15 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
+import { collection, getDocs, query } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 export default function CheckoutPage() {
   const { user } = useAuth();
   const { cartItems, calculateTotal } = useCart();
+
+  const [addresses, setAddresses] = useState<any[]>([]);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
 
   const [deliveryDetails, setDeliveryDetails] = useState({
     firstName: user?.displayName?.split(" ")[0] || "",
@@ -54,6 +59,52 @@ export default function CheckoutPage() {
       phone: "+639123456789"
     },
   ]); // Dummy saved addresses
+
+  const [shippingMethod, setShippingMethod] = useState('standard');
+  const shippingOptions = [
+    { value: 'standard', label: 'Standard Shipping', time: '3–5 business days', price: 0 },
+    { value: 'express', label: 'Express Shipping', time: '1–2 business days', price: 149 },
+    { value: 'sameDay', label: 'Same Day Delivery', time: 'Same day', price: 299 },
+  ];
+
+  const getShippingPrice = () => {
+    const selected = shippingOptions.find(opt => opt.value === shippingMethod);
+    return selected ? selected.price : 0;
+  };
+
+  // Fetch addresses from Firestore
+  useEffect(() => {
+    const fetchAddresses = async () => {
+      if (!user) return;
+      const addressesCollection = collection(db, `users/${user.uid}/addresses`);
+      const q = query(addressesCollection);
+      const querySnapshot = await getDocs(q);
+      const fetchedAddresses: any[] = [];
+      querySnapshot.forEach((doc) => {
+        fetchedAddresses.push({ id: doc.id, ...doc.data() });
+      });
+      // Sort so default address is first
+      fetchedAddresses.sort((a, b) => (b.isDefault ? 1 : 0) - (a.isDefault ? 1 : 0));
+      setAddresses(fetchedAddresses);
+      // Set default selected address
+      const defaultAddr = fetchedAddresses.find(addr => addr.isDefault) || fetchedAddresses[0];
+      if (defaultAddr) {
+        setSelectedAddressId(defaultAddr.id);
+        setDeliveryDetails((prev) => ({
+          ...prev,
+          firstName: defaultAddr.firstName,
+          lastName: defaultAddr.lastName,
+          address1: defaultAddr.address1,
+          address2: defaultAddr.address2 || "",
+          postalCode: defaultAddr.postalCode,
+          city: defaultAddr.city,
+          region: defaultAddr.region,
+          phone: defaultAddr.phone,
+        }));
+      }
+    };
+    fetchAddresses();
+  }, [user]);
 
   // Update delivery details if user changes
   useEffect(() => {
@@ -106,7 +157,7 @@ export default function CheckoutPage() {
     alert("Order Submitted (Check console for details)");
   };
 
-  const totalAmount = calculateTotal();
+  const totalAmount = (parseFloat(calculateTotal()) + getShippingPrice()).toFixed(2);
 
   return (
     <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
@@ -121,17 +172,42 @@ export default function CheckoutPage() {
             <div className="flex items-center space-x-2 mb-4">
               <span className="font-medium">{deliveryDetails.email}</span>
             </div>
-            <label className="flex items-center text-sm text-gray-700">
-              <input
-                type="checkbox"
-                name="emailOffers"
-                className="form-checkbox h-4 w-4 text-blue-600 mr-2"
-                checked={deliveryDetails.emailOffers}
-                onChange={handleInputChange}
-              />
-              Email me with news and offers
-            </label>
           </div>
+
+          {/* Address Selector */}
+          {addresses.length > 0 && (
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700">Select Address</label>
+              <select
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                value={selectedAddressId || ""}
+                onChange={e => {
+                  setSelectedAddressId(e.target.value);
+                  const addr = addresses.find(a => a.id === e.target.value);
+                  if (addr) {
+                    setDeliveryDetails(prev => ({
+                      ...prev,
+                      firstName: addr.firstName,
+                      lastName: addr.lastName,
+                      address1: addr.address1,
+                      address2: addr.address2 || "",
+                      postalCode: addr.postalCode,
+                      city: addr.city,
+                      region: addr.region,
+                      phone: addr.phone,
+                    }));
+                  }
+                }}
+              >
+                {addresses.map(addr => (
+                  <option key={addr.id} value={addr.id}>
+                    {addr.isDefault ? "[Default] " : ""}
+                    {addr.address1}, {addr.city}, {addr.region}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Delivery Section */}
           <div className="mb-8 pb-4 border-b border-gray-200">
@@ -242,213 +318,223 @@ export default function CheckoutPage() {
           {/* Shipping Method Section */}
           <div className="mb-8 pb-4 border-b border-gray-200">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Shipping method</h2>
-            <div className="bg-gray-50 p-4 rounded-md text-gray-700">
-              Enter your shipping address to view available shipping methods.
+            <div className="space-y-2">
+              {shippingOptions.map(option => (
+                <label key={option.value} className="flex items-center">
+                  <input
+                    type="radio"
+                    name="shippingMethod"
+                    value={option.value}
+                    checked={shippingMethod === option.value}
+                    onChange={() => setShippingMethod(option.value)}
+                    className="form-radio h-4 w-4 text-blue-600"
+                  />
+                  <span className="ml-2">{option.label} ({option.time}) — ₱{option.price.toFixed(2)}</span>
+                </label>
+              ))}
             </div>
           </div>
 
           {/* Payment Section */}
-          <div className="mb-8">
+          <div className="mb-8 pb-4 border-b border-gray-200">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Payment</h2>
-            <p className="text-sm text-gray-600 mb-4">All transactions are secure and encrypted.</p>
-
-            {/* Payment Options */}
-            <div className="border border-gray-300 rounded-md p-4 mb-4">
-              <div className="flex items-center mb-4">
+            <p className="text-gray-500 mb-2">All transactions are secure and encrypted.</p>
+            <div className="space-y-2">
+              <label className="flex items-center">
                 <input
                   type="radio"
-                  id="gcash"
                   name="paymentMethod"
                   value="gcash"
-                  checked={paymentMethod === "gcash"}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                  checked={paymentMethod === 'gcash'}
+                  onChange={() => setPaymentMethod('gcash')}
+                  className="form-radio h-4 w-4 text-blue-600"
                 />
-                <label htmlFor="gcash" className="ml-3 block text-base font-medium text-gray-900">
+                <span className="ml-2 flex items-center">
                   GCash
-                </label>
-                <img src="/images/gcash-logo.png" alt="GCash" className="ml-auto h-6" />
-              </div>
-              <div className="flex items-center">
+                  <img
+                    src="https://ltfzekatcjpltiighukw.supabase.co/storage/v1/object/public/product-images/GCash_Logo.jpg"
+                    alt="GCash Logo"
+                    className="ml-2 h-6 w-6 object-contain"
+                  />
+                </span>
+              </label>
+              <label className="flex items-center">
                 <input
                   type="radio"
-                  id="cod"
                   name="paymentMethod"
                   value="cod"
-                  checked={paymentMethod === "cod"}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                  checked={paymentMethod === 'cod'}
+                  onChange={() => setPaymentMethod('cod')}
+                  className="form-radio h-4 w-4 text-blue-600"
                 />
-                <label htmlFor="cod" className="ml-3 block text-base font-medium text-gray-900">
-                  Cash on delivery (COD)
-                </label>
-              </div>
+                <span className="ml-2">Cash on delivery (COD)</span>
+              </label>
             </div>
-
-            {/* Billing Address */}
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Billing address</h2>
-            <div className="space-y-2">
-              <div className="flex items-center">
-                <input
-                  type="radio"
-                  id="sameAsShipping"
-                  name="billingAddress"
-                  checked={sameAsShipping}
-                  onChange={() => setSameAsShipping(true)}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500"
-                />
-                <label htmlFor="sameAsShipping" className="ml-3 block text-sm font-medium text-gray-700">
-                  Same as shipping address
-                </label>
-              </div>
-              <div className="flex items-center">
-                <input
-                  type="radio"
-                  id="differentBilling"
-                  name="billingAddress"
-                  checked={!sameAsShipping}
-                  onChange={() => setSameAsShipping(false)}
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500"
-                />
-                <label htmlFor="differentBilling" className="ml-3 block text-sm font-medium text-gray-700">
-                  Use a different billing address
-                </label>
-              </div>
-            </div>
-            {!sameAsShipping && (
-              <div className="mt-4 p-4 border border-gray-200 rounded-md bg-gray-50">
-                <div className="mb-4">
-                  <label htmlFor="savedAddresses" className="block text-sm font-medium text-gray-700">Saved addresses</label>
-                  <select
-                    id="savedAddresses"
-                    name="savedAddresses"
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    onChange={handleSavedAddressChange}
-                    defaultValue=""
-                  >
-                    <option value="" disabled>Select a saved address</option>
-                    {savedAddresses.map(addr => (
-                      <option key={addr.id} value={addr.id}>
-                        {addr.address}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div className="mb-4">
-                  <label htmlFor="countryBilling" className="block text-sm font-medium text-gray-700">Country/Region</label>
-                  <select
-                    id="countryBilling"
-                    name="country"
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    value={billingDetails.country}
-                    onChange={handleBillingInputChange}
-                    required
-                  >
-                    <option value="Philippines">Philippines</option>
-                  </select>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label htmlFor="firstNameBilling" className="block text-sm font-medium text-gray-700">First name (optional)</label>
-                    <input
-                      type="text"
-                      id="firstNameBilling"
-                      name="firstName"
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                      value={billingDetails.firstName}
-                      onChange={handleBillingInputChange}
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="lastNameBilling" className="block text-sm font-medium text-gray-700">Last name</label>
-                    <input
-                      type="text"
-                      id="lastNameBilling"
-                      name="lastName"
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                      value={billingDetails.lastName}
-                      onChange={handleBillingInputChange}
-                      required
-                    />
-                  </div>
-                </div>
-                <div className="mb-4">
-                  <label htmlFor="address1Billing" className="block text-sm font-medium text-gray-700">Address</label>
-                  <input
-                    type="text"
-                    id="address1Billing"
-                    name="address1"
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    value={billingDetails.address1}
-                    onChange={handleBillingInputChange}
-                    required
-                  />
-                </div>
-                <div className="mb-4">
-                  <label htmlFor="address2Billing" className="block text-sm font-medium text-gray-700">Apartment, suite, etc. (optional)</label>
-                  <input
-                    type="text"
-                    id="address2Billing"
-                    name="address2"
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    value={billingDetails.address2}
-                    onChange={handleBillingInputChange}
-                  />
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label htmlFor="postalCodeBilling" className="block text-sm font-medium text-gray-700">Postal code</label>
-                    <input
-                      type="text"
-                      id="postalCodeBilling"
-                      name="postalCode"
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                      value={billingDetails.postalCode}
-                      onChange={handleBillingInputChange}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="cityBilling" className="block text-sm font-medium text-gray-700">City</label>
-                    <input
-                      type="text"
-                      id="cityBilling"
-                      name="city"
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                      value={billingDetails.city}
-                      onChange={handleBillingInputChange}
-                      required
-                    />
-                  </div>
-                </div>
-                <div className="mb-4">
-                  <label htmlFor="regionBilling" className="block text-sm font-medium text-gray-700">Region</label>
-                  <select
-                    id="regionBilling"
-                    name="region"
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    value={billingDetails.region}
-                    onChange={handleBillingInputChange}
-                    required
-                  >
-                    <option value="Cebu">Cebu</option>
-                  </select>
-                </div>
-                <div className="mb-4">
-                  <label htmlFor="phoneBilling" className="block text-sm font-medium text-gray-700">Phone</label>
-                  <input
-                    type="text"
-                    id="phoneBilling"
-                    name="phone"
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    value={billingDetails.phone}
-                    onChange={handleBillingInputChange}
-                    required
-                  />
-                </div>
-              </div>
-            )}
           </div>
+
+          {/* Billing Address */}
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">Billing address</h2>
+          <div className="space-y-2">
+            <div className="flex items-center">
+              <input
+                type="radio"
+                id="sameAsShipping"
+                name="billingAddress"
+                checked={sameAsShipping}
+                onChange={() => setSameAsShipping(true)}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+              />
+              <label htmlFor="sameAsShipping" className="ml-3 block text-sm font-medium text-gray-700">
+                Same as shipping address
+              </label>
+            </div>
+            <div className="flex items-center">
+              <input
+                type="radio"
+                id="differentBilling"
+                name="billingAddress"
+                checked={!sameAsShipping}
+                onChange={() => setSameAsShipping(false)}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+              />
+              <label htmlFor="differentBilling" className="ml-3 block text-sm font-medium text-gray-700">
+                Use a different billing address
+              </label>
+            </div>
+          </div>
+          {!sameAsShipping && (
+            <div className="mt-4 p-4 border border-gray-200 rounded-md bg-gray-50">
+              <div className="mb-4">
+                <label htmlFor="savedAddresses" className="block text-sm font-medium text-gray-700">Saved addresses</label>
+                <select
+                  id="savedAddresses"
+                  name="savedAddresses"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  onChange={handleSavedAddressChange}
+                  defaultValue=""
+                >
+                  <option value="" disabled>Select a saved address</option>
+                  {savedAddresses.map(addr => (
+                    <option key={addr.id} value={addr.id}>
+                      {addr.address}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="mb-4">
+                <label htmlFor="countryBilling" className="block text-sm font-medium text-gray-700">Country/Region</label>
+                <select
+                  id="countryBilling"
+                  name="country"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  value={billingDetails.country}
+                  onChange={handleBillingInputChange}
+                  required
+                >
+                  <option value="Philippines">Philippines</option>
+                </select>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label htmlFor="firstNameBilling" className="block text-sm font-medium text-gray-700">First name (optional)</label>
+                  <input
+                    type="text"
+                    id="firstNameBilling"
+                    name="firstName"
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    value={billingDetails.firstName}
+                    onChange={handleBillingInputChange}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="lastNameBilling" className="block text-sm font-medium text-gray-700">Last name</label>
+                  <input
+                    type="text"
+                    id="lastNameBilling"
+                    name="lastName"
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    value={billingDetails.lastName}
+                    onChange={handleBillingInputChange}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="mb-4">
+                <label htmlFor="address1Billing" className="block text-sm font-medium text-gray-700">Address</label>
+                <input
+                  type="text"
+                  id="address1Billing"
+                  name="address1"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  value={billingDetails.address1}
+                  onChange={handleBillingInputChange}
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label htmlFor="address2Billing" className="block text-sm font-medium text-gray-700">Apartment, suite, etc. (optional)</label>
+                <input
+                  type="text"
+                  id="address2Billing"
+                  name="address2"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  value={billingDetails.address2}
+                  onChange={handleBillingInputChange}
+                />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label htmlFor="postalCodeBilling" className="block text-sm font-medium text-gray-700">Postal code</label>
+                  <input
+                    type="text"
+                    id="postalCodeBilling"
+                    name="postalCode"
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    value={billingDetails.postalCode}
+                    onChange={handleBillingInputChange}
+                    required
+                  />
+                </div>
+                <div>
+                  <label htmlFor="cityBilling" className="block text-sm font-medium text-gray-700">City</label>
+                  <input
+                    type="text"
+                    id="cityBilling"
+                    name="city"
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    value={billingDetails.city}
+                    onChange={handleBillingInputChange}
+                    required
+                  />
+                </div>
+              </div>
+              <div className="mb-4">
+                <label htmlFor="regionBilling" className="block text-sm font-medium text-gray-700">Region</label>
+                <select
+                  id="regionBilling"
+                  name="region"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  value={billingDetails.region}
+                  onChange={handleBillingInputChange}
+                  required
+                >
+                  <option value="Cebu">Cebu</option>
+                </select>
+              </div>
+              <div className="mb-4">
+                <label htmlFor="phoneBilling" className="block text-sm font-medium text-gray-700">Phone</label>
+                <input
+                  type="text"
+                  id="phoneBilling"
+                  name="phone"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  value={billingDetails.phone}
+                  onChange={handleBillingInputChange}
+                  required
+                />
+              </div>
+            </div>
+          )}
 
           {/* Pay Now Button */}
           <Button
@@ -489,11 +575,11 @@ export default function CheckoutPage() {
               <div className="space-y-2 text-gray-700 pt-4 border-t border-gray-200">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span>₱{totalAmount}</span>
+                  <span>₱{calculateTotal()}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Shipping</span>
-                  <span>₱0.00</span> {/* Assuming free shipping for now */}
+                  <span>₱{getShippingPrice().toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between font-bold text-lg border-t pt-2 mt-2 border-gray-200">
                   <span>Total</span>
