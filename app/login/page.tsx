@@ -85,12 +85,14 @@ export default function LoginPage() {
       router.push("/"); // Redirect to home page after successful auth
     } catch (err: any) {
       console.error("Authentication error details:", {
-        code: err.code,
-        message: err.message,
+        code: err?.code,
+        message: err?.message,
         fullError: err
       });
-      // Ensure a useful error message is always set
-      setError(err instanceof Error ? err.message : "Authentication failed. Please check your credentials and try again.");
+      setError(
+        err?.message ||
+        "Authentication failed. Please check your credentials and try again."
+      );
     } finally {
       setIsLoading(false);
     }

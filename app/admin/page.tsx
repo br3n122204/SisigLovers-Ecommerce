@@ -1,10 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
-import { collection, query, orderBy, limit, getDocs, Timestamp } from "firebase/firestore";
+import { collection, query, orderBy, getDocs, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
+import { useAuth } from "@/context/AuthContext";
 
 interface User {
   id: string;
@@ -115,25 +116,23 @@ function LoginForm({ onLogin }: { onLogin: (email: string, password: string) => 
 }
 
 export default function AdminPage() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { user, loading } = useAuth();
   const [recentUsers, setRecentUsers] = useState<User[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [recentActivities, setRecentActivities] = useState<Activity[]>([]);
   const [isLoadingActivities, setIsLoadingActivities] = useState(false);
   const router = useRouter();
 
+  const ADMIN_UID = "RacXfztiF4Poacj56A92385QtVM2";
+
   const handleLogin = async (email: string, password: string) => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      if (userCredential.user.uid === "RacXfztiF4Poacj56A92385QtVM2") {
-        setIsAuthenticated(true);
-        console.log('Admin logged in successfully');
-      } else {
-        setIsAuthenticated(false);
+      if (userCredential.user.uid !== ADMIN_UID) {
         alert("You are not authorized to access the admin panel.");
+        await signOut(auth);
       }
     } catch (error) {
-      setIsAuthenticated(false);
       alert("Invalid credentials or error logging in.");
       console.error(error);
     }
@@ -142,7 +141,6 @@ export default function AdminPage() {
   const handleLogout = async () => {
     try {
       await signOut(auth);
-      setIsAuthenticated(false);
       setRecentUsers([]);
       setRecentActivities([]);
       router.push("/");
@@ -156,9 +154,8 @@ export default function AdminPage() {
     setIsLoadingUsers(true);
     try {
       const usersRef = collection(db, "users");
-      const q = query(usersRef, orderBy("createdAt", "desc"), limit(5));
+      const q = query(usersRef, orderBy("createdAt", "desc"));
       const querySnapshot = await getDocs(q);
-      
       const users: User[] = [];
       querySnapshot.forEach((doc) => {
         users.push({
@@ -167,8 +164,6 @@ export default function AdminPage() {
           createdAt: doc.data().createdAt
         });
       });
-      
-      console.log('Fetched users:', users);
       setRecentUsers(users);
     } catch (error) {
       console.error("Error fetching recent users:", error);
@@ -182,7 +177,7 @@ export default function AdminPage() {
     setIsLoadingActivities(true);
     try {
       const activitiesRef = collection(db, "activities");
-      const q = query(activitiesRef, orderBy("timestamp", "desc"), limit(5));
+      const q = query(activitiesRef, orderBy("timestamp", "desc"));
       const querySnapshot = await getDocs(q);
       const activities: Activity[] = [];
       querySnapshot.forEach((doc) => {
@@ -207,11 +202,11 @@ export default function AdminPage() {
 
   // Fetch users when authenticated
   useEffect(() => {
-    if (isAuthenticated) {
+    if (user && user.uid === ADMIN_UID) {
       fetchRecentUsers();
       fetchRecentActivities();
     }
-  }, [isAuthenticated]);
+  }, [user]);
 
   // Admin Dashboard Content
   const AdminDashboard = () => (
@@ -322,5 +317,11 @@ export default function AdminPage() {
     </div>
   );
 
-  return isAuthenticated ? <AdminDashboard /> : <LoginForm onLogin={handleLogin} />;
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
+
+  const isAdmin = user && user.uid === ADMIN_UID;
+
+  return isAdmin ? <AdminDashboard /> : <LoginForm onLogin={handleLogin} />;
 } 
