@@ -288,7 +288,10 @@ export default function AdminPage() {
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button className="bg-blue-600 text-white p-4 rounded-lg hover:bg-blue-700 transition-colors">
+            <button 
+              className="bg-blue-600 text-white p-4 rounded-lg hover:bg-blue-700 transition-colors"
+              onClick={() => router.push('/admin/add-product')}
+            >
               <h3 className="font-semibold">Add New Product</h3>
               <p className="text-sm opacity-90">Create a new product listing</p>
             </button>
