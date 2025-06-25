@@ -3,13 +3,13 @@ import { useState, useEffect } from "react";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  onAuthStateChanged,
 } from "firebase/auth";
 import { doc, setDoc, serverTimestamp, addDoc, collection } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { useSearchParams, useRouter } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import Image from "next/image";
+import { useAuth } from "@/context/AuthContext";
 
 const supabaseUrl = 'https://YOUR_PROJECT_ID.supabase.co';
 const supabaseKey = 'YOUR_ANON_KEY';
@@ -25,53 +25,32 @@ export default function LoginPage() {
 
   const searchParams = useSearchParams();
   const router = useRouter();
-  // isRegistering is now a state variable
   const [isRegistering, setIsRegistering] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
-    // Log auth state changes
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      console.log("Auth state changed:", user ? "User logged in" : "No user");
-      if (user) {
-        console.log("User details:", {
-          email: user.email,
-          emailVerified: user.emailVerified,
-          uid: user.uid
-        });
-        // Redirect to home page if user is already logged in
-        router.push("/");
-      }
-    });
-
-    // Sync isRegistering state with 'signup' URL parameter
+    if (user) {
+      router.push("/");
+    }
     const signupParam = searchParams.get('signup');
-    console.log('useEffect: signupParam =', signupParam, 'Setting isRegistering to', signupParam === 'true');
     setIsRegistering(signupParam === 'true');
-
-    return () => unsubscribe();
-  }, [searchParams, router]); // Depend on searchParams and router
+  }, [searchParams, router, user]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-
     if (!email || !password) {
       setError("Please enter both email and password.");
       return;
     }
-
     if (isRegistering && password !== confirmPassword) {
       setError("Passwords do not match.");
       return;
     }
-
     setIsLoading(true);
-
     try {
       if (isRegistering) {
         await createUserWithEmailAndPassword(auth, email, password);
-        console.log('User registered and logged in successfully');
-        // Main user document
         const userDoc = {
           email: auth.currentUser?.email || email,
           emailVerified: auth.currentUser?.emailVerified || false,
@@ -79,14 +58,12 @@ export default function LoginPage() {
           createdAt: serverTimestamp()
         };
         await setDoc(doc(db, "users", auth.currentUser?.uid || ""), userDoc);
-        // Add to 'details' subcollection
         if (auth.currentUser?.uid) {
           await setDoc(doc(db, "users", auth.currentUser.uid, "details", "info"), {
             gmail: auth.currentUser.email,
             uid: auth.currentUser.uid
           });
         }
-        // Ensure auth.currentUser is available before logging activity
         let attempts = 0;
         while (!auth.currentUser && attempts < 5) {
           await new Promise(res => setTimeout(res, 200));
@@ -101,26 +78,16 @@ export default function LoginPage() {
               timestamp: serverTimestamp()
             };
             await addDoc(collection(db, "activities"), activityDoc);
-            console.log('Activity logged for user:', activityDoc);
           } catch (activityErr) {
             console.error('Failed to log activity:', activityErr);
           }
-        } else {
-          console.error('auth.currentUser not available after registration, activity not logged.');
         }
-        console.log('User document and details written to Firestore:', userDoc);
       } else {
         await signInWithEmailAndPassword(auth, email, password);
-        console.log('User logged in successfully');
       }
-      // Instead of redirecting, show the modal
       setShowModal(true);
-      // router.push("/"); // Suppressed for modal effect
     } catch (err: any) {
-      // Log the error object directly
       console.error("Authentication error details:", err);
-
-      // Try to show a meaningful error message
       let errorMsg = "Authentication failed. Please check your credentials and try again.";
       if (err && typeof err === "object") {
         if (err.code) errorMsg += ` (Code: ${err.code})`;
@@ -134,7 +101,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#FAF9F6] to-[#f5f2ef] font-sans relative">
-      {/* Blurred overlay and modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div className="absolute inset-0 bg-black bg-opacity-40 backdrop-blur-sm" onClick={() => setShowModal(false)} />
@@ -145,12 +111,10 @@ export default function LoginPage() {
             </div>
             <h2 className="text-3xl font-extrabold mb-2 text-center text-[#222] tracking-tight">{isRegistering ? "Sign Up" : "Sign In"}</h2>
             <p className="text-center text-gray-600 mb-6 text-base">{isRegistering ? "Create your account to get started." : "Log in to your account."}</p>
-            {/* Show a success message or the same form, as desired */}
             <div className="text-center text-lg text-[#A75D43] font-semibold">Welcome! You are now signed in.</div>
           </div>
         </div>
       )}
-      {/* Main login card (still visible underneath, but blurred when modal is open) */}
       <div className={`w-full max-w-md p-10 space-y-6 bg-white rounded-2xl shadow-2xl border border-[#f5c16c] relative ${showModal ? 'pointer-events-none blur-sm' : ''}`}>
         <div className="flex justify-center mb-2">
           <Image src="/images/footer-logo.png" alt="Brand Logo" width={90} height={90} className="rounded-full shadow-lg" />
