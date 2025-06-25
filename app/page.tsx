@@ -205,33 +205,21 @@ export default function DPTOneFashion() {
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
               {featuredProducts.map((product) => (
-                <Card key={product.id} className="overflow-hidden shadow-lg rounded-xl bg-white border border-neutral-200 hover:shadow-2xl transition-all">
-                  <CardContent className="p-0">
-                    <div
-                      className="relative aspect-square group"
-                      onMouseEnter={() => setHoveredProduct(product.id)}
-                      onMouseLeave={() => setHoveredProduct(null)}
-                    >
-                      <Image
-                        src={hoveredProduct === product.id ? product.backImage : product.image}
-                        alt={product.name}
-                        fill
-                        className="object-cover transition-all duration-300 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300" />
-                    </div>
-                    <div className="p-6 flex flex-col items-center">
-                      <h3 className="text-lg font-bold mb-1 text-neutral-900 text-center">{product.name}</h3>
-                      <p className="text-neutral-600 mb-3 text-center">{product.price}</p>
-                      <Button
-                        onClick={() => handleAddToCart(product)}
-                        className="w-full mt-2 bg-neutral-900 text-white hover:bg-neutral-700 rounded-full font-semibold text-base py-2"
-                      >
-                        Add to Cart
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
+                <div key={product.id} className="bg-white rounded-2xl shadow-lg p-4 flex flex-col items-center">
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="w-48 h-48 object-contain mb-4"
+                  />
+                  <h3 className="font-bold text-lg text-center mb-1">{product.name}</h3>
+                  <p className="text-gray-700 font-semibold mb-4">{product.price}</p>
+                  <button
+                    onClick={() => handleAddToCart(product)}
+                    className="w-full bg-black text-white py-2 rounded-full font-semibold hover:bg-gray-800 transition"
+                  >
+                    Add to Cart
+                  </button>
+                </div>
               ))}
             </div>
           </div>
