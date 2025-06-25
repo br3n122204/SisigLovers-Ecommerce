@@ -7,6 +7,8 @@ import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 interface User {
   id: string;
@@ -287,24 +289,31 @@ export default function AdminPage() {
         {/* Quick Actions */}
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <button 
-              className="bg-blue-600 text-white p-4 rounded-lg hover:bg-blue-700 transition-colors"
-              onClick={() => router.push('/admin/add-product')}
-            >
-              <h3 className="font-semibold">Add New Product</h3>
-              <p className="text-sm opacity-90">Create a new product listing</p>
-            </button>
-            
-            <button className="bg-green-600 text-white p-4 rounded-lg hover:bg-green-700 transition-colors">
-              <h3 className="font-semibold">View Orders</h3>
-              <p className="text-sm opacity-90">Manage customer orders</p>
-            </button>
-            
-            <button className="bg-purple-600 text-white p-4 rounded-lg hover:bg-purple-700 transition-colors">
-              <h3 className="font-semibold">Analytics</h3>
-              <p className="text-sm opacity-90">View sales analytics</p>
-            </button>
+          <div className="flex flex-col sm:flex-row gap-4 mb-8">
+            <Link href="/admin/add-product" className="flex-1">
+              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 text-lg font-semibold rounded-lg shadow">
+                Add New Product
+                <span className="block text-xs font-normal">Create a new product listing</span>
+              </Button>
+            </Link>
+            <Link href="/admin/products" className="flex-1">
+              <Button className="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-4 text-lg font-semibold rounded-lg shadow">
+                Manage Products
+                <span className="block text-xs font-normal">Edit or update products</span>
+              </Button>
+            </Link>
+            <Link href="/admin/orders" className="flex-1">
+              <Button className="w-full bg-green-600 hover:bg-green-700 text-white py-4 text-lg font-semibold rounded-lg shadow">
+                View Orders
+                <span className="block text-xs font-normal">Manage customer orders</span>
+              </Button>
+            </Link>
+            <Link href="/admin/analytics" className="flex-1">
+              <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white py-4 text-lg font-semibold rounded-lg shadow">
+                Analytics
+                <span className="block text-xs font-normal">View sales analytics</span>
+              </Button>
+            </Link>
           </div>
         </div>
 
