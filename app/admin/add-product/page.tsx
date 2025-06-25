@@ -14,6 +14,8 @@ export default function AddProductPage() {
   const [images, setImages] = useState<string[]>([]);
   const [selectedImage, setSelectedImage] = useState<string>("");
   const [loadingImages, setLoadingImages] = useState(true);
+  const [brand, setBrand] = useState("");
+  const brandOptions = ["Strap", "Richboyz", "Charlotte Folk", "MN+LA"];
   const router = useRouter();
 
   useEffect(() => {
@@ -51,6 +53,7 @@ export default function AddProductPage() {
         price: Number(price),
         stock: Number(stock),
         imageUrl: selectedImage,
+        brand,
         createdAt: new Date(),
       });
       alert("Product added successfully!");
@@ -110,6 +113,20 @@ export default function AddProductPage() {
               onChange={e => setStock(e.target.value)}
               required
             />
+          </div>
+          <div>
+            <label className="block text-gray-700 font-medium mb-1">Brand</label>
+            <select
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={brand}
+              onChange={e => setBrand(e.target.value)}
+              required
+            >
+              <option value="" disabled>Select a brand</option>
+              {brandOptions.map(option => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
           </div>
           <div>
             <label className="block text-gray-700 font-medium mb-1">Select Product Image</label>
