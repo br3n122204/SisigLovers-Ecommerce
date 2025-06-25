@@ -219,6 +219,17 @@ export default function CheckoutPage() {
       });
       console.log("Order saved to users/{userId}/orders with ID:", userOrderDoc.id);
 
+      // Log a 'purchase' activity to Firestore
+      await addDoc(collection(db, "activities"), {
+        type: "purchase",
+        email: user.email,
+        uid: user.uid,
+        orderId: docRef.id,
+        timestamp: serverTimestamp(),
+        items: cleanOrderData.items,
+        total: cleanOrderData.total,
+      });
+
       toast({
         title: "Checkout successful",
       });

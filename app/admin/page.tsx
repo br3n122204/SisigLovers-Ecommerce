@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
-import { collection, query, orderBy, getDocs, Timestamp } from "firebase/firestore";
+import { collection, query, orderBy, getDocs, Timestamp, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
@@ -20,6 +20,9 @@ interface Activity {
   email: string;
   uid: string;
   timestamp: Timestamp;
+  orderId?: string;
+  total?: number;
+  items?: any[];
 }
 
 // Separate LoginForm component to isolate input handling
@@ -122,6 +125,7 @@ export default function AdminPage() {
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [recentActivities, setRecentActivities] = useState<Activity[]>([]);
   const [isLoadingActivities, setIsLoadingActivities] = useState(false);
+  const [totalOrders, setTotalOrders] = useState(0);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -191,6 +195,14 @@ export default function AdminPage() {
     }
   };
 
+  // Fetch total orders (purchase activities)
+  const fetchTotalOrders = async () => {
+    const activitiesRef = collection(db, "activities");
+    const q = query(activitiesRef, where("type", "==", "purchase"));
+    const querySnapshot = await getDocs(q);
+    setTotalOrders(querySnapshot.size);
+  };
+
   // Fetch recent activities from Firestore
   const fetchRecentActivities = async () => {
     setIsLoadingActivities(true);
@@ -201,13 +213,16 @@ export default function AdminPage() {
       const activities: Activity[] = [];
       querySnapshot.forEach((doc) => {
         const data = doc.data();
-        if (data.type === "user_created") {
+        if (data.type === "user_created" || data.type === "purchase") {
           activities.push({
             id: doc.id,
             type: data.type,
             email: data.email,
             uid: data.uid,
-            timestamp: data.timestamp
+            timestamp: data.timestamp,
+            orderId: data.orderId,
+            total: data.total,
+            items: data.items,
           });
         }
       });
@@ -224,6 +239,7 @@ export default function AdminPage() {
     if (user && user.uid === ADMIN_UID) {
       fetchRecentUsers();
       fetchRecentActivities();
+      fetchTotalOrders();
     }
   }, [user]);
 
@@ -246,8 +262,7 @@ export default function AdminPage() {
             {/* Stats Cards */}
             <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
               <h3 className="text-lg font-semibold text-blue-900">Total Orders</h3>
-              <p className="text-3xl font-bold text-blue-600">1,234</p>
-              <p className="text-sm text-blue-700">+12% from last month</p>
+              <p className="text-3xl font-bold text-blue-600">{totalOrders}</p>
             </div>
             
             <div className="bg-green-50 p-6 rounded-lg border border-green-200">
@@ -265,7 +280,6 @@ export default function AdminPage() {
             <div className="bg-orange-50 p-6 rounded-lg border border-orange-200">
               <h3 className="text-lg font-semibold text-orange-900">Customers</h3>
               <p className="text-3xl font-bold text-orange-600">{recentUsers.length}</p>
-              <p className="text-sm text-orange-700">Recent registrations</p>
             </div>
           </div>
         </div>
@@ -313,8 +327,19 @@ export default function AdminPage() {
               recentActivities.map((activity) => (
                 <div key={activity.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                   <div>
-                    <p className="font-medium">User account created</p>
-                    <p className="text-sm text-gray-600">Email: {activity.email}</p>
+                    {activity.type === "user_created" ? (
+                      <>
+                        <p className="font-medium">User account created</p>
+                        <p className="text-sm text-gray-600">Email: {activity.email}</p>
+                      </>
+                    ) : activity.type === "purchase" ? (
+                      <>
+                        <p className="font-medium">Purchase made</p>
+                        <p className="text-sm text-gray-600">Email: {activity.email}</p>
+                        <p className="text-sm text-gray-600">Order ID: {activity.orderId}</p>
+                        <p className="text-sm text-gray-600">Total: ₱{activity.total}</p>
+                      </>
+                    ) : null}
                   </div>
                   <span className="text-sm text-gray-500">
                     {activity.timestamp ? (
