@@ -128,6 +128,9 @@ export default function AdminPage() {
   const [recentActivities, setRecentActivities] = useState<Activity[]>([]);
   const [isLoadingActivities, setIsLoadingActivities] = useState(false);
   const [totalOrders, setTotalOrders] = useState(0);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [totalSales, setTotalSales] = useState(0);
+  const [totalSalesAmount, setTotalSalesAmount] = useState(0);
   const router = useRouter();
   const { toast } = useToast();
 
@@ -236,12 +239,48 @@ export default function AdminPage() {
     }
   };
 
+  // Fetch total products from Firestore
+  const fetchTotalProducts = async () => {
+    const productsRef = collection(db, "products");
+    const querySnapshot = await getDocs(productsRef);
+    setTotalProducts(querySnapshot.size);
+  };
+
+  // Fetch total completed sales from Firestore
+  const fetchTotalSales = async () => {
+    const activitiesRef = collection(db, "activities");
+    const q = query(activitiesRef, where("type", "==", "purchase"), where("status", "==", "completed"));
+    const querySnapshot = await getDocs(q);
+    setTotalSales(querySnapshot.size);
+  };
+
+  // Fetch total sales amount from completed sales
+  const fetchTotalSalesAmount = async () => {
+    const activitiesRef = collection(db, "activities");
+    const q = query(activitiesRef, where("type", "==", "purchase"), where("status", "==", "completed"));
+    const querySnapshot = await getDocs(q);
+    let sum = 0;
+    querySnapshot.forEach(doc => {
+      const data = doc.data();
+      if (typeof data.total === 'number') {
+        sum += data.total;
+      } else if (typeof data.total === 'string') {
+        const parsed = parseFloat(data.total.replace(/[^\d.]/g, ''));
+        if (!isNaN(parsed)) sum += parsed;
+      }
+    });
+    setTotalSalesAmount(sum);
+  };
+
   // Fetch users when authenticated
   useEffect(() => {
     if (user && user.uid === ADMIN_UID) {
       fetchRecentUsers();
       fetchRecentActivities();
       fetchTotalOrders();
+      fetchTotalProducts();
+      fetchTotalSales();
+      fetchTotalSalesAmount();
     }
   }, [user]);
 
@@ -267,16 +306,16 @@ export default function AdminPage() {
               <p className="text-3xl font-bold text-blue-600">{totalOrders}</p>
             </div>
             
-            <div className="bg-green-50 p-6 rounded-lg border border-green-200">
-              <h3 className="text-lg font-semibold text-green-900">Revenue</h3>
-              <p className="text-3xl font-bold text-green-600">₱45,678</p>
-              <p className="text-sm text-green-700">+8% from last month</p>
+            <div className="bg-green-50 border border-green-200 rounded-lg p-6 flex-1 min-w-[220px]">
+              <div className="text-lg font-semibold text-green-800 mb-2">Sales</div>
+              <div className="text-4xl font-extrabold text-green-600 mb-1">₱{totalSalesAmount.toLocaleString()}</div>
+              <div className="text-sm text-green-500">Completed sales</div>
             </div>
             
-            <div className="bg-purple-50 p-6 rounded-lg border border-purple-200">
-              <h3 className="text-lg font-semibold text-purple-900">Products</h3>
-              <p className="text-3xl font-bold text-purple-600">24</p>
-              <p className="text-sm text-purple-700">Active products</p>
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-6 flex-1 min-w-[220px]">
+              <div className="text-lg font-semibold text-purple-800 mb-2">Products</div>
+              <div className="text-4xl font-extrabold text-purple-600 mb-1">{totalProducts}</div>
+              <div className="text-sm text-purple-500">Active products</div>
             </div>
             
             <div className="bg-orange-50 p-6 rounded-lg border border-orange-200">
@@ -289,31 +328,14 @@ export default function AdminPage() {
         {/* Quick Actions */}
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
-          <div className="flex flex-col sm:flex-row gap-4 mb-8">
-            <Link href="/admin/add-product" className="flex-1">
-              <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 text-lg font-semibold rounded-lg shadow">
-                Add New Product
-                <span className="block text-xs font-normal">Create a new product listing</span>
-              </Button>
-            </Link>
-            <Link href="/admin/products" className="flex-1">
-              <Button className="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-4 text-lg font-semibold rounded-lg shadow">
-                Manage Products
-                <span className="block text-xs font-normal">Edit or update products</span>
-              </Button>
-            </Link>
-            <Link href="/admin/orders" className="flex-1">
-              <Button className="w-full bg-green-600 hover:bg-green-700 text-white py-4 text-lg font-semibold rounded-lg shadow">
-                View Orders
-                <span className="block text-xs font-normal">Manage customer orders</span>
-              </Button>
-            </Link>
-            <Link href="/admin/analytics" className="flex-1">
-              <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white py-4 text-lg font-semibold rounded-lg shadow">
-                Analytics
-                <span className="block text-xs font-normal">View sales analytics</span>
-              </Button>
-            </Link>
+          <div className="flex flex-wrap gap-4 mb-6">
+            <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-0">
+              <button className="bg-blue-600 text-white py-3 font-semibold rounded-none border-r border-white flex-1 hover:bg-blue-700 transition-colors" style={{borderTopLeftRadius: '0.5rem', borderBottomLeftRadius: '0.5rem'}} onClick={() => router.push('/admin/products/new')}>Add New Product</button>
+              <button className="bg-yellow-500 text-white py-3 font-semibold rounded-none border-r border-white flex-1 hover:bg-yellow-600 transition-colors" onClick={() => router.push('/admin/products')}>Manage Products</button>
+              <button className="bg-green-600 text-white py-3 font-semibold rounded-none border-r border-white flex-1 hover:bg-green-700 transition-colors" onClick={() => router.push('/admin/orders')}>View Orders</button>
+              <button className="bg-purple-600 text-white py-3 font-semibold rounded-none border-r border-white flex-1 hover:bg-purple-700 transition-colors" onClick={() => router.push('/admin/analytics')}>Analytics</button>
+              <button className="bg-gray-500 text-white py-3 font-semibold rounded-none flex-1 hover:bg-gray-700 transition-colors" style={{borderTopRightRadius: '0.5rem', borderBottomRightRadius: '0.5rem'}} onClick={() => router.push('/')}>Go to Homepage</button>
+            </div>
           </div>
         </div>
 
