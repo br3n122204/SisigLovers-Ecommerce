@@ -103,7 +103,7 @@ export default function CartPage() {
                   <span>₱{calculateTotal()}</span>
                 </div>
               </div>
-              <Button onClick={handleProceedToCheckout} className="w-full bg-black text-white py-3 rounded-md hover:bg-gray-800 transition-colors mt-6">
+              <Button onClick={handleProceedToCheckout} className="w-full bg-[#A75D43] text-white py-3 rounded-md hover:bg-[#c98a6a] transition-colors mt-6">
                 Proceed to Checkout
               </Button>
             </div>
