@@ -225,7 +225,7 @@ export default function DPTOneFashion() {
                       <p className="text-neutral-600 mb-3 text-center">{product.price}</p>
                       <Button
                         onClick={() => handleAddToCart(product)}
-                        className="w-full mt-2 bg-neutral-900 text-white hover:bg-neutral-700 rounded-full font-semibold text-base py-2"
+                        className="w-full mt-2 bg-[#A75D43] text-white hover:bg-[#c98a6a] rounded-full font-semibold text-base py-2"
                       >
                         Add to Cart
                       </Button>
