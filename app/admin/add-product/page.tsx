@@ -4,10 +4,10 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { db } from "@/lib/firebase";
 import { collection, addDoc } from "firebase/firestore";
-import ReactCrop, { centerCrop, makeAspectCrop, Crop } from 'react-image-crop';
+import { useAuth } from "@/context/AuthContext";
+import ReactCrop, { Crop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import Modal from 'react-modal';
-import { useAuth } from "@/context/AuthContext";
 
 export default function AddProductPage() {
   const [name, setName] = useState("");
@@ -20,18 +20,16 @@ export default function AddProductPage() {
   const [loadingImages, setLoadingImages] = useState(true);
   const [brand, setBrand] = useState("");
   const [isFeatured, setIsFeatured] = useState(false);
+  const brandOptions = ["Strap", "Richboyz", "Charlotte Folk", "MN+LA"];
+  const router = useRouter();
+  const { user } = useAuth();
   const [cropModalOpen, setCropModalOpen] = useState(false);
   const [cropImage, setCropImage] = useState<string | null>(null);
-  const [cropConfig, setCropConfig] = useState<Crop>({ unit: '%', width: 100, height: 100, aspect: 1 });
+  const [cropConfig, setCropConfig] = useState<Crop>({ unit: '%', x: 0, y: 0, width: 100, height: 100 });
   const [completedCrop, setCompletedCrop] = useState<Crop | null>(null);
   const [cropImageRef, setCropImageRef] = useState<HTMLImageElement | null>(null);
   const [croppingIdx, setCroppingIdx] = useState<number | null>(null);
   const [croppedImageUrl, setCroppedImageUrl] = useState<string | null>(null);
-  const [crop, setCrop] = useState({ x: 0, y: 0 });
-  const [zoom, setZoom] = useState(1);
-  const brandOptions = ["Strap", "Richboyz", "Charlotte Folk", "MN+LA"];
-  const router = useRouter();
-  const { user } = useAuth();
 
   const brandFolderMap: Record<string, string> = {
     "Charlotte Folk": "CHARLOTTE FOLK PRODUCTS",
@@ -91,7 +89,7 @@ export default function AddProductPage() {
       );
       await addDoc(collection(db, "products"), productData);
       alert("Product added successfully!");
-      router.push("/"); // Redirect to home or product list
+      router.push("/admin/products");
     } catch (error) {
       alert("Failed to add product. Please try again.");
       console.error(error);
@@ -141,7 +139,7 @@ export default function AddProductPage() {
   const handleImageClick = (url: string, idx: number) => {
     setCropImage(url);
     setCroppingIdx(idx);
-    setCropConfig({ unit: '%', width: 100, height: 100, aspect: 1 });
+    setCropConfig({ unit: '%', x: 0, y: 0, width: 100, height: 100 });
     setCompletedCrop(null);
     setCropModalOpen(true);
   };
@@ -167,11 +165,7 @@ export default function AddProductPage() {
         const { data, error } = await supabase.storage.from('product-images').upload(filePath, blob, { contentType: 'image/jpeg' });
         if (!error) {
           const publicUrl = supabase.storage.from('product-images').getPublicUrl(filePath).data.publicUrl;
-          setSelectedImages((prev) => {
-            const newArr = [...prev];
-            newArr[croppingIdx] = publicUrl;
-            return newArr;
-          });
+          setSelectedImages((prev) => [...prev, publicUrl]);
           setCroppedImageUrl(publicUrl);
         } else {
           console.error('Supabase upload error (full object):', error);
@@ -186,98 +180,97 @@ export default function AddProductPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
-      <div className="bg-white rounded-lg shadow-lg p-8 w-full max-w-lg">
-        <h1 className="text-2xl font-bold mb-6 text-gray-900">Add New Product</h1>
-        <form onSubmit={handleSubmit} className="space-y-4">
+    <div className="min-h-screen flex items-center justify-center bg-[#f7f7f7]">
+      <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-xl flex flex-col items-center">
+        <h2 className="text-2xl font-bold mb-6 text-center text-gray-900">Add New Product</h2>
+        <form onSubmit={handleSubmit} className="w-full space-y-4">
           <div>
-            <label className="block text-gray-700 font-medium mb-1">Product Name</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
             <input
               type="text"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               value={name}
               onChange={e => setName(e.target.value)}
               required
             />
           </div>
           <div>
-            <label className="block text-gray-700 font-medium mb-1">Description</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
             <textarea
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               value={description}
               onChange={e => setDescription(e.target.value)}
-              required
+              rows={3}
             />
           </div>
           <div>
-            <label className="block text-gray-700 font-medium mb-1">Price (₱)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Price <span className="font-bold">(₱)</span></label>
             <input
               type="number"
               min="0"
               step="0.01"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               value={price}
               onChange={e => setPrice(e.target.value)}
               required
             />
           </div>
           <div>
-            <label className="block text-gray-700 font-medium mb-1">Stock</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>
             <input
               type="number"
               min="0"
-              step="1"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               value={stock}
               onChange={e => setStock(e.target.value)}
               required
             />
           </div>
           <div>
-            <label className="block text-gray-700 font-medium mb-1">Brand</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Brand</label>
             <select
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               value={brand}
               onChange={e => setBrand(e.target.value)}
               required
             >
-              <option value="" disabled>Select a brand</option>
-              {brandOptions.map(option => (
-                <option key={option} value={option}>{option}</option>
+              <option value="">Select a brand</option>
+              {brandOptions.map((b) => (
+                <option key={b} value={b}>{b}</option>
               ))}
             </select>
           </div>
           <div>
-            <label className="block text-gray-700 font-medium mb-1">Select Product Images</label>
-            {!brand ? (
-              <div className="text-gray-500">Please select a brand to view images.</div>
-            ) : loadingImages ? (
-              <div className="text-gray-500">Loading images...</div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Select Product Images</label>
+            {loadingImages ? (
+              <div className="text-gray-500 text-sm">Loading images...</div>
             ) : images.length === 0 ? (
-              <div className="text-gray-500">No images found in storage for this brand.</div>
+              <div className="text-gray-500 text-sm">Please select a brand to view images.</div>
             ) : (
-              <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto">
-                {images.map((url, idx) => (
-                  <div
-                    key={url}
-                    className={`border-2 rounded-md cursor-pointer p-1 ${selectedImages.includes(url) ? 'border-blue-500' : 'border-transparent'}`}
-                    onClick={() => handleImageClick(url, idx)}
-                  >
-                    <img src={url} alt={`Product ${idx}`} className="w-full h-20 object-cover rounded" />
-                  </div>
+              <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
+                {images.map((img, idx) => (
+                  <img
+                    key={img}
+                    src={img}
+                    alt={`Product ${idx + 1}`}
+                    className={`w-20 h-20 object-contain rounded-md border-2 cursor-pointer ${selectedImages.includes(img) ? 'border-blue-500' : 'border-gray-200'}`}
+                    onClick={() => handleImageClick(img, idx)}
+                  />
                 ))}
               </div>
             )}
-            {selectedImages.length > 0 && (
-              <div className="mt-2 text-sm text-green-700 flex flex-wrap gap-2">
+          </div>
+          {selectedImages.length > 0 && (
+            <div className="mt-4 border border-blue-200 rounded-md p-2 bg-blue-50">
+              <div className="text-xs font-semibold text-blue-700 mb-2">Selected Images</div>
+              <div className="flex gap-2 overflow-x-auto">
                 {selectedImages.map((img, i) => (
                   <div key={i} className="relative inline-block">
-                    <img src={img} alt="Selected" className="w-12 h-12 object-cover rounded border border-green-500" />
+                    <img src={img} alt="Selected" className="w-16 h-16 object-contain rounded border border-blue-400" />
                     <button
                       type="button"
                       onClick={() => setSelectedImages(selectedImages.filter((_, idx) => idx !== i))}
-                      className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-700"
-                      style={{ transform: 'translate(40%, -40%)' }}
+                      className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-700 shadow"
                       aria-label="Remove image"
                     >
                       ×
@@ -285,32 +278,31 @@ export default function AddProductPage() {
                   </div>
                 ))}
               </div>
-            )}
-          </div>
+            </div>
+          )}
           <div>
-            <label className="block text-gray-700 font-medium mb-1">Product Type</label>
-            <div className="flex items-center gap-2">
+            <label className="inline-flex items-center">
               <input
                 type="checkbox"
-                id="isFeatured"
+                className="form-checkbox h-4 w-4 text-blue-600"
                 checked={isFeatured}
                 onChange={e => setIsFeatured(e.target.checked)}
-                className="mr-2"
               />
-              <label htmlFor="isFeatured" className="text-sm text-gray-700">Featured Product (also show in homepage featured section)</label>
-            </div>
+              <span className="ml-2 text-sm text-gray-700">Featured Product (also show in homepage featured section)</span>
+            </label>
           </div>
           <button
             type="submit"
-            className={`w-full bg-blue-600 text-white py-3 px-4 rounded-md font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}
+            className="w-full bg-blue-600 text-white py-3 px-4 rounded-md font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
             disabled={isSubmitting}
           >
-            {isSubmitting ? "Submitting..." : "Add Product"}
+            {isSubmitting ? "Adding..." : "Add Product"}
           </button>
           <button
             type="button"
-            className="w-full mt-2 bg-gray-200 text-gray-700 py-2 px-4 rounded-md font-semibold hover:bg-gray-300"
-            onClick={() => router.back()}
+            className="w-full bg-gray-200 text-gray-700 py-3 px-4 rounded-md font-semibold hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-colors duration-200"
+            onClick={() => router.push("/admin/products")}
+            disabled={isSubmitting}
           >
             Cancel
           </button>

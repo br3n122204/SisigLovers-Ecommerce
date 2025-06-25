@@ -329,12 +329,16 @@ export default function AdminPage() {
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
           <div className="flex flex-wrap gap-4 mb-6">
-            <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-0">
-              <button className="bg-blue-600 text-white py-3 font-semibold rounded-none border-r border-white flex-1 hover:bg-blue-700 transition-colors" style={{borderTopLeftRadius: '0.5rem', borderBottomLeftRadius: '0.5rem'}} onClick={() => router.push('/admin/products/new')}>Add New Product</button>
-              <button className="bg-yellow-500 text-white py-3 font-semibold rounded-none border-r border-white flex-1 hover:bg-yellow-600 transition-colors" onClick={() => router.push('/admin/products')}>Manage Products</button>
-              <button className="bg-green-600 text-white py-3 font-semibold rounded-none border-r border-white flex-1 hover:bg-green-700 transition-colors" onClick={() => router.push('/admin/orders')}>View Orders</button>
-              <button className="bg-purple-600 text-white py-3 font-semibold rounded-none border-r border-white flex-1 hover:bg-purple-700 transition-colors" onClick={() => router.push('/admin/analytics')}>Analytics</button>
-              <button className="bg-gray-500 text-white py-3 font-semibold rounded-none flex-1 hover:bg-gray-700 transition-colors" style={{borderTopRightRadius: '0.5rem', borderBottomRightRadius: '0.5rem'}} onClick={() => router.push('/')}>Go to Homepage</button>
+            <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-x-4 gap-y-2">
+              <Link href="/admin/add-product" className="flex-1">
+                <Button className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold rounded-full shadow flex items-center justify-center">
+                  Add New Product
+                </Button>
+              </Link>
+              <button className="w-full h-14 bg-yellow-500 text-white text-lg font-semibold rounded-full flex-1 hover:bg-yellow-600 transition-colors flex items-center justify-center" onClick={() => router.push('/admin/products')}>Manage Products</button>
+              <button className="w-full h-14 bg-green-600 text-white text-lg font-semibold rounded-full flex-1 hover:bg-green-700 transition-colors flex items-center justify-center" onClick={() => router.push('/admin/orders')}>View Orders</button>
+              <button className="w-full h-14 bg-purple-600 text-white text-lg font-semibold rounded-full flex-1 hover:bg-purple-700 transition-colors flex items-center justify-center" onClick={() => router.push('/admin/analytics')}>Analytics</button>
+              <button className="w-full h-14 bg-gray-500 text-white text-lg font-semibold rounded-full flex-1 hover:bg-gray-700 transition-colors flex items-center justify-center" onClick={() => router.push('/')}>Go to Homepage</button>
             </div>
           </div>
         </div>

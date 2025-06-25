@@ -118,7 +118,7 @@ export default function Header() {
             )}
             {!isAdminPage && (
               (!user || user.email === "sisiglovers@gmail.com") && (
-                <Link href="/admin" className="hover:text-[#fff9f3] text-white font-semibold">Dashboard</Link>
+                <Link href="/admin" className="hover:text-[#fff9f3] text-white font-semibold">Admin Dashboard</Link>
               )
             )}
           </nav>

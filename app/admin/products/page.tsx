@@ -9,7 +9,8 @@ interface Product {
   name: string;
   price: number;
   stock: number;
-  imageUrl: string;
+  imageUrl?: string;
+  imageUrls?: string[];
   brand?: string;
 }
 
@@ -33,6 +34,7 @@ export default function AdminProductsPage() {
           price: data.price,
           stock: data.stock,
           imageUrl: data.imageUrl,
+          imageUrls: data.imageUrls,
           brand: data.brand,
         });
       });
@@ -95,8 +97,12 @@ export default function AdminProductsPage() {
           <tbody>
             {products.map((product) => (
               <tr key={product.id} className="border-b">
-                <td className="p-3">
-                  <img src={product.imageUrl} alt={product.name} className="w-16 h-16 object-contain rounded" />
+                <td className="px-4 py-2 text-center">
+                  <img
+                    src={Array.isArray(product.imageUrls) && product.imageUrls.length > 0 ? product.imageUrls[0] : '/images/placeholder.jpg'}
+                    alt={product.name}
+                    className="w-12 h-12 object-contain rounded"
+                  />
                 </td>
                 <td className="p-3">
                   {editingId === product.id ? (
