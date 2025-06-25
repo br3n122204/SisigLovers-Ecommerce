@@ -170,11 +170,11 @@ export default function Header() {
                     className={`h-4 w-4 transform transition-transform duration-200 ${isBrandDropdownOpen ? 'rotate-180' : ''}`}
                   />
                 </button>
-                <div className={`absolute ${isBrandDropdownOpen ? 'block' : 'hidden'} bg-white shadow-lg rounded-md py-1 mt-2 w-40 z-20`}>
-                  <button type="button" className="block w-full text-left px-4 py-2 hover:bg-[#A75D43] hover:text-white" onClick={() => { router.push('/search?brand=MN%2BLA'); setIsBrandDropdownOpen(false); }}>MN+LA</button>
-                  <button type="button" className="block w-full text-left px-4 py-2 hover:bg-[#A75D43] hover:text-white" onClick={() => { router.push('/search?brand=Charlotte%20Folk'); setIsBrandDropdownOpen(false); }}>Charlotte Folk</button>
-                  <button type="button" className="block w-full text-left px-4 py-2 hover:bg-[#A75D43] hover:text-white" onClick={() => { router.push('/search?brand=Strap'); setIsBrandDropdownOpen(false); }}>Strap</button>
-                  <button type="button" className="block w-full text-left px-4 py-2 hover:bg-[#A75D43] hover:text-white" onClick={() => { router.push('/search?brand=Richboyz'); setIsBrandDropdownOpen(false); }}>Richboyz</button>
+                <div className={`absolute ${isBrandDropdownOpen ? 'block' : 'hidden'} bg-[#A75D43] shadow-lg rounded-md py-1 mt-2 w-40 z-20`}>
+                  <button type="button" className="block w-full text-left px-4 py-2 text-white hover:bg-[#c98a6a] hover:text-white" onClick={() => { router.push('/search?brand=MN%2BLA'); setIsBrandDropdownOpen(false); }}>MN+LA</button>
+                  <button type="button" className="block w-full text-left px-4 py-2 text-white hover:bg-[#c98a6a] hover:text-white" onClick={() => { router.push('/search?brand=Charlotte%20Folk'); setIsBrandDropdownOpen(false); }}>Charlotte Folk</button>
+                  <button type="button" className="block w-full text-left px-4 py-2 text-white hover:bg-[#c98a6a] hover:text-white" onClick={() => { router.push('/search?brand=Strap'); setIsBrandDropdownOpen(false); }}>Strap</button>
+                  <button type="button" className="block w-full text-left px-4 py-2 text-white hover:bg-[#c98a6a] hover:text-white" onClick={() => { router.push('/search?brand=Richboyz'); setIsBrandDropdownOpen(false); }}>Richboyz</button>
                 </div>
               </div>
             )}

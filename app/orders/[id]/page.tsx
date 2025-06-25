@@ -9,8 +9,10 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/context/AuthContext";
 import { ArrowLeft, Package, Truck, CheckCircle, Clock, MapPin, Phone, Mail, CreditCard, Download, Share2 } from "lucide-react";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { useParams } from 'next/navigation';
+import React from 'react';
 
 interface OrderItem {
   id: string;
@@ -60,123 +62,33 @@ interface TrackingEvent {
   description: string;
 }
 
-export default function OrderDetailsPage({ params }: { params: { id: string } }) {
+export default function OrderDetailsPage() {
   const { user } = useAuth();
   const [order, setOrder] = useState<Order | null>(null);
   const [trackingEvents, setTrackingEvents] = useState<TrackingEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
 
-  // Mock order data
-  const mockOrder: Order = {
-    id: params.id,
-    orderNumber: "ORD-2024-001",
-    orderDate: new Date("2024-01-15T10:30:00"),
-    status: "delivered",
-    total: 2499.00,
-    subtotal: 2499.00,
-    shipping: 0,
-    tax: 0,
-    items: [
-      {
-        id: "1",
-        name: "Charlotte Folk Black Tee",
-        price: 1299.00,
-        quantity: 1,
-        image: "/images/products/charlottefolk-black-tee.jpg",
-        size: "L",
-        color: "Black"
-      },
-      {
-        id: "2",
-        name: "MNLA White Tee",
-        price: 1200.00,
-        quantity: 1,
-        image: "/images/products/mnla-white-tee.jpg",
-        size: "M",
-        color: "White"
-      }
-    ],
-    shippingAddress: {
-      firstName: "John",
-      lastName: "Doe",
-      address1: "123 Main Street",
-      address2: "Apt 4B",
-      city: "Cebu City",
-      region: "Cebu",
-      postalCode: "6000",
-      phone: "+639123456789"
-    },
-    billingAddress: {
-      firstName: "John",
-      lastName: "Doe",
-      address1: "123 Main Street",
-      address2: "Apt 4B",
-      city: "Cebu City",
-      region: "Cebu",
-      postalCode: "6000",
-      phone: "+639123456789"
-    },
-    paymentMethod: "GCash",
-    paymentStatus: "paid",
-    trackingNumber: "TRK123456789",
-    estimatedDelivery: new Date("2024-01-18"),
-    actualDelivery: new Date("2024-01-17T14:30:00"),
-    notes: "Please deliver during business hours (9 AM - 6 PM)"
-  };
-
-  const mockTrackingEvents: TrackingEvent[] = [
-    {
-      date: new Date("2024-01-17T14:30:00"),
-      status: "delivered",
-      location: "Cebu City, Cebu",
-      description: "Package delivered to recipient"
-    },
-    {
-      date: new Date("2024-01-17T08:15:00"),
-      status: "out_for_delivery",
-      location: "Cebu City, Cebu",
-      description: "Package out for delivery"
-    },
-    {
-      date: new Date("2024-01-16T16:45:00"),
-      status: "in_transit",
-      location: "Cebu City, Cebu",
-      description: "Package arrived at local facility"
-    },
-    {
-      date: new Date("2024-01-16T10:20:00"),
-      status: "shipped",
-      location: "Manila, Metro Manila",
-      description: "Package shipped from warehouse"
-    },
-    {
-      date: new Date("2024-01-15T14:30:00"),
-      status: "processing",
-      location: "Manila, Metro Manila",
-      description: "Order processed and packed"
-    },
-    {
-      date: new Date("2024-01-15T10:30:00"),
-      status: "ordered",
-      location: "Online",
-      description: "Order placed"
-    }
-  ];
+  const params = useParams();
+  const orderId = params.id as string;
 
   useEffect(() => {
     if (user) {
-      // Fetch order details from Firebase productsOrder collection
       const fetchOrderDetails = async () => {
         try {
-          const orderRef = doc(db, 'productsOrder', params.id);
+          const orderRef = doc(db, 'users', user.uid, 'orders', orderId);
           const orderSnap = await getDoc(orderRef);
-          
           if (orderSnap.exists()) {
             const data = orderSnap.data();
             const fetchedOrder: Order = {
               id: orderSnap.id,
               orderNumber: data.orderNumber,
-              orderDate: data.orderDate?.toDate() || new Date(),
+              orderDate: (() => {
+                const d = data.orderDate;
+                if (d && typeof d.toDate === 'function') return d.toDate();
+                if (typeof d === 'string' || typeof d === 'number') return new Date(d);
+                return new Date();
+              })(),
               status: data.status,
               total: data.total,
               subtotal: data.subtotal,
@@ -192,68 +104,26 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
               actualDelivery: data.actualDelivery?.toDate(),
               notes: data.notes
             };
-            
             setOrder(fetchedOrder);
-            
-            // Generate mock tracking events based on order status
-            // In a real app, you'd fetch this from a tracking service
-            const mockTrackingEvents: TrackingEvent[] = [
-              {
-                date: fetchedOrder.orderDate,
-                status: "ordered",
-                location: "Online",
-                description: "Order placed"
-              }
-            ];
-            
-            if (fetchedOrder.status !== 'pending') {
-              mockTrackingEvents.push({
-                date: new Date(fetchedOrder.orderDate.getTime() + 24 * 60 * 60 * 1000),
-                status: "processing",
-                location: "Manila, Metro Manila",
-                description: "Order processed and packed"
-              });
-            }
-            
-            if (fetchedOrder.status === 'shipped' || fetchedOrder.status === 'delivered') {
-              mockTrackingEvents.push({
-                date: new Date(fetchedOrder.orderDate.getTime() + 2 * 24 * 60 * 60 * 1000),
-                status: "shipped",
-                location: "Manila, Metro Manila",
-                description: "Package shipped from warehouse"
-              });
-            }
-            
-            if (fetchedOrder.status === 'delivered') {
-              mockTrackingEvents.push({
-                date: fetchedOrder.actualDelivery || new Date(fetchedOrder.orderDate.getTime() + 3 * 24 * 60 * 60 * 1000),
-                status: "delivered",
-                location: "Cebu City, Cebu",
-                description: "Package delivered to recipient"
-              });
-            }
-            
-            setTrackingEvents(mockTrackingEvents);
+            setOrderItems(data.items || []);
           } else {
-            // Order not found, use mock data for development
-            setOrder(mockOrder);
-            setTrackingEvents(mockTrackingEvents);
+            setOrder(null);
+            setOrderItems([]);
           }
         } catch (error) {
           console.error("Error fetching order details:", error);
-          // Fallback to mock data for development
-          setOrder(mockOrder);
-          setTrackingEvents(mockTrackingEvents);
+          setOrder(null);
+          setOrderItems([]);
         } finally {
           setLoading(false);
         }
       };
-      
       fetchOrderDetails();
     } else {
       setLoading(false);
+      setOrderItems([]);
     }
-  }, [user, params.id]);
+  }, [user, orderId]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -382,11 +252,11 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
             {/* Order Items */}
             <Card>
               <CardHeader>
-                <CardTitle>Items ({order.items.length})</CardTitle>
+                <CardTitle>Items ({orderItems.length})</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {order.items.map((item) => (
+                  {orderItems.map((item) => (
                     <div key={item.id} className="flex items-start gap-4 p-4 border rounded-lg">
                       <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
                         <Image
@@ -413,42 +283,6 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                 </div>
               </CardContent>
             </Card>
-
-            {/* Tracking Information */}
-            {order.trackingNumber && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Tracking Information</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="mb-4">
-                    <p className="text-sm text-gray-600">Tracking Number</p>
-                    <p className="font-mono text-lg font-medium">{order.trackingNumber}</p>
-                  </div>
-                  
-                  <div className="space-y-4">
-                    {trackingEvents.map((event, index) => (
-                      <div key={index} className="flex gap-4">
-                        <div className="flex flex-col items-center">
-                          <div className={`w-3 h-3 rounded-full ${
-                            index === 0 ? 'bg-green-500' : 'bg-gray-300'
-                          }`}></div>
-                          {index < trackingEvents.length - 1 && (
-                            <div className="w-0.5 h-8 bg-gray-300 mt-2"></div>
-                          )}
-                        </div>
-                        <div className="flex-1 pb-4">
-                          <p className="font-medium text-gray-900">{event.status.replace('_', ' ').toUpperCase()}</p>
-                          <p className="text-sm text-gray-600">{event.description}</p>
-                          <p className="text-sm text-gray-500">{event.location}</p>
-                          <p className="text-xs text-gray-400 mt-1">{formatDate(event.date)}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
           </div>
 
           {/* Sidebar */}

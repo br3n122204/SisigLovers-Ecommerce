@@ -4,10 +4,13 @@ import { signOut } from "firebase/auth";
 import Link from "next/link";
 import { useState } from "react";
 import { auth } from "@/lib/firebase";
+import AuthModal from "./ui/AuthModal";
 
 export default function UserProfile() {
   const { user } = useAuth();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
 
   const handleSignOut = async () => {
     try {
@@ -29,19 +32,33 @@ export default function UserProfile() {
     return "?";
   };
 
+  const handleOpenAuth = (mode: 'login' | 'signup') => {
+    setAuthMode(mode);
+    setShowAuthModal(true);
+  };
+
+  const handleCloseAuth = () => {
+    setShowAuthModal(false);
+  };
+
   if (!user) {
     return (
       <div className="flex items-center space-x-4">
-        <Link href="/login">
-          <button className="px-4 py-2 rounded-md border-2 border-[#A75D43] text-[#A75D43] bg-white font-semibold hover:bg-[#f5f2ef] hover:border-[#c98a6a] transition-all">
-            Log In
-          </button>
-        </Link>
-        <Link href="/login?signup=true">
-          <button className="px-4 py-2 rounded-md border-2 border-[#A75D43] text-[#A75D43] bg-white font-semibold hover:bg-[#f5f2ef] hover:border-[#c98a6a] transition-all">
-            Sign Up
-          </button>
-        </Link>
+        <button
+          className="px-4 py-2 rounded-md border-2 border-[#A75D43] text-[#A75D43] bg-white font-semibold hover:bg-[#f5f2ef] hover:border-[#c98a6a] transition-all"
+          onClick={() => handleOpenAuth('login')}
+        >
+          Log In
+        </button>
+        <button
+          className="px-4 py-2 rounded-md border-2 border-[#A75D43] text-[#A75D43] bg-white font-semibold hover:bg-[#f5f2ef] hover:border-[#c98a6a] transition-all"
+          onClick={() => handleOpenAuth('signup')}
+        >
+          Sign Up
+        </button>
+        {showAuthModal && (
+          <AuthModal mode={authMode} onClose={handleCloseAuth} />
+        )}
       </div>
     );
   }

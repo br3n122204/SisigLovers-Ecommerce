@@ -2,13 +2,11 @@
 
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { ChevronLeft, ChevronRight, Menu, ShoppingCart } from "lucide-react"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { useCart } from '@/context/CartContext'
 import { useAuth } from '@/context/AuthContext'
-import UserProfile from '@/components/UserProfile'
 import { useRouter } from 'next/navigation'
 
 // Sample slider images data
@@ -178,7 +176,6 @@ function ImageSlider() {
 }
 
 export default function DPTOneFashion() {
-  const [hoveredProduct, setHoveredProduct] = useState<number | null>(null)
   const { cartItems, addToCart } = useCart()
   const { user } = useAuth()
   const router = useRouter()
