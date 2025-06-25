@@ -202,21 +202,17 @@ export default function DPTOneFashion() {
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
               {featuredProducts.map((product) => (
-                <div key={product.id} className="bg-white rounded-2xl shadow-lg p-4 flex flex-col items-center">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-48 h-48 object-contain mb-4"
-                  />
-                  <h3 className="font-bold text-lg text-center mb-1">{product.name}</h3>
-                  <p className="text-gray-700 font-semibold mb-4">{product.price}</p>
-                  <button
-                    onClick={() => handleAddToCart(product)}
-                    className="w-full bg-black text-white py-2 rounded-full font-semibold hover:bg-gray-800 transition"
-                  >
-                    Add to Cart
-                  </button>
-                </div>
+                <Link key={product.id} href={`/products/${product.id}`} className="w-full">
+                  <div className="bg-white rounded-2xl shadow-lg p-4 flex flex-col items-center cursor-pointer hover:shadow-xl transition">
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="w-48 h-48 object-contain mb-4"
+                    />
+                    <h3 className="font-bold text-lg text-center mb-1">{product.name}</h3>
+                    <p className="text-gray-700 font-semibold mb-4">{product.price}</p>
+                  </div>
+                </Link>
               ))}
             </div>
           </div>
