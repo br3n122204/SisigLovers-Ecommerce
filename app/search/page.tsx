@@ -350,7 +350,20 @@ export default function SearchPage() {
                           <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-all duration-300" />
                         </div>
                         <div className="p-4">
-                          <Button className="w-full mt-2 bg-black text-white hover:bg-gray-800" disabled>
+                          <Button
+                            className="w-full mt-2 bg-black text-white hover:bg-gray-800"
+                            onClick={() => handleAddToCart({
+                              id: 1000 + idx,
+                              name: `Placeholder Product ${idx + 1}`,
+                              price: '₱0.00',
+                              image: '/placeholder.svg',
+                              backImage: '/placeholder.svg',
+                              category: 'Placeholder',
+                              brand: selectedBrand,
+                              color: 'N/A',
+                              quantity: 1
+                            })}
+                          >
                             Add to Cart
                           </Button>
                         </div>
