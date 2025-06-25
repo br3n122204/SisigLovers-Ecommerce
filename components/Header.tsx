@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ShoppingCart, Search, X, ChevronDown } from "lucide-react";
 import UserProfile from "@/components/UserProfile";
@@ -8,90 +8,10 @@ import { useCart } from '@/context/CartContext';
 import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
+import { db } from '@/lib/firebase';
+import { collection, getDocs } from 'firebase/firestore';
 
-// All products data - In a real application, this would come from a database or a shared utility
-const allProducts = [
-  {
-    id: 1,
-    name: "Strap White Tee",
-    price: "₱550.00",
-    image: "/images/products/strap-white-tee.jpg",
-    backImage: "/images/products/strap-white-tee-back.jpg",
-    category: "T-Shirts",
-    brand: "Strap",
-    color: "White",
-  },
-  {
-    id: 2,
-    name: "Richboyz White Tee",
-    price: "₱550.00",
-    image: "/images/products/richboyz-white-tee.jpg",
-    backImage: "/images/products/richboyz-white-tee-back.jpg",
-    category: "T-Shirts",
-    brand: "Richboyz",
-    color: "White",
-  },
-  {
-    id: 3,
-    name: "Charlotte Folk White Tee",
-    price: "₱550.00",
-    image: "/images/products/charlottefolk-white-tee.jpg",
-    backImage: "/images/products/charlottefolk-white-tee-back.jpg",
-    category: "T-Shirts",
-    brand: "Charlotte Folk",
-    color: "White",
-  },
-  {
-    id: 4,
-    name: "Strap Black Tee",
-    price: "₱550.00",
-    image: "/images/products/strap-black-tee.jpg",
-    backImage: "/images/products/strap-black-tee-back.jpg",
-    category: "T-Shirts",
-    brand: "Strap",
-    color: "Black",
-  },
-  {
-    id: 5,
-    name: "MN+LA Black Tee",
-    price: "₱550.00",
-    image: "/images/products/mnla-black-tee.jpg",
-    backImage: "/images/products/mnla-black-tee-back.jpg",
-    category: "T-Shirts",
-    brand: "MN+LA",
-    color: "Black",
-  },
-  {
-    id: 6,
-    name: "Richboyz Black Tee",
-    price: "₱550.00",
-    image: "/images/products/richboyz-black-tee.jpg",
-    backImage: "/images/products/richboyz-black-tee-back.jpg",
-    category: "T-Shirts",
-    brand: "Richboyz",
-    color: "Black",
-  },
-  {
-    id: 7,
-    name: "MN+LA White Tee",
-    price: "₱550.00",
-    image: "/images/products/mnla-white-tee.jpg",
-    backImage: "/images/products/mnla-white-tee-back.jpg",
-    category: "T-Shirts",
-    brand: "MN+LA",
-    color: "White",
-  },
-  {
-    id: 8,
-    name: "Charlotte Folk Black Tee",
-    price: "₱550.00",
-    image: "/images/products/charlottefolk-black-tee.jpg",
-    backImage: "/images/products/charlottefolk-black-tee-back.jpg",
-    category: "T-Shirts",
-    brand: "Charlotte Folk",
-    color: "Black",
-  },
-];
+const ADMIN_UID = "1BeqoY3h5gTa4LBUsAiaDLHHhnT2";
 
 export default function Header() {
   const { cartItems } = useCart();
@@ -100,12 +20,27 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [allProducts, setAllProducts] = useState<any[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isBrandDropdownOpen, setIsBrandDropdownOpen] = useState(false);
   const pathname = usePathname();
 
   // Check if we're on the admin page
   const isAdminPage = pathname === '/admin';
+  const isAdmin = user && user.uid === ADMIN_UID;
+
+  // Fetch all products from Firestore once on mount
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const querySnapshot = await getDocs(collection(db, 'products'));
+      const items: any[] = [];
+      querySnapshot.forEach((docSnap) => {
+        items.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      setAllProducts(items);
+    };
+    fetchProducts();
+  }, []);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -123,7 +58,7 @@ export default function Header() {
     setSearchQuery(query);
     if (query.trim().length > 0) {
       const filtered = allProducts.filter(product =>
-        product.name.toLowerCase().includes(query.toLowerCase())
+        product.name && product.name.toLowerCase().includes(query.toLowerCase())
       );
       setSearchResults(filtered);
       setShowSuggestions(true);
@@ -144,10 +79,10 @@ export default function Header() {
 
   return (
     <header className="bg-[#A75D43] border-b border-[#c98a6a] py-4">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-        {/* Left Section: Logo and Navigation */}
-        <div className="flex items-center space-x-8">
-          <Link href="/" className="flex items-center">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row md:items-center md:justify-between">
+        {/* Left: Logo and Navigation */}
+        <div className="flex items-center gap-8 w-full md:w-auto md:flex-1">
+          <Link href="/" className="flex items-center mr-4">
             <Image
               src="/images/logo.png"
               alt="Sisig Lovers Logo"
@@ -157,7 +92,7 @@ export default function Header() {
               priority
             />
           </Link>
-          <nav className="hidden md:flex space-x-6 text-sm font-medium text-white">
+          <nav className="flex items-center gap-6 text-sm font-medium text-white">
             {/* Shop by Brand Dropdown */}
             {!isAdminPage && (
               <div className="relative">
@@ -178,59 +113,71 @@ export default function Header() {
                 </div>
               </div>
             )}
-            {user && !isAdminPage && (
+            {user && !isAdminPage && !isAdmin && (
               <Link href="/orders" className="hover:text-[#fff9f3]">Orders</Link>
             )}
             {!isAdminPage && (
               (!user || user.email === "sisiglovers@gmail.com") && (
-                <Link href="/admin" className="hover:text-[#fff9f3] text-white font-semibold">Admin</Link>
+                <Link href="/admin" className="hover:text-[#fff9f3] text-white font-semibold">Dashboard</Link>
               )
             )}
           </nav>
         </div>
+        {/* Centered Search Bar - improved centering and spacing */}
+        <div className="w-full md:w-[600px] flex justify-center my-4 md:my-0 order-2 md:order-none">
+          <form onSubmit={handleSearch} className="relative w-full max-w-xl">
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={searchQuery}
+              onChange={handleInputChange}
+              onFocus={() => setShowSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 100)}
+              className="w-full px-5 py-2.5 pl-12 pr-5 border-2 border-[#c98a6a] rounded-full bg-[#f5f2ef] text-[#222] placeholder-[#A75D43] focus:outline-none focus:ring-3 focus:ring-[#A75D43] focus:border-[#A75D43] transition-all duration-300 ease-in-out shadow-md text-base"
+            />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#A75D43]" />
+            <button
+              type="submit"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#A75D43] hover:text-[#fff9f3] transition-colors"
+            >
+              <Search className="h-5 w-5" />
+            </button>
 
-        {/* Center Section: Search Bar (hidden on /profile, /cart, /settings, /checkout, and /admin) */}
-        {!(pathname === '/profile' || pathname === '/cart' || pathname === '/settings' || pathname === '/checkout' || isAdminPage) && (
-          <div className="flex-1 max-w-md mx-8 hidden md:block">
-            <form onSubmit={handleSearch} className="relative">
-              <input
-                type="text"
-                placeholder="Search products..."
-                value={searchQuery}
-                onChange={handleInputChange}
-                onFocus={() => setShowSuggestions(true)}
-                onBlur={() => setTimeout(() => setShowSuggestions(false), 100)}
-                className="w-full px-5 py-2.5 pl-12 pr-5 border-2 border-[#c98a6a] rounded-full bg-[#f5f2ef] text-[#222] placeholder-[#A75D43] focus:outline-none focus:ring-3 focus:ring-[#A75D43] focus:border-[#A75D43] transition-all duration-300 ease-in-out shadow-md"
-              />
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#A75D43]" />
-              <button
-                type="submit"
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#A75D43] hover:text-[#fff9f3] transition-colors"
-              >
-                <Search className="h-5 w-5" />
-              </button>
-
-              {/* Search Suggestions Dropdown (Desktop) */}
-              {showSuggestions && searchQuery.length > 0 && searchResults.length > 0 && (
-                <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
-                  <p className="px-4 py-2 text-xs text-gray-500 uppercase font-bold">Products</p>
-                  {searchResults.map((product) => (
+            {/* Search Suggestions Dropdown (Desktop) */}
+            {showSuggestions && searchQuery.length > 0 && searchResults.length > 0 && (
+              <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
+                <p className="px-4 py-2 text-xs text-gray-500 uppercase font-bold">Products</p>
+                {searchResults.map((product) => {
+                  let productImg = '/images/placeholder.jpg';
+                  if (Array.isArray(product.imageUrls) && product.imageUrls.length > 0) {
+                    productImg = product.imageUrls[0];
+                  } else if (product.image) {
+                    productImg = product.image;
+                  } else if (product.imageUrl) {
+                    productImg = product.imageUrl;
+                  }
+                  return (
                     <Link href={`/products/${product.id}`} key={product.id} className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                      <Image src={product.image} alt={product.name} width={40} height={40} className="mr-3 rounded" />
+                      <Image
+                        src={productImg}
+                        alt={product.name || 'Product'}
+                        width={40}
+                        height={40}
+                        className="mr-3 rounded"
+                      />
                       <span className="text-sm font-medium text-gray-800">{product.name}</span>
                     </Link>
-                  ))}
-                  <Link href={`/search?q=${encodeURIComponent(searchQuery)}`} className="block px-4 py-3 bg-gray-50 text-blue-600 hover:bg-gray-100 text-sm font-medium text-center border-t border-gray-200">
-                    Search for "{searchQuery}"
-                  </Link>
-                </div>
-              )}
-            </form>
-          </div>
-        )}
-
-        {/* Right Section: Log In, Sign Up, Cart Icon */}
-        {!isAdminPage && (
+                  );
+                })}
+                <Link href={`/search?q=${encodeURIComponent(searchQuery)}`} className="block px-4 py-3 bg-gray-50 text-blue-600 hover:bg-gray-100 text-sm font-medium text-center border-t border-gray-200">
+                  Search for "{searchQuery}"
+                </Link>
+              </div>
+            )}
+          </form>
+        </div>
+        {/* Right Section: User/Cart/Profile */}
+        {!isAdminPage && !isAdmin && (
           <div className="flex items-center space-x-4">
             <UserProfile />
             <Link href="/cart" className="relative flex items-center justify-center">
@@ -271,12 +218,28 @@ export default function Header() {
             {showSuggestions && searchQuery.length > 0 && searchResults.length > 0 && (
               <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
                 <p className="px-4 py-2 text-xs text-gray-500 uppercase font-bold">Products</p>
-                {searchResults.map((product) => (
-                  <Link href={`/products/${product.id}`} key={product.id} className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                    <Image src={product.image} alt={product.name} width={40} height={40} className="mr-3 rounded" />
-                    <span className="text-sm font-medium text-gray-800">{product.name}</span>
-                  </Link>
-                ))}
+                {searchResults.map((product) => {
+                  let productImg = '/images/placeholder.jpg';
+                  if (Array.isArray(product.imageUrls) && product.imageUrls.length > 0) {
+                    productImg = product.imageUrls[0];
+                  } else if (product.image) {
+                    productImg = product.image;
+                  } else if (product.imageUrl) {
+                    productImg = product.imageUrl;
+                  }
+                  return (
+                    <Link href={`/products/${product.id}`} key={product.id} className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                      <Image
+                        src={productImg}
+                        alt={product.name || 'Product'}
+                        width={40}
+                        height={40}
+                        className="mr-3 rounded"
+                      />
+                      <span className="text-sm font-medium text-gray-800">{product.name}</span>
+                    </Link>
+                  );
+                })}
                 <Link href={`/search?q=${encodeURIComponent(searchQuery)}`} className="block px-4 py-3 bg-gray-50 text-blue-600 hover:bg-gray-100 text-sm font-medium text-center border-t border-gray-200">
                   Search for "{searchQuery}"
                 </Link>
