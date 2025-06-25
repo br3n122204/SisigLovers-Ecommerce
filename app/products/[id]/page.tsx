@@ -164,8 +164,8 @@ export default function ProductDetailPage() {
                     key={size}
                     variant="outline"
                     onClick={() => setSelectedSize(size)}
-                    className={`border-gray-300 text-gray-700 hover:bg-black hover:text-white transition-colors ${
-                      selectedSize === size ? "bg-black text-white" : ""
+                    className={`border-gray-300 text-gray-700 hover:bg-[#A75D43] hover:text-white transition-colors ${
+                      selectedSize === size ? "bg-[#A75D43] text-white" : ""
                     }`}
                   >
                     {size}
@@ -185,7 +185,7 @@ export default function ProductDetailPage() {
 
             <div className="mt-8 space-y-4">
               <Button
-                className="w-full bg-black text-white py-3 rounded-md hover:bg-gray-800 transition-colors"
+                className="w-full bg-[#A75D43] text-white py-3 rounded-md hover:bg-[#c98a6a] transition-colors"
                 onClick={handleAddToCart}
               >
                 Add to cart
