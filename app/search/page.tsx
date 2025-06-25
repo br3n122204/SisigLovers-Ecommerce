@@ -332,34 +332,303 @@ export default function SearchPage() {
 
           {/* Products Grid */}
           <div className="flex-1">
-            {/* Show 8 placeholders if a brand is selected */}
-            {selectedBrand && (
+            {/* Show 8 Strap products if Strap brand is selected */}
+            {selectedBrand === 'Strap' && (
               <div className="mb-8">
-                <h2 className="text-lg font-semibold mb-4 text-gray-700">{selectedBrand} Placeholders</h2>
+                <h2 className="text-lg font-semibold mb-4 text-gray-700">Strap Products</h2>
                 <div className="grid grid-cols-4 gap-4 mb-6">
-                  {[...Array(8)].map((_, idx) => (
+                  {[
+                    {
+                      name: 'STRAP BUBBLE LETTERS LOGO TEE RED',
+                      image: '/images/products/STRAP BUBBLE LETTERS LOGO TEE RED.png',
+                    },
+                    {
+                      name: 'STRAP EMBROIDERED LOGO POLO SHIRT GREY',
+                      image: '/images/products/STRAP EMBROIDERED LOGO POLO SHIRT GREY.png',
+                    },
+                    {
+                      name: 'STRAP FLORAL LOGO TEE BLACK',
+                      image: '/images/products/STRAP FLORAL LOGO TEE BLACK.png',
+                    },
+                    {
+                      name: 'STRAP GUARDIAN TEE MOSS GREEN',
+                      image: '/images/products/STRAP GUARDIAN TEE MOSS GREEN.png',
+                    },
+                    {
+                      name: 'STRAP PILIPINAS JERSEY S STRIPE',
+                      image: '/images/products/STRAP PILIPINAS JERSEY S STRIPE.png',
+                    },
+                    {
+                      name: 'STRAP STONE LOGO TEE BROWN',
+                      image: '/images/products/STRAP STONE LOGO TEE BROWN.png',
+                    },
+                    {
+                      name: 'STRAP TFI RIDERS JERSEY',
+                      image: '/images/products/STRAP TFI RIDERS JERSEY.png',
+                    },
+                    {
+                      name: 'STRAP THORNS LOGO TEE BLACK',
+                      image: '/images/products/STRAP THORNS LOGO TEE BLACK.png',
+                    },
+                  ].map((product, idx) => (
                     <Card key={idx} className="overflow-hidden">
                       <CardContent className="p-0">
                         <div className="relative aspect-square">
                           <Image
-                            src="/placeholder.svg"
-                            alt="Placeholder"
+                            src={product.image}
+                            alt={product.name}
                             fill
                             className="object-cover transition-opacity duration-300"
                           />
                           <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-all duration-300" />
                         </div>
                         <div className="p-4">
+                          <h3 className="text-lg font-semibold">{product.name}</h3>
+                          <p className="text-gray-600 mb-2">₱550.00</p>
                           <Button
                             className="w-full mt-2 bg-black text-white hover:bg-gray-800"
                             onClick={() => handleAddToCart({
-                              id: 1000 + idx,
-                              name: `Placeholder Product ${idx + 1}`,
-                              price: '₱0.00',
-                              image: '/placeholder.svg',
-                              backImage: '/placeholder.svg',
-                              category: 'Placeholder',
-                              brand: selectedBrand,
+                              id: 2000 + idx,
+                              name: product.name,
+                              price: '₱550.00',
+                              image: product.image,
+                              backImage: product.image,
+                              category: 'T-Shirts',
+                              brand: 'Strap',
+                              color: 'N/A',
+                              quantity: 1
+                            })}
+                          >
+                            Add to Cart
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+            {/* Show 8 placeholders for other brands */}
+            {/* Removed: {selectedBrand && selectedBrand !== 'Strap' && selectedBrand !== 'MN+LA' && selectedBrand !== 'Richboyz' && selectedBrand !== 'Charlotte Folk' && ( ... )} */}
+            {/* Show 8 MN+LA products if MN+LA brand is selected */}
+            {selectedBrand === 'MN+LA' && (
+              <div className="mb-8">
+                <h2 className="text-lg font-semibold mb-4 text-gray-700">MN+LA Products</h2>
+                <div className="grid grid-cols-4 gap-4 mb-6">
+                  {[
+                    {
+                      name: 'CHOKE TEE IN GRAPESANTHRACITE',
+                      image: '/images/products/CHOKE TEE IN GRAPESANTHRACITE.png',
+                    },
+                    {
+                      name: 'CHOP CHOP WAFFLE TEE IN FOSSIL',
+                      image: '/images/products/CHOP CHOP WAFFLE TEE IN FOSSIL.png',
+                    },
+                    {
+                      name: 'LEAVE ME ALONE TEE IN STONECASTLETON',
+                      image: '/images/products/LEAVE ME ALONE TEE IN STONECASTLETON.png',
+                    },
+                    {
+                      name: 'LINEAR TEE IN CANOPY',
+                      image: '/images/products/LINEAR TEE IN CANOPY.png',
+                    },
+                    {
+                      name: 'M+ LONGSLEEVE TEEIN OLIVE',
+                      image: '/images/products/M+ LONGSLEEVE TEEIN OLIVE.png',
+                    },
+                    {
+                      name: "NAUGHTY N' NICE COCKTAILS LITE TEE IN GLACIER",
+                      image: '/images/products/NAUGHTY N\' NICE COCKTAILS LITE TEE IN GLACIER.png',
+                    },
+                    {
+                      name: "UntitledM'$ PAISLEY PATCHWORK MILITIA MOCK NECK",
+                      image: "/images/products/UntitledM'$ PAISLEY PATCHWORK MILITIA MOCK NECK.png",
+                    },
+                    {
+                      name: 'YEAR OF THE SNAKE BOX TEE IN ANTHRACITE',
+                      image: '/images/products/YEAR OF THE SNAKE BOX TEE IN ANTHRACITE.png',
+                    },
+                  ].map((product, idx) => (
+                    <Card key={idx} className="overflow-hidden">
+                      <CardContent className="p-0">
+                        <div className="relative aspect-square">
+                          <Image
+                            src={product.image}
+                            alt={product.name}
+                            fill
+                            className="object-cover transition-opacity duration-300"
+                          />
+                          <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-all duration-300" />
+                        </div>
+                        <div className="p-4">
+                          <h3 className="text-lg font-semibold">MN+LA {product.name}</h3>
+                          <p className="text-gray-600 mb-2">₱550.00</p>
+                          <Button
+                            className="w-full mt-2 bg-black text-white hover:bg-gray-800"
+                            onClick={() => handleAddToCart({
+                              id: 3000 + idx,
+                              name: `MN+LA ${product.name}`,
+                              price: '₱550.00',
+                              image: product.image,
+                              backImage: product.image,
+                              category: 'T-Shirts',
+                              brand: 'MN+LA',
+                              color: 'N/A',
+                              quantity: 1
+                            })}
+                          >
+                            Add to Cart
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+            {/* Show 8 Richboyz products if Richboyz brand is selected */}
+            {selectedBrand === 'Richboyz' && (
+              <div className="mb-8">
+                <h2 className="text-lg font-semibold mb-4 text-gray-700">Richboyz Products</h2>
+                <div className="grid grid-cols-4 gap-4 mb-6">
+                  {[
+                    {
+                      name: 'Box Tee - Ringer',
+                      image: '/images/products/Box Tee - Ringer.png',
+                    },
+                    {
+                      name: 'Box Tee - Swamp',
+                      image: '/images/products/Box Tee - Swamp.png',
+                    },
+                    {
+                      name: 'Club Tee - Bloom',
+                      image: '/images/products/Club Tee - Bloom.png',
+                    },
+                    {
+                      name: 'Club Tee - Summer',
+                      image: '/images/products/Club Tee - Summer.png',
+                    },
+                    {
+                      name: 'Knitted Polo - Leaf',
+                      image: '/images/products/Knitted Polo - Leaf.png',
+                    },
+                    {
+                      name: 'Premium Box Tee - Circuit',
+                      image: '/images/products/Premium Box Tee - Circuit.png',
+                    },
+                    {
+                      name: 'Premium Box Tee - Grid White_BLACK',
+                      image: '/images/products/Premium Box Tee - Grid White_BLACK.png',
+                    },
+                    {
+                      name: 'Premium Box Tee - Grid White',
+                      image: '/images/products/Premium Box Tee - Grid White.png',
+                    },
+                    {
+                      name: 'Relaxed Drop Shoulder Tee - Bone',
+                      image: '/images/products/Relaxed Drop Shoulder Tee - Bone.png',
+                    },
+                  ].slice(0, 8).map((product, idx) => (
+                    <Card key={idx} className="overflow-hidden">
+                      <CardContent className="p-0">
+                        <div className="relative aspect-square">
+                          <Image
+                            src={product.image}
+                            alt={product.name}
+                            fill
+                            className="object-cover transition-opacity duration-300"
+                          />
+                          <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-all duration-300" />
+                        </div>
+                        <div className="p-4">
+                          <h3 className="text-lg font-semibold">Richboyz {product.name}</h3>
+                          <p className="text-gray-600 mb-2">₱550.00</p>
+                          <Button
+                            className="w-full mt-2 bg-black text-white hover:bg-gray-800"
+                            onClick={() => handleAddToCart({
+                              id: 4000 + idx,
+                              name: `Richboyz ${product.name}`,
+                              price: '₱550.00',
+                              image: product.image,
+                              backImage: product.image,
+                              category: 'T-Shirts',
+                              brand: 'Richboyz',
+                              color: 'N/A',
+                              quantity: 1
+                            })}
+                          >
+                            Add to Cart
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
+            {/* Show 8 Charlotte Folk products if Charlotte Folk brand is selected */}
+            {selectedBrand === 'Charlotte Folk' && (
+              <div className="mb-8">
+                <h2 className="text-lg font-semibold mb-4 text-gray-700">Charlotte Folk Products</h2>
+                <div className="grid grid-cols-4 gap-4 mb-6">
+                  {[
+                    {
+                      name: 'Basic Hoodie',
+                      image: '/images/products/Basic Hoodie.png',
+                    },
+                    {
+                      name: 'CF City Tee',
+                      image: '/images/products/CF City Tee.png',
+                    },
+                    {
+                      name: 'CF2018 Tee',
+                      image: '/images/products/CF2018 Tee.png',
+                    },
+                    {
+                      name: 'CFSS22 Tee',
+                      image: '/images/products/CFSS22 Tee.png',
+                    },
+                    {
+                      name: 'Cherry Regular Tee',
+                      image: '/images/products/Cherry Regular Tee.png',
+                    },
+                    {
+                      name: 'Core Tee',
+                      image: '/images/products/Core Tee.png',
+                    },
+                    {
+                      name: 'Football CVC Tee',
+                      image: '/images/products/Football CVC Tee.png',
+                    },
+                    {
+                      name: 'Koi Tee',
+                      image: '/images/products/Koi Tee.png',
+                    },
+                  ].map((product, idx) => (
+                    <Card key={idx} className="overflow-hidden">
+                      <CardContent className="p-0">
+                        <div className="relative aspect-square">
+                          <Image
+                            src={product.image}
+                            alt={product.name}
+                            fill
+                            className="object-cover transition-opacity duration-300"
+                          />
+                          <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-all duration-300" />
+                        </div>
+                        <div className="p-4">
+                          <h3 className="text-lg font-semibold">Charlotte Folk {product.name}</h3>
+                          <p className="text-gray-600 mb-2">₱550.00</p>
+                          <Button
+                            className="w-full mt-2 bg-black text-white hover:bg-gray-800"
+                            onClick={() => handleAddToCart({
+                              id: 5000 + idx,
+                              name: `Charlotte Folk ${product.name}`,
+                              price: '₱550.00',
+                              image: product.image,
+                              backImage: product.image,
+                              category: 'T-Shirts',
+                              brand: 'Charlotte Folk',
                               color: 'N/A',
                               quantity: 1
                             })}
