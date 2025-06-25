@@ -4,7 +4,7 @@ import React from 'react';
 
 const phrases = [
   'Welcome to your ultimate destination!',
-  'Enjoy fast shipping on all Metro Manila orders!',
+  'Enjoy fast shipping on all Cebu City orders!',
   'Exclusive deals available every week!',
   'DPT ONE: Quality you can taste, service you can trust.',
   'Support hours: 9am-6pm, Mon-Sat.',
