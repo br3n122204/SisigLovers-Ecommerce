@@ -6,6 +6,7 @@ import { db } from "@/lib/firebase";
 import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 interface User {
   id: string;
@@ -122,6 +123,7 @@ export default function AdminPage() {
   const [recentActivities, setRecentActivities] = useState<Activity[]>([]);
   const [isLoadingActivities, setIsLoadingActivities] = useState(false);
   const router = useRouter();
+  const { toast } = useToast();
 
   const ADMIN_UID = "1BeqoY3h5gTa4LBUsAiaDLHHhnT2";
 
@@ -129,12 +131,29 @@ export default function AdminPage() {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       if (userCredential.user.uid !== ADMIN_UID) {
-        alert("You are not authorized to access the admin panel.");
+        toast({
+          title: "Unauthorized",
+          description: "You are not authorized to access the admin panel.",
+        });
         await signOut(auth);
       }
-    } catch (error) {
-      alert("Invalid credentials or error logging in.");
-      console.error(error);
+    } catch (error: any) {
+      if (
+        error.code === "auth/invalid-credential" ||
+        error.code === "auth/wrong-password" ||
+        error.code === "auth/user-not-found"
+      ) {
+        toast({
+          title: "Login failed",
+          description: "Invalid email or password.",
+        });
+      } else {
+        toast({
+          title: "Login failed",
+          description: error.message || "An error occurred during login.",
+        });
+      }
+      console.error("Login error:", error);
     }
   };
 
