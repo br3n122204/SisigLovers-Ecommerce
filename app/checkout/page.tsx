@@ -10,6 +10,7 @@ import { useCart } from "@/context/CartContext";
 import { useToast } from "@/hooks/use-toast";
 import { collection, getDocs, query, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 
 function deepCleanUndefined(obj: any): any {
   if (Array.isArray(obj)) {
@@ -451,17 +452,15 @@ export default function CheckoutPage() {
             </div>
             <div className="mb-4">
               <label htmlFor="region" className="block text-sm font-medium text-gray-700">Region</label>
-              <select
-                id="region"
-                name="region"
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                value={deliveryDetails.region}
-                onChange={handleInputChange}
-                required
-              >
-                <option value="Cebu">Cebu</option>
-                {/* Add more regions as needed */}
-              </select>
+              <Select value={deliveryDetails.region} onValueChange={value => setDeliveryDetails(prev => ({ ...prev, region: value }))}>
+                <SelectTrigger className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 h-12 flex items-center justify-between text-base focus:outline-none focus:ring-2 focus:ring-[#A75D43] focus:border-[#A75D43]">
+                  <SelectValue placeholder="Select region" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Cebu">Cebu</SelectItem>
+                  {/* Add more regions as needed */}
+                </SelectContent>
+              </Select>
             </div>
             <div className="mb-4">
               <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone</label>
@@ -489,7 +488,7 @@ export default function CheckoutPage() {
                     value={option.value}
                     checked={shippingMethod === option.value}
                     onChange={() => setShippingMethod(option.value)}
-                    className="form-radio h-4 w-4 text-blue-600"
+                    className="form-radio h-4 w-4" style={{ accentColor: '#A75D43' }}
                   />
                   <span className="ml-2">{option.label} ({option.time}) — ₱{option.price.toFixed(2)}</span>
                 </label>
@@ -509,7 +508,7 @@ export default function CheckoutPage() {
                   value="gcash"
                   checked={paymentMethod === 'gcash'}
                   onChange={() => setPaymentMethod('gcash')}
-                  className="form-radio h-4 w-4 text-blue-600"
+                  className="form-radio h-4 w-4" style={{ accentColor: '#A75D43' }}
                 />
                 <span className="ml-2 flex items-center">
                   GCash
@@ -527,7 +526,7 @@ export default function CheckoutPage() {
                   value="cod"
                   checked={paymentMethod === 'cod'}
                   onChange={() => setPaymentMethod('cod')}
-                  className="form-radio h-4 w-4 text-blue-600"
+                  className="form-radio h-4 w-4" style={{ accentColor: '#A75D43' }}
                 />
                 <span className="ml-2">Cash on delivery (COD)</span>
               </label>
@@ -544,7 +543,7 @@ export default function CheckoutPage() {
                 name="billingAddress"
                 checked={sameAsShipping}
                 onChange={() => setSameAsShipping(true)}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                className="h-4 w-4" style={{ accentColor: '#A75D43' }}
               />
               <label htmlFor="sameAsShipping" className="ml-3 block text-sm font-medium text-gray-700">
                 Same as shipping address
@@ -557,7 +556,7 @@ export default function CheckoutPage() {
                 name="billingAddress"
                 checked={!sameAsShipping}
                 onChange={() => setSameAsShipping(false)}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                className="h-4 w-4" style={{ accentColor: '#A75D43' }}
               />
               <label htmlFor="differentBilling" className="ml-3 block text-sm font-medium text-gray-700">
                 Use a different billing address
@@ -568,33 +567,33 @@ export default function CheckoutPage() {
             <div className="mt-4 p-4 border border-gray-200 rounded-md bg-gray-50">
               <div className="mb-4">
                 <label htmlFor="savedAddresses" className="block text-sm font-medium text-gray-700">Saved addresses</label>
-                <select
-                  id="savedAddresses"
-                  name="savedAddresses"
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  onChange={handleSavedAddressChange}
-                  defaultValue=""
-                >
-                  <option value="" disabled>Select a saved address</option>
-                  {savedAddresses.map(addr => (
-                    <option key={addr.id} value={addr.id}>
-                      {addr.address}
-                    </option>
-                  ))}
-                </select>
+                <Select value={selectedAddressId || undefined} onValueChange={value => {
+                  setSelectedAddressId(value);
+                  const addr = savedAddresses.find(a => a.id === value);
+                  if (addr) {
+                    setBillingDetails(addr);
+                  }
+                }}>
+                  <SelectTrigger className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 h-12 flex items-center justify-between text-base focus:outline-none focus:ring-2 focus:ring-[#A75D43] focus:border-[#A75D43]">
+                    <SelectValue placeholder="Select a saved address" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {savedAddresses.map(addr => (
+                      <SelectItem key={addr.id} value={addr.id}>{addr.address}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="mb-4">
                 <label htmlFor="countryBilling" className="block text-sm font-medium text-gray-700">Country/Region</label>
-                <select
-                  id="countryBilling"
-                  name="country"
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  value={billingDetails.country}
-                  onChange={handleBillingInputChange}
-                  required
-                >
-                  <option value="Philippines">Philippines</option>
-                </select>
+                <Select value={billingDetails.country} onValueChange={value => setBillingDetails(prev => ({ ...prev, country: value }))}>
+                  <SelectTrigger className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 h-12 flex items-center justify-between text-base focus:outline-none focus:ring-2 focus:ring-[#A75D43] focus:border-[#A75D43]">
+                    <SelectValue placeholder="Select country" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Philippines">Philippines</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <div>
@@ -672,16 +671,14 @@ export default function CheckoutPage() {
               </div>
               <div className="mb-4">
                 <label htmlFor="regionBilling" className="block text-sm font-medium text-gray-700">Region</label>
-                <select
-                  id="regionBilling"
-                  name="region"
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                  value={billingDetails.region}
-                  onChange={handleBillingInputChange}
-                  required
-                >
-                  <option value="Cebu">Cebu</option>
-                </select>
+                <Select value={billingDetails.region} onValueChange={value => setBillingDetails(prev => ({ ...prev, region: value }))}>
+                  <SelectTrigger className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 h-12 flex items-center justify-between text-base focus:outline-none focus:ring-2 focus:ring-[#A75D43] focus:border-[#A75D43]">
+                    <SelectValue placeholder="Select region" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Cebu">Cebu</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="mb-4">
                 <label htmlFor="phoneBilling" className="block text-sm font-medium text-gray-700">Phone</label>
@@ -700,7 +697,7 @@ export default function CheckoutPage() {
 
           {/* Pay Now Button */}
           <Button
-            className="w-full bg-black text-white py-3 rounded-md hover:bg-gray-800 transition-colors"
+            className="w-full bg-[#A75D43] text-white py-3 rounded-md hover:bg-[#c98a6a] transition-colors"
             onClick={handleProceedToPayment}
             disabled={isProcessing}
           >

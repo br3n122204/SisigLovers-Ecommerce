@@ -10,82 +10,6 @@ import { db } from '@/lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import '../../../styles/slide-animations.css';
 
-// Sample product data - In a real application, you would fetch this from a database
-const allProducts = [
-  {
-    id: 1,
-    name: "Strap White Tee",
-    price: "₱850.00", // Updated price for this page to match image
-    image: "/images/products/strap-white-tee.jpg",
-    backImage: "/images/products/strap-white-tee-back.jpg",
-    description: "Our classic white tee features a unique strap design. Made from 100% premium cotton for ultimate comfort and durability.",
-    sizes: ["SMALL", "MEDIUM", "LARGE", "XL", "2XL", "3XL"],
-  },
-  {
-    id: 2,
-    name: "Richboyz White Tee",
-    price: "₱550.00",
-    image: "/images/products/richboyz-white-tee.jpg",
-    backImage: "/images/products/richboyz-white-tee-back.jpg",
-    description: "Show your style with the Richboyz White Tee. A perfect blend of comfort and street fashion.",
-    sizes: ["SMALL", "MEDIUM", "LARGE", "XL"],
-  },
-  {
-    id: 3,
-    name: "Charlotte Folk White Tee",
-    price: "₱550.00",
-    image: "/images/products/charlottefolk-white-tee.jpg",
-    backImage: "/images/products/charlottefolk-white-tee-back.jpg",
-    description: "Embrace the urban vibe with the Charlotte Folk White Tee. Designed for comfort and modern aesthetics.",
-    sizes: ["SMALL", "MEDIUM", "LARGE"],
-  },
-  {
-    id: 4,
-    name: "Strap Black Tee",
-    price: "₱550.00",
-    image: "/images/products/strap-black-tee.jpg",
-    backImage: "/images/products/strap-black-tee-back.jpg",
-    description: "The Strap Black Tee offers a sleek look with durable fabric. A versatile addition to any wardrobe.",
-    sizes: ["SMALL", "MEDIUM", "LARGE", "XL"],
-  },
-  {
-    id: 5,
-    name: "MN+LA Black Tee",
-    price: "₱550.00",
-    image: "/images/products/mnla-black-tee.jpg",
-    backImage: "/images/products/mnla-black-tee-back.jpg",
-    description: "Represent your style with the MN+LA Black Tee. Premium quality for everyday wear.",
-    sizes: ["SMALL", "MEDIUM", "LARGE", "2XL"],
-  },
-  {
-    id: 6,
-    name: "Richboyz Black Tee",
-    price: "₱550.00",
-    image: "/images/products/richboyz-black-tee.jpg",
-    backImage: "/images/products/richboyz-black-tee-back.jpg",
-    description: "The Richboyz Black Tee is designed for a bold statement. Comfortable and stylish for any occasion.",
-    sizes: ["SMALL", "MEDIUM", "LARGE"],
-  },
-  {
-    id: 7,
-    name: "MN+LA White Tee",
-    price: "₱550.00",
-    image: "/images/products/mnla-white-tee.jpg",
-    backImage: "/images/products/mnla-white-tee-back.jpg",
-    description: "A fresh take on urban wear, the MN+LA White Tee combines comfort with contemporary design.",
-    sizes: ["SMALL", "MEDIUM", "LARGE", "XL"],
-  },
-  {
-    id: 8,
-    name: "Charlotte Folk Black Tee",
-    price: "₱550.00",
-    image: "/images/products/charlottefolk-black-tee.jpg",
-    backImage: "/images/products/charlottefolk-black-tee-back.jpg",
-    description: "The Charlotte Folk Black Tee offers a modern fit and feel, perfect for casual or dressed-up looks.",
-    sizes: ["SMALL", "MEDIUM", "LARGE", "2XL"],
-  },
-];
-
 // Black and white style for navigation buttons
 const navBtnStyles = `
   absolute top-1/2 -translate-y-1/2 z-10
@@ -321,4 +245,4 @@ export default function ProductDetailPage() {
       </div>
     </div>
   );
-} 
+}
