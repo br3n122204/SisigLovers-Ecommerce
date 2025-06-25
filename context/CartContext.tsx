@@ -13,6 +13,7 @@ interface CartItem {
   price: string; // Or number, depending on how you want to handle currency
   quantity: number;
   selectedSize?: string; // Optional, if products have sizes
+  color?: string; // Optional, if products have colors
 }
 
 // Define the shape of the CartContext
@@ -22,6 +23,7 @@ interface CartContextType {
   removeFromCart: (productId: number) => void;
   updateQuantity: (productId: number, quantity: number) => void;
   calculateTotal: () => string;
+  clearCart: () => void;
 }
 
 // Create the context with a default undefined value
@@ -102,8 +104,13 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
+  const clearCart = () => {
+    setCartItems([]);
+    if (user) syncCartToFirestore([]);
+  };
+
   return (
-    <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, updateQuantity, calculateTotal }}>
+    <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, updateQuantity, calculateTotal, clearCart }}>
       {children}
     </CartContext.Provider>
   );

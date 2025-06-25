@@ -3,18 +3,36 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
-import { collection, getDocs, query } from "firebase/firestore";
+import { useToast } from "@/hooks/use-toast";
+import { collection, getDocs, query, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+
+function deepCleanUndefined(obj: any): any {
+  if (Array.isArray(obj)) {
+    return obj.map(deepCleanUndefined);
+  } else if (obj && typeof obj === 'object') {
+    return Object.fromEntries(
+      Object.entries(obj)
+        .filter(([_, v]) => v !== undefined)
+        .map(([k, v]) => [k, deepCleanUndefined(v)])
+    );
+  }
+  return obj;
+}
 
 export default function CheckoutPage() {
   const { user } = useAuth();
-  const { cartItems, calculateTotal } = useCart();
+  const { cartItems, calculateTotal, clearCart } = useCart();
+  const router = useRouter();
+  const { toast } = useToast();
 
   const [addresses, setAddresses] = useState<any[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const [deliveryDetails, setDeliveryDetails] = useState({
     firstName: user?.displayName?.split(" ")[0] || "",
@@ -143,18 +161,146 @@ export default function CheckoutPage() {
     }
   };
 
-  const handleProceedToPayment = () => {
-    // Here you would typically process the order,
-    // save delivery details, and handle payment.
-    // For this example, we'll just log the details.
-    console.log("Delivery Details:", deliveryDetails);
-    console.log("Payment Method:", paymentMethod);
-    console.log("Same as Shipping for Billing:", sameAsShipping);
-    if (!sameAsShipping) {
-      console.log("Billing Details:", billingDetails);
+  const saveOrderToFirebase = async () => {
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "Please log in to place an order",
+      });
+      console.error("User not logged in");
+      return;
     }
-    // In a real app, you'd navigate to a payment gateway or order confirmation page.
-    alert("Order Submitted (Check console for details)");
+
+    try {
+      const orderData = {
+        userId: user.uid,
+        userEmail: user.email,
+        orderNumber: `ORD-${Date.now()}`,
+        orderDate: serverTimestamp(),
+        status: 'pending',
+        total: parseFloat(calculateTotal()) + getShippingPrice(),
+        subtotal: parseFloat(calculateTotal()),
+        shipping: getShippingPrice(),
+        tax: 0,
+        items: cartItems.map(item => ({
+          id: item.id,
+          name: item.name,
+          price: parseFloat(item.price.replace(/[^\d.]/g, '')),
+          quantity: item.quantity,
+          image: item.image,
+          size: item.selectedSize,
+          color: item.color || 'N/A'
+        })),
+        shippingAddress: deliveryDetails,
+        billingAddress: sameAsShipping ? deliveryDetails : billingDetails,
+        paymentMethod: paymentMethod,
+        paymentStatus: paymentMethod === 'cod' ? 'pending' : 'pending',
+        shippingMethod: shippingMethod,
+        notes: '',
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      };
+
+      // Clean undefined values deeply
+      console.log('orderData before cleaning:', orderData);
+      const cleanOrderData = deepCleanUndefined(orderData);
+      console.log('orderData after cleaning:', cleanOrderData);
+
+      // Save to global productsOrder collection (for admin/global view)
+      const productsOrderRef = collection(db, 'productsOrder');
+      const docRef = await addDoc(productsOrderRef, cleanOrderData);
+      console.log("Order saved to productsOrder with ID:", docRef.id);
+      
+      // Save to per-user productOrders/{userId}/orders/{orderId}
+      const userOrdersRef = collection(db, 'users', user.uid, 'orders');
+      const userOrderDoc = await addDoc(userOrdersRef, {
+        ...cleanOrderData,
+        globalOrderId: docRef.id // reference to the global order
+      });
+      console.log("Order saved to users/{userId}/orders with ID:", userOrderDoc.id);
+
+      toast({
+        title: "Checkout successful",
+      });
+      return docRef.id;
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Error saving order: " + (error instanceof Error ? error.message : String(error)),
+      });
+      console.error("Error saving order:", error);
+      throw error;
+    }
+  };
+
+  const handleProceedToPayment = async () => {
+    console.log('Checkout button clicked');
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "Please log in to place an order",
+      });
+      console.error("User not logged in");
+      return;
+    }
+
+    if (cartItems.length === 0) {
+      toast({
+        title: "Error",
+        description: "Your cart is empty",
+      });
+      console.error("Cart is empty");
+      return;
+    }
+
+    // Validate required fields
+    if (!deliveryDetails.firstName || !deliveryDetails.lastName || !deliveryDetails.address1 || 
+        !deliveryDetails.city || !deliveryDetails.postalCode || !deliveryDetails.phone) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required delivery information",
+      });
+      console.error("Missing delivery details", deliveryDetails);
+      return;
+    }
+
+    setIsProcessing(true);
+    try {
+      if (paymentMethod === 'cod') {
+        // Save order to Firebase
+        const orderId = await saveOrderToFirebase();
+        if (orderId) {
+          // Show success message
+          toast({
+            title: "Checkout successful",
+          });
+          // Clear cart
+          clearCart();
+          // Navigate to orders page
+          router.push('/orders');
+        } else {
+          toast({
+            title: "Error",
+            description: "Order was not saved. Please try again.",
+          });
+          console.error("Order was not saved (no orderId returned)");
+        }
+      } else {
+        toast({
+          title: "Info",
+          description: "GCash payment processing will be implemented here",
+        });
+        console.log("GCash payment selected");
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Error processing order: " + (error instanceof Error ? error.message : String(error)),
+      });
+      console.error("Error processing order:", error);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const totalAmount = (parseFloat(calculateTotal()) + getShippingPrice()).toFixed(2);
@@ -540,8 +686,9 @@ export default function CheckoutPage() {
           <Button
             className="w-full bg-black text-white py-3 rounded-md hover:bg-gray-800 transition-colors"
             onClick={handleProceedToPayment}
+            disabled={isProcessing}
           >
-            Pay now
+            {isProcessing ? "Processing..." : "Checkout"}
           </Button>
         </div>
 
