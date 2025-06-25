@@ -245,113 +245,103 @@ export default function OrdersPage() {
         ) : (
           <div className="space-y-6">
             {filteredOrders.map((order) => (
-              <Card key={order.id} className="overflow-hidden">
-                <CardHeader className="bg-gray-50">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-2">
-                        <span className="text-2xl">{getStatusIcon(order.status)}</span>
-                        <Badge className={getStatusColor(order.status)}>
-                          {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                        </Badge>
-                      </div>
-                      <div>
-                        <p className="font-medium text-gray-900">{order.orderNumber}</p>
-                        <p className="text-sm text-gray-500">
-                          <Calendar className="inline h-3 w-3 mr-1" />
-                          {formatDate(order.orderDate)}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Link href={`/orders/${order.id}`}>
-                        <Button variant="outline" size="sm">
-                          <Eye className="h-4 w-4 mr-2" />
-                          View Details
-                        </Button>
-                      </Link>
-                      <Button variant="outline" size="sm">
-                        <Download className="h-4 w-4 mr-2" />
-                        Invoice
-                      </Button>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-6">
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Order Items */}
-                    <div className="lg:col-span-2">
-                      <h4 className="font-medium text-gray-900 mb-3">Items</h4>
-                      <div className="space-y-3">
-                        {order.items.map((item) => (
-                          <div key={item.id} className="flex items-center gap-3">
-                            <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100">
-                              <Image
-                                src={item.image}
-                                alt={item.name}
-                                fill
-                                className="object-cover"
-                              />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium text-gray-900 truncate">{item.name}</p>
-                              <p className="text-sm text-gray-500">
-                                Qty: {item.quantity} • {item.size} • {item.color}
-                              </p>
-                              <p className="text-sm font-medium text-gray-900">
-                                {formatCurrency(item.price)}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Order Summary */}
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="font-medium text-gray-900 mb-2">Order Summary</h4>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between">
-                            <span>Subtotal:</span>
-                            <span>{formatCurrency(order.total)}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Shipping:</span>
-                            <span>Free</span>
-                          </div>
-                          <div className="border-t pt-2 flex justify-between font-medium">
-                            <span>Total:</span>
-                            <span>{formatCurrency(order.total)}</span>
-                          </div>
+              <Link key={order.id} href={`/orders/${order.id}`} className="block">
+                <Card className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow">
+                  <CardHeader className="bg-gray-50">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2">
+                          <span className="text-2xl">{getStatusIcon(order.status)}</span>
+                          <Badge className={getStatusColor(order.status)}>
+                            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                          </Badge>
                         </div>
-                      </div>
-
-                      <div>
-                        <h4 className="font-medium text-gray-900 mb-2">Shipping Address</h4>
-                        <p className="text-sm text-gray-600">
-                          {order.shippingAddress.firstName} {order.shippingAddress.lastName}<br />
-                          {order.shippingAddress.address1}<br />
-                          {order.shippingAddress.city}, {order.shippingAddress.region} {order.shippingAddress.postalCode}<br />
-                          {order.shippingAddress.phone}
-                        </p>
-                      </div>
-
-                      {order.trackingNumber && (
                         <div>
-                          <h4 className="font-medium text-gray-900 mb-2">Tracking</h4>
-                          <p className="text-sm text-gray-600">
-                            Number: {order.trackingNumber}<br />
-                            {order.estimatedDelivery && (
-                              <>Estimated Delivery: {formatDate(order.estimatedDelivery)}</>
-                            )}
+                          <p className="font-medium text-gray-900">{order.orderNumber}</p>
+                          <p className="text-sm text-gray-500">
+                            <Calendar className="inline h-3 w-3 mr-1" />
+                            {formatDate(order.orderDate)}
                           </p>
                         </div>
-                      )}
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardHeader>
+                  <CardContent className="p-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                      {/* Order Items */}
+                      <div className="lg:col-span-2">
+                        <h4 className="font-medium text-gray-900 mb-3">Items</h4>
+                        <div className="space-y-3">
+                          {order.items.map((item) => (
+                            <div key={item.id} className="flex items-center gap-3">
+                              <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100">
+                                <Image
+                                  src={item.image}
+                                  alt={item.name}
+                                  fill
+                                  className="object-cover"
+                                />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-gray-900 truncate">{item.name}</p>
+                                <p className="text-sm text-gray-500">
+                                  Qty: {item.quantity} • {item.size} • {item.color}
+                                </p>
+                                <p className="text-sm font-medium text-gray-900">
+                                  {formatCurrency(item.price)}
+                                </p>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Order Summary */}
+                      <div className="space-y-4">
+                        <div>
+                          <h4 className="font-medium text-gray-900 mb-2">Order Summary</h4>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span>Subtotal:</span>
+                              <span>{formatCurrency(order.total)}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Shipping:</span>
+                              <span>Free</span>
+                            </div>
+                            <div className="border-t pt-2 flex justify-between font-medium">
+                              <span>Total:</span>
+                              <span>{formatCurrency(order.total)}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div>
+                          <h4 className="font-medium text-gray-900 mb-2">Shipping Address</h4>
+                          <p className="text-sm text-gray-600">
+                            {order.shippingAddress.firstName} {order.shippingAddress.lastName}<br />
+                            {order.shippingAddress.address1}<br />
+                            {order.shippingAddress.city}, {order.shippingAddress.region} {order.shippingAddress.postalCode}<br />
+                            {order.shippingAddress.phone}
+                          </p>
+                        </div>
+
+                        {order.trackingNumber && (
+                          <div>
+                            <h4 className="font-medium text-gray-900 mb-2">Tracking</h4>
+                            <p className="text-sm text-gray-600">
+                              Number: {order.trackingNumber}<br />
+                              {order.estimatedDelivery && (
+                                <>Estimated Delivery: {formatDate(order.estimatedDelivery)}</>
+                              )}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
           </div>
         )}
