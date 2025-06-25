@@ -210,8 +210,13 @@ export default function CheckoutPage() {
       const productsOrderRef = collection(db, 'productsOrder');
       const docRef = await addDoc(productsOrderRef, cleanOrderData);
       console.log("Order saved to productsOrder with ID:", docRef.id);
-      
-      // Save to per-user productOrders/{userId}/orders/{orderId}
+
+      // Save each cart item as a document in the orderDetails subcollection
+      for (const item of cleanOrderData.items) {
+        await addDoc(collection(db, 'productsOrder', docRef.id, 'orderDetails'), item);
+      }
+
+      // Save to per-user users/{userId}/orders/{orderId} (append order to subcollection, do not create new user doc)
       const userOrdersRef = collection(db, 'users', user.uid, 'orders');
       const userOrderDoc = await addDoc(userOrdersRef, {
         ...cleanOrderData,
