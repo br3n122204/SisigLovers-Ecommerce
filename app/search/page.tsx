@@ -332,6 +332,34 @@ export default function SearchPage() {
 
           {/* Products Grid */}
           <div className="flex-1">
+            {/* Show 8 placeholders if a brand is selected */}
+            {selectedBrand && (
+              <div className="mb-8">
+                <h2 className="text-lg font-semibold mb-4 text-gray-700">{selectedBrand} Placeholders</h2>
+                <div className="grid grid-cols-4 gap-4 mb-6">
+                  {[...Array(8)].map((_, idx) => (
+                    <Card key={idx} className="overflow-hidden">
+                      <CardContent className="p-0">
+                        <div className="relative aspect-square">
+                          <Image
+                            src="/placeholder.svg"
+                            alt="Placeholder"
+                            fill
+                            className="object-cover transition-opacity duration-300"
+                          />
+                          <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-all duration-300" />
+                        </div>
+                        <div className="p-4">
+                          <Button className="w-full mt-2 bg-black text-white hover:bg-gray-800" disabled>
+                            Add to Cart
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+            )}
             {filteredProducts.length === 0 ? (
               <div className="text-center py-12">
                 <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
