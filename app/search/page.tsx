@@ -272,7 +272,7 @@ export default function SearchPage() {
                           value={brand}
                           checked={selectedBrand === brand}
                           onChange={(e) => setSelectedBrand(e.target.value)}
-                          className="mr-2"
+                          className="mr-2" style={{ accentColor: '#A75D43' }}
                         />
                         <span className="text-sm text-gray-600">{brand}</span>
                       </label>
@@ -292,7 +292,7 @@ export default function SearchPage() {
                           value={color}
                           checked={selectedColor === color}
                           onChange={(e) => setSelectedColor(e.target.value)}
-                          className="mr-2"
+                          className="mr-2" style={{ accentColor: '#A75D43' }}
                         />
                         <span className="text-sm text-gray-600">{color}</span>
                       </label>
