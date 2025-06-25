@@ -8,6 +8,8 @@ import Link from "next/link"
 import { useCart } from '@/context/CartContext'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
+import { db } from '@/lib/firebase'
+import { collection, getDocs } from 'firebase/firestore'
 
 // Sample slider images data
 const sliderImages = [
@@ -34,66 +36,6 @@ const sliderImages = [
     image: "/images/slider/image4.jpg",
     title: "Street Heat",
     subtitle: "Stay raw. Stay real.",
-  },
-]
-
-// Sample products data
-const featuredProducts = [
-  {
-    id: 1,
-    name: "Strap White Tee",
-    price: "₱550.00",
-    image: "https://ltfzekatcjpltiighukw.supabase.co/storage/v1/object/public/product-images/strap-white-tee.jpg",
-    backImage: "https://ltfzekatcjpltiighukw.supabase.co/storage/v1/object/public/product-images/strap-white-tee-back.jpg",
-  },
-  {
-    id: 2,
-    name: "Richboyz White Tee",
-    price: "₱550.00",
-    image: "https://ltfzekatcjpltiighukw.supabase.co/storage/v1/object/public/product-images/richboyz-white-tee.jpg",
-    backImage: "https://ltfzekatcjpltiighukw.supabase.co/storage/v1/object/public/product-images/richboyz-white-tee-back.jpg",
-  },
-  {
-    id: 3,
-    name: "Charlotte Folk White Tee",
-    price: "₱550.00",
-    image: "https://ltfzekatcjpltiighukw.supabase.co/storage/v1/object/public/product-images/charlottefolk-white-tee.jpg",
-    backImage: "https://ltfzekatcjpltiighukw.supabase.co/storage/v1/object/public/product-images/charlottefolk-white-tee-back.jpg",
-  },
-  {
-    id: 4,
-    name: "Strap Black Tee",
-    price: "₱550.00",
-    image: "https://ltfzekatcjpltiighukw.supabase.co/storage/v1/object/public/product-images/strap-black-tee.jpg",
-    backImage: "https://ltfzekatcjpltiighukw.supabase.co/storage/v1/object/public/product-images/strap-black-tee-back.jpg",
-  },
-  {
-    id: 5,
-    name: "MN+LA Black Tee",
-    price: "₱550.00",
-    image: "https://ltfzekatcjpltiighukw.supabase.co/storage/v1/object/public/product-images/mnla-black-tee.jpg",
-    backImage: "https://ltfzekatcjpltiighukw.supabase.co/storage/v1/object/public/product-images/mnla-black-tee-back.jpg",
-  },
-  {
-    id: 6,
-    name: "Richboyz Black Tee",
-    price: "₱550.00",
-    image: "https://ltfzekatcjpltiighukw.supabase.co/storage/v1/object/public/product-images/richboyz-black-tee.jpg",
-    backImage: "https://ltfzekatcjpltiighukw.supabase.co/storage/v1/object/public/product-images/richboyz-black-tee-back.jpg",
-  },
-  {
-    id: 7,
-    name: "MN+LA White Tee",
-    price: "₱550.00",
-    image: "https://ltfzekatcjpltiighukw.supabase.co/storage/v1/object/public/product-images/mnla-white-tee.jpg",
-    backImage: "https://ltfzekatcjpltiighukw.supabase.co/storage/v1/object/public/product-images/mnla-white-tee-back.jpg",
-  },
-  {
-    id: 8,
-    name: "Charlotte Folk Black Tee",
-    price: "₱550.00",
-    image: "https://ltfzekatcjpltiighukw.supabase.co/storage/v1/object/public/product-images/charlottefolk-black-tee.jpg",
-    backImage: "https://ltfzekatcjpltiighukw.supabase.co/storage/v1/object/public/product-images/charlottefolk-black-tee-back.jpg",
   },
 ]
 
@@ -180,6 +122,20 @@ export default function DPTOneFashion() {
   const { user } = useAuth()
   const router = useRouter()
 
+  const [products, setProducts] = useState<any[]>([])
+  const [hoveredProduct, setHoveredProduct] = useState<string | null>(null)
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const querySnapshot = await getDocs(collection(db, 'products'))
+      const items: any[] = []
+      querySnapshot.forEach((docSnap) => {
+        items.push({ id: docSnap.id, ...docSnap.data() })
+      })
+      setProducts(items)
+    }
+    fetchProducts()
+  }, [])
+
   const handleAddToCart = (product: any) => {
     if (!user) {
       router.push('/login')
@@ -201,19 +157,33 @@ export default function DPTOneFashion() {
               Featured Products
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
-              {featuredProducts.map((product) => (
-                <Link key={product.id} href={`/products/${product.id}`} className="w-full">
-                  <div className="bg-white rounded-2xl shadow-lg p-4 flex flex-col items-center cursor-pointer hover:shadow-xl transition">
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-48 h-48 object-contain mb-4"
-                    />
-                    <h3 className="font-bold text-lg text-center mb-1">{product.name}</h3>
-                    <p className="text-gray-700 font-semibold mb-4">{product.price}</p>
-                  </div>
-                </Link>
-              ))}
+              {products.length === 0 ? (
+                <div className="col-span-4 text-center text-gray-500">No products found.</div>
+              ) : (
+                products.map((product) => (
+                  <Link key={product.id} href={`/products/${product.id}`} className="w-full">
+                    <div
+                      className="bg-white rounded-2xl shadow-lg p-4 flex flex-col items-center cursor-pointer hover:shadow-xl transition"
+                      onMouseEnter={() => setHoveredProduct(product.id)}
+                      onMouseLeave={() => setHoveredProduct(null)}
+                    >
+                      <img
+                        src={
+                          hoveredProduct === product.id && product.imageUrls && product.imageUrls.length > 1
+                            ? product.imageUrls[1]
+                            : product.imageUrls && product.imageUrls.length > 0
+                              ? product.imageUrls[0]
+                              : "/images/placeholder.jpg"
+                        }
+                        alt={product.name}
+                        className="w-48 h-48 object-contain mb-4"
+                      />
+                      <h3 className="font-bold text-lg text-center mb-1">{product.name}</h3>
+                      <p className="text-gray-700 font-semibold mb-4">₱{product.price}</p>
+                    </div>
+                  </Link>
+                ))
+              )}
             </div>
           </div>
         </section>
