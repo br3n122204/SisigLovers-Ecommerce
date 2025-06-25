@@ -99,6 +99,7 @@ const featuredProducts = [
   },
 ]
 
+// HERO / SLIDER SECTION
 function ImageSlider() {
   const [currentSlide, setCurrentSlide] = useState(0)
 
@@ -106,86 +107,69 @@ function ImageSlider() {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % sliderImages.length)
     }, 5000)
-
     return () => clearInterval(timer)
   }, [])
 
-  const goToSlide = (index: number) => {
-    setCurrentSlide(index)
-  }
-
-  const goToPrevious = () => {
-    setCurrentSlide((prev) => (prev - 1 + sliderImages.length) % sliderImages.length)
-  }
-
-  const goToNext = () => {
-    setCurrentSlide((prev) => (prev + 1) % sliderImages.length)
-  }
+  const goToSlide = (index: number) => setCurrentSlide(index)
+  const goToPrevious = () => setCurrentSlide((prev) => (prev - 1 + sliderImages.length) % sliderImages.length)
+  const goToNext = () => setCurrentSlide((prev) => (prev + 1) % sliderImages.length)
 
   return (
-    <div className="relative w-full h-[600px] overflow-hidden bg-gray-100">
+    <div className="relative w-full h-[70vh] min-h-[500px] bg-neutral-100 overflow-hidden flex items-center justify-center">
       {/* Slider Images */}
       <div
-        className="flex transition-transform duration-500 ease-in-out h-full"
+        className="flex transition-transform duration-700 ease-in-out h-full w-full"
         style={{ transform: `translateX(-${currentSlide * 100}%)` }}
       >
         {sliderImages.map((slide) => (
           <div key={slide.id} className="relative w-full h-full flex-shrink-0">
-            {/* Blurred background image */}
             <Image
               src={slide.image}
-              alt={slide.title} 
+              alt={slide.title}
               fill
-              className="object-cover blur-md scale-110"
+              className="object-cover scale-105"
+              priority={slide.id === 1}
             />
-            {/* Overlay to dim the blurred background */}
-            <div className="absolute inset-0 bg-black bg-opacity-30"></div>
-
-            {/* Main, unblurred image (positioned in upper 70%) */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-[70%] flex items-center justify-center p-4">
-              <Image
-                src={slide.image}
-                alt={slide.title}
-                width={500} 
-                height={400} 
-                className="object-contain max-w-full max-h-full"
-              />
-            </div>
-
-            {/* Text Overlay (positioned in lower 30%) */}
-            <div className="absolute bottom-0 left-0 right-0 h-[30%] flex items-center justify-center text-center p-4 z-20">
-              <div>
-                <h2 className={`text-4xl font-bold mb-2 text-white`}>{slide.title}</h2>
-                <p className={`text-lg opacity-90 text-white`}>{slide.subtitle}</p>
-              </div>
+            <div className="absolute inset-0 bg-black bg-opacity-40" />
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 z-10">
+              <h1 className="text-5xl md:text-6xl font-extrabold text-white drop-shadow-lg mb-4 tracking-tight">
+                {slide.title}
+              </h1>
+              <p className="text-xl md:text-2xl text-white font-medium mb-8 drop-shadow">
+                {slide.subtitle}
+              </p>
+              <Link href="/products" className="inline-block">
+                <Button className="px-8 py-3 text-lg font-semibold bg-white text-black hover:bg-neutral-200 shadow-lg rounded-full transition-all">
+                  Shop Now
+                </Button>
+              </Link>
             </div>
           </div>
         ))}
       </div>
-
       {/* Navigation Arrows */}
       <button
         onClick={goToPrevious}
-        className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white p-2 rounded-full transition-all"
+        className="absolute left-6 top-1/2 -translate-y-1/2 bg-white bg-opacity-30 hover:bg-opacity-60 text-black p-2 rounded-full shadow transition-all z-20"
+        aria-label="Previous Slide"
       >
-        <ChevronLeft className="h-6 w-6" />
+        <ChevronLeft className="h-7 w-7" />
       </button>
       <button
         onClick={goToNext}
-        className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white p-2 rounded-full transition-all"
+        className="absolute right-6 top-1/2 -translate-y-1/2 bg-white bg-opacity-30 hover:bg-opacity-60 text-black p-2 rounded-full shadow transition-all z-20"
+        aria-label="Next Slide"
       >
-        <ChevronRight className="h-6 w-6" />
+        <ChevronRight className="h-7 w-7" />
       </button>
-
       {/* Dots Navigation */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex space-x-3 z-20">
         {sliderImages.map((_, index) => (
           <button
             key={index}
             onClick={() => goToSlide(index)}
-            className={`w-3 h-3 rounded-full transition-all ${
-              index === currentSlide ? "bg-white" : "bg-white bg-opacity-50"
-            }`}
+            className={`w-4 h-4 rounded-full border-2 border-white transition-all ${index === currentSlide ? 'bg-white' : 'bg-white bg-opacity-40'}`}
+            aria-label={`Go to slide ${index + 1}`}
           />
         ))}
       </div>
@@ -211,22 +195,20 @@ export default function DPTOneFashion() {
     <div className="min-h-screen bg-white">
       {/* Main Content Container */}
       <div className="w-full">
-        {/* Header */}
-        {/* The previous header content has been moved to app/layout.tsx */}
-
-        {/* Image Slider */}
+        {/* Hero / Slider Section */}
         <ImageSlider />
-
         {/* Featured Products Section */}
-        <section className="py-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 className="text-3xl font-bold text-center mb-8">Featured Products</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <section className="py-20 bg-neutral-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-12">
+            <h2 className="text-4xl font-extrabold text-center mb-12 tracking-tight text-neutral-900">
+              Featured Products
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
               {featuredProducts.map((product) => (
-                <Card key={product.id} className="overflow-hidden">
+                <Card key={product.id} className="overflow-hidden shadow-lg rounded-xl bg-white border border-neutral-200 hover:shadow-2xl transition-all">
                   <CardContent className="p-0">
                     <div
-                      className="relative aspect-square"
+                      className="relative aspect-square group"
                       onMouseEnter={() => setHoveredProduct(product.id)}
                       onMouseLeave={() => setHoveredProduct(null)}
                     >
@@ -234,16 +216,16 @@ export default function DPTOneFashion() {
                         src={hoveredProduct === product.id ? product.backImage : product.image}
                         alt={product.name}
                         fill
-                        className="object-cover transition-opacity duration-300"
+                        className="object-cover transition-all duration-300 group-hover:scale-105"
                       />
-                      <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 transition-all duration-300" />
+                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 transition-all duration-300" />
                     </div>
-                    <div className="p-4">
-                      <h3 className="text-lg font-semibold">{product.name}</h3>
-                      <p className="text-gray-600">{product.price}</p>
+                    <div className="p-6 flex flex-col items-center">
+                      <h3 className="text-lg font-bold mb-1 text-neutral-900 text-center">{product.name}</h3>
+                      <p className="text-neutral-600 mb-3 text-center">{product.price}</p>
                       <Button
                         onClick={() => handleAddToCart(product)}
-                        className="w-full mt-2 bg-black text-white hover:bg-gray-800"
+                        className="w-full mt-2 bg-neutral-900 text-white hover:bg-neutral-700 rounded-full font-semibold text-base py-2"
                       >
                         Add to Cart
                       </Button>

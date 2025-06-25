@@ -33,12 +33,12 @@ export default function UserProfile() {
     return (
       <div className="flex items-center space-x-4">
         <Link href="/login">
-          <button className="border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50">
+          <button className="px-4 py-2 rounded-md border-2 border-[#A75D43] text-[#A75D43] bg-white font-semibold hover:bg-[#f5f2ef] hover:border-[#c98a6a] transition-all">
             Log In
           </button>
         </Link>
         <Link href="/login?signup=true">
-          <button className="bg-black text-white px-4 py-2 rounded-md hover:bg-gray-800">
+          <button className="px-4 py-2 rounded-md border-2 border-[#A75D43] text-[#A75D43] bg-white font-semibold hover:bg-[#f5f2ef] hover:border-[#c98a6a] transition-all">
             Sign Up
           </button>
         </Link>

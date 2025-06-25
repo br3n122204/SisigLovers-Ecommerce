@@ -143,7 +143,7 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-white border-b border-gray-200 py-4">
+    <header className="bg-[#A75D43] border-b border-[#c98a6a] py-4">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
         {/* Left Section: Logo and Navigation */}
         <div className="flex items-center space-x-8">
@@ -157,13 +157,13 @@ export default function Header() {
               priority
             />
           </Link>
-          <nav className="hidden md:flex space-x-6 text-sm font-medium text-gray-700">
+          <nav className="hidden md:flex space-x-6 text-sm font-medium text-white">
             {/* Shop by Brand Dropdown */}
             {!isAdminPage && (
               <div className="relative">
                 <button
                   onClick={() => setIsBrandDropdownOpen(!isBrandDropdownOpen)}
-                  className="flex items-center space-x-1 hover:text-gray-900 focus:outline-none"
+                  className="flex items-center space-x-1 hover:text-[#fff9f3] focus:outline-none"
                 >
                   <span>Shop by Brand</span>
                   <ChevronDown
@@ -171,19 +171,19 @@ export default function Header() {
                   />
                 </button>
                 <div className={`absolute ${isBrandDropdownOpen ? 'block' : 'hidden'} bg-white shadow-lg rounded-md py-1 mt-2 w-40 z-20`}>
-                  <button type="button" className="block w-full text-left px-4 py-2 hover:bg-gray-100" onClick={() => { router.push('/search?brand=MN%2BLA'); setIsBrandDropdownOpen(false); }}>MN+LA</button>
-                  <button type="button" className="block w-full text-left px-4 py-2 hover:bg-gray-100" onClick={() => { router.push('/search?brand=Charlotte%20Folk'); setIsBrandDropdownOpen(false); }}>Charlotte Folk</button>
-                  <button type="button" className="block w-full text-left px-4 py-2 hover:bg-gray-100" onClick={() => { router.push('/search?brand=Strap'); setIsBrandDropdownOpen(false); }}>Strap</button>
-                  <button type="button" className="block w-full text-left px-4 py-2 hover:bg-gray-100" onClick={() => { router.push('/search?brand=Richboyz'); setIsBrandDropdownOpen(false); }}>Richboyz</button>
+                  <button type="button" className="block w-full text-left px-4 py-2 hover:bg-[#A75D43] hover:text-white" onClick={() => { router.push('/search?brand=MN%2BLA'); setIsBrandDropdownOpen(false); }}>MN+LA</button>
+                  <button type="button" className="block w-full text-left px-4 py-2 hover:bg-[#A75D43] hover:text-white" onClick={() => { router.push('/search?brand=Charlotte%20Folk'); setIsBrandDropdownOpen(false); }}>Charlotte Folk</button>
+                  <button type="button" className="block w-full text-left px-4 py-2 hover:bg-[#A75D43] hover:text-white" onClick={() => { router.push('/search?brand=Strap'); setIsBrandDropdownOpen(false); }}>Strap</button>
+                  <button type="button" className="block w-full text-left px-4 py-2 hover:bg-[#A75D43] hover:text-white" onClick={() => { router.push('/search?brand=Richboyz'); setIsBrandDropdownOpen(false); }}>Richboyz</button>
                 </div>
               </div>
             )}
             {user && !isAdminPage && (
-              <Link href="/orders" className="hover:text-gray-900">Orders</Link>
+              <Link href="/orders" className="hover:text-[#fff9f3]">Orders</Link>
             )}
             {!isAdminPage && (
               (!user || user.email === "sisiglovers@gmail.com") && (
-                <Link href="/admin" className="hover:text-gray-900 text-blue-600 font-semibold">Admin</Link>
+                <Link href="/admin" className="hover:text-[#fff9f3] text-white font-semibold">Admin</Link>
               )
             )}
           </nav>
@@ -200,12 +200,12 @@ export default function Header() {
                 onChange={handleInputChange}
                 onFocus={() => setShowSuggestions(true)}
                 onBlur={() => setTimeout(() => setShowSuggestions(false), 100)}
-                className="w-full px-5 py-2.5 pl-12 pr-5 border-2 border-gray-300 rounded-full bg-gray-100 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-3 focus:ring-blue-600 focus:border-blue-600 transition-all duration-300 ease-in-out shadow-md"
+                className="w-full px-5 py-2.5 pl-12 pr-5 border-2 border-[#c98a6a] rounded-full bg-[#f5f2ef] text-[#222] placeholder-[#A75D43] focus:outline-none focus:ring-3 focus:ring-[#A75D43] focus:border-[#A75D43] transition-all duration-300 ease-in-out shadow-md"
               />
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-600" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#A75D43]" />
               <button
                 type="submit"
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-blue-700 transition-colors"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#A75D43] hover:text-[#fff9f3] transition-colors"
               >
                 <Search className="h-5 w-5" />
               </button>
@@ -229,19 +229,10 @@ export default function Header() {
           </div>
         )}
 
-        {/* Right Section: Search Icon (Mobile), UserProfile and Cart Icon */}
+        {/* Right Section: Log In, Sign Up, Cart Icon */}
         {!isAdminPage && (
           <div className="flex items-center space-x-4">
-            {/* Mobile Search Toggle */}
-            <button
-              onClick={toggleSearch}
-              className="md:hidden p-2 text-gray-700 hover:text-gray-900 transition-colors"
-            >
-              {isSearchOpen ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
-            </button>
-            
             <UserProfile />
-            {/* Cart Icon */}
             <Link href="/cart" className="relative flex items-center justify-center">
               <ShoppingCart className="h-6 w-6 text-gray-700 hover:text-gray-900 transition-colors" />
               {cartItems.length > 0 && (
