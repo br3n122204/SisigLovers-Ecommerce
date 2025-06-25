@@ -61,6 +61,13 @@ const config: Config = {
           blue: "#1976D2",
           green: "#00BFA5",
         },
+        tecovas: {
+          background: '#FAF9F6',
+          text: '#222222',
+          accent: '#F5C16C',
+          border: '#E5E5E5',
+          button: '#222222',
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -80,6 +87,9 @@ const config: Config = {
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+      },
+      fontFamily: {
+        sans: ['Inter', 'Segoe UI', 'system-ui', 'sans-serif'],
       },
     },
   },
