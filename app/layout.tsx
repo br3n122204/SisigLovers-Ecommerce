@@ -8,6 +8,7 @@ import Header from "@/components/Header"
 import AnnouncementBar from "@/components/AnnouncementBar"
 import Image from "next/image"
 import ClientLayout from "./ClientLayout";
+import { ThemeProvider } from "@/components/theme-provider";
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -19,15 +20,17 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className} suppressHydrationWarning>
-        <AuthProvider>
-          <CartProvider>
-            <AnnouncementBar />
-            <Header />
-            <ClientLayout>
-              {children}
-            </ClientLayout>
-          </CartProvider>
-        </AuthProvider>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          <AuthProvider>
+            <CartProvider>
+              <AnnouncementBar />
+              <Header />
+              <ClientLayout>
+                {children}
+              </ClientLayout>
+            </CartProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   )
