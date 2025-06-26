@@ -72,7 +72,11 @@ export default function CartPage() {
                     </div>
                     <div className="flex-grow">
                       <h2 className="text-lg font-semibold text-gray-900">{item.name}</h2>
-                      {item.selectedSize && <p className="text-sm text-gray-500">Size: {item.selectedSize}</p>}
+                      {item.selectedSize && (
+                        <p className="text-sm text-gray-500">
+                          Size: {typeof item.selectedSize === 'object' ? ((item.selectedSize as any).size ?? JSON.stringify(item.selectedSize)) : item.selectedSize}
+                        </p>
+                      )}
                       <p className="text-md font-medium text-gray-700">{item.price}</p>
                       <div className="flex items-center mt-2">
                         <Button

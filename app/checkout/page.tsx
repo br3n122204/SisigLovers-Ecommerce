@@ -707,7 +707,12 @@ export default function CheckoutPage() {
                       {item.selectedSize && <p className="text-sm text-gray-500">Size: {item.selectedSize}</p>}
                     </div>
                     <p className="text-md font-medium text-gray-700">
-                      ₱{(parseFloat(item.price.replace(/[^\d.]/g, '')) * item.quantity).toFixed(2)}
+                      ₱{
+                        ((typeof item.price === "string"
+                          ? parseFloat(item.price.replace(/[^\d.]/g, ''))
+                          : item.price) * item.quantity
+                        ).toFixed(2)
+                      }
                     </p>
                   </div>
                 ))}
