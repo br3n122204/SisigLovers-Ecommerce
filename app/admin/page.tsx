@@ -28,7 +28,7 @@ interface Activity {
 }
 
 // Separate LoginForm component to isolate input handling
-function LoginForm({ onLogin }: { onLogin: (email: string, password: string) => void }) {
+function LoginForm({ onLogin }: { onLogin: (email: string, password: string) => Promise<boolean> }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -43,7 +43,7 @@ function LoginForm({ onLogin }: { onLogin: (email: string, password: string) => 
     setPassword(e.target.value);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -53,7 +53,10 @@ function LoginForm({ onLogin }: { onLogin: (email: string, password: string) => 
     }
 
     setIsLoading(true);
-    onLogin(email, password);
+    const success = await onLogin(email, password);
+    if (!success) {
+      setError("Wrong admin user or password.");
+    }
     setIsLoading(false);
   };
 
@@ -145,24 +148,28 @@ export default function AdminPage() {
           description: "You are not authorized to access the admin panel.",
         });
         await signOut(auth);
+        return false;
       }
+      return true;
     } catch (error: any) {
       if (
         error.code === "auth/invalid-credential" ||
         error.code === "auth/wrong-password" ||
-        error.code === "auth/user-not-found"
+        error.code === "auth/user-not-found" ||
+        error.code === "auth/too-many-requests"
       ) {
-        toast({
-          title: "Login failed",
-          description: "Invalid email or password.",
-        });
+        // Do not show toast, let the form show the error
+        return false;
       } else {
         toast({
           title: "Login failed",
           description: error.message || "An error occurred during login.",
         });
+        if (!(error && typeof error === "object" && error.code)) {
+          console.error("Login error:", error);
+        }
+        return false;
       }
-      console.error("Login error:", error);
     }
   };
 

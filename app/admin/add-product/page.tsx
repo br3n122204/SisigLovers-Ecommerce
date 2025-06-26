@@ -145,32 +145,11 @@ export default function AddProductPage() {
   };
 
   const handleCropComplete = async () => {
-    if (!user) {
-      alert("You must be logged in to upload images.");
-      setCropModalOpen(false);
-      setCropImage(null);
-      setCroppingIdx(null);
-      return;
-    }
     if (cropImageRef && completedCrop && croppingIdx !== null) {
       const croppedUrl = await getCroppedImg(cropImageRef, completedCrop);
       if (croppedUrl) {
-        const response = await fetch(croppedUrl);
-        const blob = await response.blob();
-        const fileName = typeof crypto !== 'undefined' && crypto.randomUUID
-          ? `cropped_${crypto.randomUUID()}.jpg`
-          : `cropped_${Date.now()}_${Math.floor(Math.random()*10000)}.jpg`;
-        const folder = brand ? (brandFolderMap[brand] || brand) : 'featured';
-        const filePath = `${folder}/${fileName}`;
-        const { data, error } = await supabase.storage.from('product-images').upload(filePath, blob, { contentType: 'image/jpeg' });
-        if (!error) {
-          const publicUrl = supabase.storage.from('product-images').getPublicUrl(filePath).data.publicUrl;
-          setSelectedImages((prev) => [...prev, publicUrl]);
-          setCroppedImageUrl(publicUrl);
-        } else {
-          console.error('Supabase upload error (full object):', error);
-          alert('Image upload failed. ' + (error.message || JSON.stringify(error) || 'Please try again.'));
-        }
+        setSelectedImages((prev) => [...prev, croppedUrl]);
+        setCroppedImageUrl(croppedUrl);
       }
     }
     setCropModalOpen(false);
@@ -262,7 +241,7 @@ export default function AddProductPage() {
           </div>
           {selectedImages.length > 0 && (
             <div className="mt-4 border border-blue-200 rounded-md p-2 bg-blue-50">
-              <div className="text-xs font-semibold text-blue-700 mb-2">Selected Images</div>
+              <div className="text-xs font-semibold text-blue-700 mb-2">Image Selected</div>
               <div className="flex gap-2 overflow-x-auto">
                 {selectedImages.map((img, i) => (
                   <div key={i} className="relative inline-block">
@@ -323,7 +302,6 @@ export default function AddProductPage() {
                 crop={cropConfig}
                 onChange={c => setCropConfig(c)}
                 onComplete={c => setCompletedCrop(c)}
-                aspect={1}
                 keepSelection={true}
               >
                 <img
@@ -339,6 +317,12 @@ export default function AddProductPage() {
         )}
         <div className="flex justify-end gap-2 mt-4">
           <button onClick={() => setCropModalOpen(false)} className="px-4 py-2 bg-gray-200 rounded">Cancel</button>
+          <button
+            onClick={() => setCropConfig({ unit: '%', x: 0, y: 0, width: 100, height: 100 })}
+            className="px-4 py-2 bg-green-600 text-white rounded"
+          >
+            Fit to Image
+          </button>
           <button onClick={handleCropComplete} className="px-4 py-2 bg-blue-600 text-white rounded">Crop & Select</button>
         </div>
       </Modal>
