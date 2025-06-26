@@ -10,6 +10,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { createClient } from '@supabase/supabase-js';
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
+import DPTOneFashion from '../page';
 
 const supabaseUrl = 'https://YOUR_PROJECT_ID.supabase.co';
 const supabaseKey = 'YOUR_ANON_KEY';
@@ -126,22 +127,22 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#FAF9F6] to-[#f5f2ef] font-sans relative">
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black bg-opacity-40 backdrop-blur-sm" onClick={() => setShowModal(false)} />
-          <div className="relative z-10 w-full max-w-md p-10 space-y-6 bg-white rounded-2xl shadow-2xl border border-[#f5c16c]">
-            <button onClick={() => setShowModal(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-2xl font-bold">&times;</button>
-            <div className="flex justify-center mb-2">
-              <Image src="/images/footer-logo.png" alt="Brand Logo" width={90} height={90} className="rounded-full shadow-lg" />
+    <div className="relative min-h-screen w-full flex items-center justify-center">
+      {/* Blurred homepage background */}
+      <div className="fixed inset-0 -z-10">
+        <div className="absolute inset-0">
+          <div className="w-full h-full">
+            <div className="w-full h-full backdrop-blur-md">
+              <DPTOneFashion />
             </div>
-            <h2 className="text-3xl font-extrabold mb-2 text-center text-[#222] tracking-tight">{isRegistering ? "Sign Up" : "Sign In"}</h2>
-            <p className="text-center text-gray-600 mb-6 text-base">{isRegistering ? "Create your account to get started." : "Log in to your account."}</p>
-            <div className="text-center text-lg text-[#A75D43] font-semibold">Welcome! You are now signed in.</div>
           </div>
         </div>
-      )}
-      <div className={`w-full max-w-md p-10 space-y-6 bg-white rounded-2xl shadow-2xl border border-[#f5c16c] relative ${showModal ? 'pointer-events-none blur-sm' : ''}`}>
+      </div>
+      {/* Overlay for dimming */}
+      <div className="fixed inset-0 bg-black/30 -z-10" />
+      {/* Login form container (centered) */}
+      <div className="w-full max-w-md p-10 space-y-6 bg-white rounded-2xl shadow-2xl border border-[#f5c16c] relative">
+        <button onClick={() => router.push('/')} className="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-2xl font-bold">&times;</button>
         <div className="flex justify-center mb-2">
           <Image src="/images/footer-logo.png" alt="Brand Logo" width={90} height={90} className="rounded-full shadow-lg" />
         </div>
