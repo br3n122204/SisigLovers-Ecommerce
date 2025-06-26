@@ -187,7 +187,7 @@ export default function OrdersPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">My Orders</h1>
+          <h1 className="text-3xl font-bold text-black mb-2">My Orders</h1>
           <p className="text-gray-600">Track and manage your orders</p>
         </div>
 
@@ -247,7 +247,7 @@ export default function OrdersPage() {
             {filteredOrders.map((order) => (
               <Link key={order.id} href={`/orders/${order.id}`} className="block">
                 <Card className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow">
-                  <CardHeader className="bg-gray-50">
+                  <CardHeader className="bg-white">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                       <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2">
@@ -257,7 +257,7 @@ export default function OrdersPage() {
                           </Badge>
                         </div>
                         <div>
-                          <p className="font-medium text-gray-900">{order.orderNumber}</p>
+                          <p className="font-medium text-black">{order.orderNumber}</p>
                           <p className="text-sm text-gray-500">
                             <Calendar className="inline h-3 w-3 mr-1" />
                             {formatDate(order.orderDate)}
@@ -266,11 +266,11 @@ export default function OrdersPage() {
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="p-6">
+                  <CardContent className="p-6 bg-white text-black">
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                       {/* Order Items */}
                       <div className="lg:col-span-2">
-                        <h4 className="font-medium text-gray-900 mb-3">Items</h4>
+                        <h4 className="font-medium text-black mb-3">Items</h4>
                         <div className="space-y-3">
                           {order.items.map((item) => (
                             <div key={item.id} className="flex items-center gap-3">
@@ -283,11 +283,11 @@ export default function OrdersPage() {
                                 />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="font-medium text-gray-900 truncate">{item.name}</p>
+                                <p className="font-medium text-black truncate">{item.name}</p>
                                 <p className="text-sm text-gray-500">
                                   Qty: {item.quantity} • {item.size} • {item.color}
                                 </p>
-                                <p className="text-sm font-medium text-gray-900">
+                                <p className="text-sm font-medium text-black">
                                   {formatCurrency(item.price)}
                                 </p>
                               </div>
@@ -299,7 +299,7 @@ export default function OrdersPage() {
                       {/* Order Summary */}
                       <div className="space-y-4">
                         <div>
-                          <h4 className="font-medium text-gray-900 mb-2">Order Summary</h4>
+                          <h4 className="font-medium text-black mb-2">Order Summary</h4>
                           <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
                               <span>Subtotal:</span>
@@ -317,7 +317,7 @@ export default function OrdersPage() {
                         </div>
 
                         <div>
-                          <h4 className="font-medium text-gray-900 mb-2">Shipping Address</h4>
+                          <h4 className="font-medium text-black mb-2">Shipping Address</h4>
                           <p className="text-sm text-gray-600">
                             {order.shippingAddress.firstName} {order.shippingAddress.lastName}<br />
                             {order.shippingAddress.address1}<br />
@@ -328,7 +328,7 @@ export default function OrdersPage() {
 
                         {order.trackingNumber && (
                           <div>
-                            <h4 className="font-medium text-gray-900 mb-2">Tracking</h4>
+                            <h4 className="font-medium text-black mb-2">Tracking</h4>
                             <p className="text-sm text-gray-600">
                               Number: {order.trackingNumber}<br />
                               {order.estimatedDelivery && (
