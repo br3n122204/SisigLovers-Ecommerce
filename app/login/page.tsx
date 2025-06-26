@@ -87,11 +87,28 @@ export default function LoginPage() {
       }
       setShowModal(true);
     } catch (err: any) {
-      console.error("Authentication error details:", err);
+      // Only log unexpected errors
+      if (!(
+        err &&
+        typeof err === "object" &&
+        err.code &&
+        (
+          err.code === "auth/invalid-credential" ||
+          err.code === "auth/wrong-password" ||
+          err.code === "auth/user-not-found"
+        )
+      )) {
+        console.error("Authentication error details:", err);
+      }
       let errorMsg = "Authentication failed. Please check your credentials and try again.";
-      if (err && typeof err === "object") {
-        if (err.code) errorMsg += ` (Code: ${err.code})`;
-        if (err.message) errorMsg = err.message;
+      if (err && typeof err === "object" && err.code) {
+        if (
+          err.code === "auth/invalid-credential" ||
+          err.code === "auth/wrong-password" ||
+          err.code === "auth/user-not-found"
+        ) {
+          errorMsg = "Invalid email or password.";
+        }
       }
       setError(errorMsg);
     } finally {
