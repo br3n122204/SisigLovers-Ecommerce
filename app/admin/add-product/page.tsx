@@ -20,6 +20,7 @@ export default function AddProductPage() {
   const [loadingImages, setLoadingImages] = useState(true);
   const [brand, setBrand] = useState("");
   const [isFeatured, setIsFeatured] = useState(false);
+  const [sizes, setSizes] = useState([{ size: '', stock: '' }]);
   const brandOptions = ["Strap", "Richboyz", "Charlotte Folk", "MN+LA"];
   const router = useRouter();
   const { user } = useAuth();
@@ -83,11 +84,12 @@ export default function AddProductPage() {
         brand: brand || null,
         isFeatured,
         createdAt: new Date(),
+        sizes: sizes.filter(s => s.size && s.stock !== '').map(s => ({ size: s.size, stock: Number(s.stock) })),
       };
       Object.keys(productData).forEach(
         (key) => productData[key] === undefined && delete productData[key]
       );
-      await addDoc(collection(db, "products"), productData);
+      await addDoc(collection(db, "adminProducts"), productData);
       alert("Product added successfully!");
       router.push("/admin/products");
     } catch (error) {
@@ -145,11 +147,28 @@ export default function AddProductPage() {
   };
 
   const handleCropComplete = async () => {
-    if (cropImageRef && completedCrop && croppingIdx !== null) {
+    if (cropImageRef && completedCrop && croppingIdx !== null && brand) {
       const croppedUrl = await getCroppedImg(cropImageRef, completedCrop);
       if (croppedUrl) {
-        setSelectedImages((prev) => [...prev, croppedUrl]);
-        setCroppedImageUrl(croppedUrl);
+        // Convert the croppedUrl (object URL) to a Blob
+        const response = await fetch(croppedUrl);
+        const blob = await response.blob();
+        // Generate a unique filename
+        const fileName = typeof crypto !== 'undefined' && crypto.randomUUID
+          ? `cropped_${crypto.randomUUID()}.jpg`
+          : `cropped_${Date.now()}_${Math.floor(Math.random()*10000)}.jpg`;
+        // Use the new folder structure
+        const folder = `DEPLOYED IMAGES/${brandFolderMap[brand] || brand}`;
+        const filePath = `${folder}/${fileName}`;
+        // Upload to Supabase Storage
+        const { data, error } = await supabase.storage.from('product-images').upload(filePath, blob, { contentType: 'image/jpeg' });
+        if (!error) {
+          const publicUrl = supabase.storage.from('product-images').getPublicUrl(filePath).data.publicUrl;
+          setSelectedImages((prev) => [...prev, publicUrl]);
+          setCroppedImageUrl(publicUrl);
+        } else {
+          alert('Image upload failed. ' + (error.message || JSON.stringify(error) || 'Please try again.'));
+        }
       }
     }
     setCropModalOpen(false);
@@ -204,6 +223,53 @@ export default function AddProductPage() {
               onChange={e => setStock(e.target.value)}
               required
             />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Sizes & Stock</label>
+            <div className="space-y-2 mb-2">
+              {sizes.map((entry, idx) => (
+                <div key={idx} className="flex gap-2 items-center">
+                  <input
+                    type="text"
+                    placeholder="Size"
+                    className="w-20 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={entry.size}
+                    onChange={e => {
+                      const newSizes = [...sizes];
+                      newSizes[idx].size = e.target.value.toUpperCase();
+                      setSizes(newSizes);
+                    }}
+                  />
+                  <input
+                    type="number"
+                    min="0"
+                    placeholder="Stock"
+                    className="w-20 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={entry.stock}
+                    onChange={e => {
+                      const newSizes = [...sizes];
+                      newSizes[idx].stock = e.target.value.replace(/[^0-9]/g, '');
+                      setSizes(newSizes);
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-700"
+                    onClick={() => setSizes(sizes.filter((_, i) => i !== idx))}
+                    disabled={sizes.length === 1}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
+              onClick={() => setSizes([...sizes, { size: '', stock: '' }])}
+            >
+              + Add Size
+            </button>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Brand</label>

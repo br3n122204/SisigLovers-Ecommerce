@@ -36,6 +36,15 @@ export default function LoginPage() {
     setIsRegistering(signupParam === 'true');
   }, [searchParams, router, user]);
 
+  useEffect(() => {
+    if (showModal) {
+      const timer = setTimeout(() => {
+        router.push("/");
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [showModal, router]);
+
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");

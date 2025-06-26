@@ -40,7 +40,7 @@ export default function ProductDetailPage() {
 
   useEffect(() => {
     const fetchProduct = async () => {
-      const docRef = doc(db, 'products', productId);
+      const docRef = doc(db, 'adminProducts', productId);
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         const data = docSnap.data();
@@ -208,16 +208,24 @@ export default function ProductDetailPage() {
               <div className="mb-6">
                 <h3 className="text-md font-semibold text-gray-800 mb-2">SIZES</h3>
                 <div className="flex flex-wrap gap-2">
-                  {product.sizes.map((size: string) => (
-                    <Button
-                      key={size}
-                      variant="outline"
-                      onClick={() => setSelectedSize(size)}
-                      className={`border-gray-300 text-gray-700 hover:bg-black hover:text-white transition-colors ${selectedSize === size ? 'bg-black text-white' : ''}`}
-                    >
-                      {size}
-                    </Button>
-                  ))}
+                  {["S", "M", "L", "XL", "2XL"].map(sizeLabel => {
+                    const found = product.sizes.find((entry: { size: string, stock: number }) => entry.size === sizeLabel);
+                    const isOutOfStock = !found || found.stock === 0;
+                    return (
+                      <Button
+                        key={sizeLabel}
+                        variant="outline"
+                        onClick={() => !isOutOfStock && setSelectedSize(sizeLabel)}
+                        className={`border-gray-300 text-gray-700 transition-colors
+                          ${selectedSize === sizeLabel ? 'bg-black text-white' : ''}
+                          ${isOutOfStock ? 'opacity-50 cursor-not-allowed bg-gray-200 text-gray-400' : 'hover:bg-black hover:text-white'}
+                        `}
+                        disabled={isOutOfStock}
+                      >
+                        {sizeLabel}
+                      </Button>
+                    );
+                  })}
                 </div>
               </div>
             )}

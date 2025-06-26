@@ -32,7 +32,7 @@ export default function Header() {
   // Fetch all products from Firestore once on mount
   useEffect(() => {
     const fetchProducts = async () => {
-      const querySnapshot = await getDocs(collection(db, 'products'));
+      const querySnapshot = await getDocs(collection(db, 'adminProducts'));
       const items: any[] = [];
       querySnapshot.forEach((docSnap) => {
         items.push({ id: docSnap.id, ...docSnap.data() });

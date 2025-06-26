@@ -12,6 +12,7 @@ interface Product {
   imageUrl?: string;
   imageUrls?: string[];
   brand?: string;
+  sizes?: { size: string; stock: number }[];
 }
 
 export default function AdminProductsPage() {
@@ -24,7 +25,7 @@ export default function AdminProductsPage() {
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
-      const querySnapshot = await getDocs(collection(db, "products"));
+      const querySnapshot = await getDocs(collection(db, "adminProducts"));
       const items: Product[] = [];
       querySnapshot.forEach((docSnap) => {
         const data = docSnap.data();
@@ -36,6 +37,7 @@ export default function AdminProductsPage() {
           imageUrl: data.imageUrl,
           imageUrls: data.imageUrls,
           brand: data.brand,
+          sizes: data.sizes,
         });
       });
       setProducts(items);
@@ -46,7 +48,12 @@ export default function AdminProductsPage() {
 
   const startEdit = (product: Product) => {
     setEditingId(product.id);
-    setEditValues({ name: product.name, price: product.price, stock: product.stock });
+    setEditValues({
+      name: product.name,
+      price: product.price,
+      stock: product.stock,
+      sizes: product.sizes ? product.sizes.map(s => ({ ...s })) : undefined,
+    });
   };
 
   const cancelEdit = () => {
@@ -56,14 +63,18 @@ export default function AdminProductsPage() {
 
   const saveEdit = async (id: string) => {
     setSaving(true);
-    await updateDoc(doc(db, "products", id), {
+    const updateData: any = {
       name: editValues.name,
       price: Number(editValues.price),
       stock: Number(editValues.stock),
-    });
+    };
+    if (editValues.sizes) {
+      updateData.sizes = editValues.sizes.map(s => ({ size: s.size, stock: Number(s.stock) }));
+    }
+    await updateDoc(doc(db, "adminProducts", id), updateData);
     setProducts((prev) =>
       prev.map((p) =>
-        p.id === id ? { ...p, ...editValues, price: Number(editValues.price), stock: Number(editValues.stock) } : p
+        p.id === id ? { ...p, ...editValues, price: Number(editValues.price), stock: Number(editValues.stock), sizes: editValues.sizes ? editValues.sizes.map(s => ({ ...s, stock: Number(s.stock) })) : undefined } : p
       )
     );
     setEditingId(null);
@@ -73,7 +84,7 @@ export default function AdminProductsPage() {
 
   const deleteProduct = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this product?')) return;
-    await deleteDoc(doc(db, 'products', id));
+    await deleteDoc(doc(db, 'adminProducts', id));
     setProducts((prev) => prev.filter((p) => p.id !== id));
   };
 
@@ -130,14 +141,73 @@ export default function AdminProductsPage() {
                 </td>
                 <td className="p-3">
                   {editingId === product.id ? (
-                    <input
-                      type="number"
-                      className="border px-2 py-1 rounded w-16"
-                      value={editValues.stock ?? ""}
-                      onChange={e => setEditValues(v => ({ ...v, stock: Number(e.target.value) }))}
-                    />
+                    editValues.sizes && editValues.sizes.length > 0 ? (
+                      <div className="flex flex-col gap-1">
+                        {(editValues.sizes || []).map((s, i) => (
+                          <div key={i} className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              className="border px-2 py-1 rounded w-12 text-xs font-semibold text-center"
+                              value={s.size}
+                              placeholder="Size"
+                              onChange={e => {
+                                const newSizes = [...(editValues.sizes || [])];
+                                newSizes[i].size = e.target.value.toUpperCase();
+                                setEditValues(v => ({ ...v, sizes: newSizes }));
+                              }}
+                            />
+                            <input
+                              type="number"
+                              className="border px-2 py-1 rounded w-16"
+                              value={s.stock}
+                              min={0}
+                              placeholder="Stock"
+                              onChange={e => {
+                                const newSizes = [...(editValues.sizes || [])];
+                                newSizes[i].stock = Number(e.target.value);
+                                setEditValues(v => ({ ...v, sizes: newSizes }));
+                              }}
+                            />
+                            <button
+                              type="button"
+                              className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-700 text-xs"
+                              onClick={() => {
+                                const newSizes = [...(editValues.sizes || [])];
+                                newSizes.splice(i, 1);
+                                setEditValues(v => ({ ...v, sizes: newSizes }));
+                              }}
+                              disabled={(editValues.sizes || []).length === 1}
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                        <button
+                          type="button"
+                          className="mt-2 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-xs w-fit"
+                          onClick={() => setEditValues(v => ({ ...v, sizes: [...(v.sizes || []), { size: '', stock: 0 }] }))}
+                        >
+                          + Add Size
+                        </button>
+                      </div>
+                    ) : (
+                      <input
+                        type="number"
+                        className="border px-2 py-1 rounded w-16"
+                        value={editValues.stock ?? ""}
+                        onChange={e => setEditValues(v => ({ ...v, stock: Number(e.target.value) }))}
+                      />
+                    )
                   ) : (
-                    product.stock
+                    product.sizes && product.sizes.length > 0 ? (
+                      <div className="flex flex-col gap-1">
+                        {product.sizes.map((s, i) => (
+                          <span key={i} className="text-xs bg-gray-100 rounded px-2 py-1 inline-block">{s.size}: {s.stock}</span>
+                        ))}
+                      </div>
+                    ) : (
+                      product.stock
+                    )
                   )}
                 </td>
                 <td className="p-3">

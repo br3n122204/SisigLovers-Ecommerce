@@ -248,7 +248,7 @@ export default function AdminPage() {
 
   // Fetch total products from Firestore
   const fetchTotalProducts = async () => {
-    const productsRef = collection(db, "products");
+    const productsRef = collection(db, "adminProducts");
     const querySnapshot = await getDocs(productsRef);
     setTotalProducts(querySnapshot.size);
   };
