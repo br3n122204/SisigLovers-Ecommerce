@@ -186,7 +186,7 @@ export default function CheckoutPage() {
         items: cartItems.map(item => ({
           id: item.id,
           name: item.name,
-          price: parseFloat(item.price.replace(/[^\d.]/g, '')),
+          price: typeof item.price === 'string' ? parseFloat(item.price.replace(/[^\d.]/g, '')) : Number(item.price),
           quantity: item.quantity,
           image: item.image,
           size: item.selectedSize,
@@ -726,7 +726,7 @@ export default function CheckoutPage() {
                       {item.selectedSize && <p className="text-sm text-gray-500">Size: {item.selectedSize}</p>}
                     </div>
                     <p className="text-md font-medium text-gray-700">
-                      ₱{(parseFloat(item.price.replace(/[^\d.]/g, '')) * item.quantity).toFixed(2)}
+                      ₱{((typeof item.price === 'string' ? parseFloat(item.price.replace(/[^\d.]/g, '')) : Number(item.price)) * item.quantity).toFixed(2)}
                     </p>
                   </div>
                 ))}

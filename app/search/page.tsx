@@ -32,7 +32,7 @@ export default function SearchPage() {
   // Fetch products from Firestore
   useEffect(() => {
     const fetchProducts = async () => {
-      let q = collection(db, 'products');
+      let q = collection(db, 'adminProducts');
       let qRef = q;
       if (selectedBrand) {
         qRef = query(q, where('brand', '==', selectedBrand));

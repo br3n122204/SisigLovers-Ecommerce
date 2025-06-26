@@ -126,7 +126,7 @@ export default function DPTOneFashion() {
   const [hoveredProduct, setHoveredProduct] = useState<string | null>(null)
   useEffect(() => {
     const fetchProducts = async () => {
-      const querySnapshot = await getDocs(collection(db, 'products'))
+      const querySnapshot = await getDocs(collection(db, 'adminProducts'))
       const items: any[] = []
       querySnapshot.forEach((docSnap) => {
         items.push({ id: docSnap.id, ...docSnap.data() })

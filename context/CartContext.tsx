@@ -61,7 +61,12 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const calculateTotal = () => {
     return cartItems.reduce((total, item) => {
-      const price = parseFloat(item.price.replace(/[^\d.]/g, '')); // Clean price string
+      let price: number;
+      if (typeof item.price === 'string') {
+        price = parseFloat(item.price.replace(/[^\d.]/g, ''));
+      } else {
+        price = Number(item.price);
+      }
       return total + (price * item.quantity);
     }, 0).toFixed(2);
   };

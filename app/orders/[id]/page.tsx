@@ -206,16 +206,6 @@ export default function OrderDetailsPage() {
               <h1 className="text-3xl font-bold text-gray-900">Order {order.orderNumber}</h1>
               <p className="text-gray-600 mt-1">Placed on {formatDate(order.orderDate)}</p>
             </div>
-            <div className="flex items-center gap-3">
-              <Button variant="outline">
-                <Download className="h-4 w-4 mr-2" />
-                Download Invoice
-              </Button>
-              <Button variant="outline">
-                <Share2 className="h-4 w-4 mr-2" />
-                Share
-              </Button>
-            </div>
           </div>
         </div>
 
