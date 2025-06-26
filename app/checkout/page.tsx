@@ -11,6 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { collection, getDocs, query, addDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 function deepCleanUndefined(obj: any): any {
   if (Array.isArray(obj)) {
@@ -342,7 +343,7 @@ export default function CheckoutPage() {
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700">Select Address</label>
               <select
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-black"
                 value={selectedAddressId || ""}
                 onChange={e => {
                   setSelectedAddressId(e.target.value);
@@ -382,10 +383,11 @@ export default function CheckoutPage() {
                   type="text"
                   id="firstName"
                   name="firstName"
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-black"
                   value={deliveryDetails.firstName}
                   onChange={handleInputChange}
                   required
+                  autoComplete="off"
                 />
               </div>
               <div>
@@ -394,10 +396,11 @@ export default function CheckoutPage() {
                   type="text"
                   id="lastName"
                   name="lastName"
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-black"
                   value={deliveryDetails.lastName}
                   onChange={handleInputChange}
                   required
+                  autoComplete="off"
                 />
               </div>
             </div>
@@ -407,10 +410,11 @@ export default function CheckoutPage() {
                 type="text"
                 id="address1"
                 name="address1"
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-black"
                 value={deliveryDetails.address1}
                 onChange={handleInputChange}
                 required
+                autoComplete="off"
               />
             </div>
             <div className="mb-4">
@@ -419,9 +423,10 @@ export default function CheckoutPage() {
                 type="text"
                 id="address2"
                 name="address2"
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-black"
                 value={deliveryDetails.address2}
                 onChange={handleInputChange}
+                autoComplete="off"
               />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
@@ -431,10 +436,11 @@ export default function CheckoutPage() {
                   type="text"
                   id="postalCode"
                   name="postalCode"
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-black"
                   value={deliveryDetails.postalCode}
                   onChange={handleInputChange}
                   required
+                  autoComplete="off"
                 />
               </div>
               <div>
@@ -443,10 +449,11 @@ export default function CheckoutPage() {
                   type="text"
                   id="city"
                   name="city"
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-black"
                   value={deliveryDetails.city}
                   onChange={handleInputChange}
                   required
+                  autoComplete="off"
                 />
               </div>
             </div>
@@ -468,10 +475,11 @@ export default function CheckoutPage() {
                 type="text"
                 id="phone"
                 name="phone"
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-black"
                 value={deliveryDetails.phone}
                 onChange={handleInputChange}
                 required
+                autoComplete="off"
               />
             </div>
           </div>
@@ -479,37 +487,23 @@ export default function CheckoutPage() {
           {/* Shipping Method Section */}
           <div className="mb-8 pb-4 border-b border-gray-200">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Shipping method</h2>
-            <div className="space-y-2">
+            <RadioGroup value={shippingMethod} onValueChange={setShippingMethod} className="space-y-2">
               {shippingOptions.map(option => (
-                <label key={option.value} className="flex items-center">
-                  <input
-                    type="radio"
-                    name="shippingMethod"
-                    value={option.value}
-                    checked={shippingMethod === option.value}
-                    onChange={() => setShippingMethod(option.value)}
-                    className="form-radio h-4 w-4" style={{ accentColor: '#A75D43' }}
-                  />
+                <label key={option.value} className="flex items-center cursor-pointer">
+                  <RadioGroupItem value={option.value} id={`shipping-${option.value}`} />
                   <span className="ml-2">{option.label} ({option.time}) — ₱{option.price.toFixed(2)}</span>
                 </label>
               ))}
-            </div>
+            </RadioGroup>
           </div>
 
           {/* Payment Section */}
           <div className="mb-8 pb-4 border-b border-gray-200">
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Payment</h2>
             <p className="text-gray-500 mb-2">All transactions are secure and encrypted.</p>
-            <div className="space-y-2">
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value="gcash"
-                  checked={paymentMethod === 'gcash'}
-                  onChange={() => setPaymentMethod('gcash')}
-                  className="form-radio h-4 w-4" style={{ accentColor: '#A75D43' }}
-                />
+            <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="space-y-2">
+              <label className="flex items-center cursor-pointer">
+                <RadioGroupItem value="gcash" id="payment-gcash" />
                 <span className="ml-2 flex items-center">
                   GCash
                   <img
@@ -519,50 +513,25 @@ export default function CheckoutPage() {
                   />
                 </span>
               </label>
-              <label className="flex items-center">
-                <input
-                  type="radio"
-                  name="paymentMethod"
-                  value="cod"
-                  checked={paymentMethod === 'cod'}
-                  onChange={() => setPaymentMethod('cod')}
-                  className="form-radio h-4 w-4" style={{ accentColor: '#A75D43' }}
-                />
+              <label className="flex items-center cursor-pointer">
+                <RadioGroupItem value="cod" id="payment-cod" />
                 <span className="ml-2">Cash on delivery (COD)</span>
               </label>
-            </div>
+            </RadioGroup>
           </div>
 
           {/* Billing Address */}
           <h2 className="text-xl font-semibold text-gray-800 mb-4">Billing address</h2>
-          <div className="space-y-2">
-            <div className="flex items-center">
-              <input
-                type="radio"
-                id="sameAsShipping"
-                name="billingAddress"
-                checked={sameAsShipping}
-                onChange={() => setSameAsShipping(true)}
-                className="h-4 w-4" style={{ accentColor: '#A75D43' }}
-              />
-              <label htmlFor="sameAsShipping" className="ml-3 block text-sm font-medium text-gray-700">
-                Same as shipping address
-              </label>
-            </div>
-            <div className="flex items-center">
-              <input
-                type="radio"
-                id="differentBilling"
-                name="billingAddress"
-                checked={!sameAsShipping}
-                onChange={() => setSameAsShipping(false)}
-                className="h-4 w-4" style={{ accentColor: '#A75D43' }}
-              />
-              <label htmlFor="differentBilling" className="ml-3 block text-sm font-medium text-gray-700">
-                Use a different billing address
-              </label>
-            </div>
-          </div>
+          <RadioGroup value={sameAsShipping ? "same" : "different"} onValueChange={v => setSameAsShipping(v === "same")} className="space-y-2">
+            <label className="flex items-center cursor-pointer">
+              <RadioGroupItem value="same" id="billing-same" />
+              <span className="ml-3 block text-sm font-medium text-gray-700">Same as shipping address</span>
+            </label>
+            <label className="flex items-center cursor-pointer">
+              <RadioGroupItem value="different" id="billing-different" />
+              <span className="ml-3 block text-sm font-medium text-gray-700">Use a different billing address</span>
+            </label>
+          </RadioGroup>
           {!sameAsShipping && (
             <div className="mt-4 p-4 border border-gray-200 rounded-md bg-gray-50">
               <div className="mb-4">
@@ -602,9 +571,10 @@ export default function CheckoutPage() {
                     type="text"
                     id="firstNameBilling"
                     name="firstName"
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-black"
                     value={billingDetails.firstName}
                     onChange={handleBillingInputChange}
+                    autoComplete="off"
                   />
                 </div>
                 <div>
@@ -613,10 +583,11 @@ export default function CheckoutPage() {
                     type="text"
                     id="lastNameBilling"
                     name="lastName"
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-black"
                     value={billingDetails.lastName}
                     onChange={handleBillingInputChange}
                     required
+                    autoComplete="off"
                   />
                 </div>
               </div>
@@ -626,10 +597,11 @@ export default function CheckoutPage() {
                   type="text"
                   id="address1Billing"
                   name="address1"
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-black"
                   value={billingDetails.address1}
                   onChange={handleBillingInputChange}
                   required
+                  autoComplete="off"
                 />
               </div>
               <div className="mb-4">
@@ -638,9 +610,10 @@ export default function CheckoutPage() {
                   type="text"
                   id="address2Billing"
                   name="address2"
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-black"
                   value={billingDetails.address2}
                   onChange={handleBillingInputChange}
+                  autoComplete="off"
                 />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
@@ -650,10 +623,11 @@ export default function CheckoutPage() {
                     type="text"
                     id="postalCodeBilling"
                     name="postalCode"
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-black"
                     value={billingDetails.postalCode}
                     onChange={handleBillingInputChange}
                     required
+                    autoComplete="off"
                   />
                 </div>
                 <div>
@@ -662,10 +636,11 @@ export default function CheckoutPage() {
                     type="text"
                     id="cityBilling"
                     name="city"
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-black"
                     value={billingDetails.city}
                     onChange={handleBillingInputChange}
                     required
+                    autoComplete="off"
                   />
                 </div>
               </div>
@@ -686,10 +661,11 @@ export default function CheckoutPage() {
                   type="text"
                   id="phoneBilling"
                   name="phone"
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-black"
                   value={billingDetails.phone}
                   onChange={handleBillingInputChange}
                   required
+                  autoComplete="off"
                 />
               </div>
             </div>

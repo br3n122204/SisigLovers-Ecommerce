@@ -145,8 +145,8 @@ export default function Header() {
 
             {/* Search Suggestions Dropdown (Desktop) */}
             {showSuggestions && searchQuery.length > 0 && searchResults.length > 0 && (
-              <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
-                <p className="px-4 py-2 text-xs text-gray-500 uppercase font-bold">Products</p>
+              <div className="absolute z-10 w-full bg-[#A75D43] border border-gray-200 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
+                <p className="px-4 py-2 text-xs text-white uppercase font-bold">Products</p>
                 {searchResults.map((product) => {
                   let productImg = '/images/placeholder.jpg';
                   if (Array.isArray(product.imageUrls) && product.imageUrls.length > 0) {
@@ -157,7 +157,7 @@ export default function Header() {
                     productImg = product.imageUrl;
                   }
                   return (
-                    <Link href={`/products/${product.id}`} key={product.id} className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                    <Link href={`/products/${product.id}`} key={product.id} className="flex items-center px-4 py-2 hover:bg-[#c98a6a] cursor-pointer">
                       <Image
                         src={productImg}
                         alt={product.name || 'Product'}
@@ -165,11 +165,11 @@ export default function Header() {
                         height={40}
                         className="mr-3 rounded"
                       />
-                      <span className="text-sm font-medium text-gray-800">{product.name}</span>
+                      <span className="text-sm font-medium text-white">{product.name}</span>
                     </Link>
                   );
                 })}
-                <Link href={`/search?q=${encodeURIComponent(searchQuery)}`} className="block px-4 py-3 bg-gray-50 text-blue-600 hover:bg-gray-100 text-sm font-medium text-center border-t border-gray-200">
+                <Link href={`/search?q=${encodeURIComponent(searchQuery)}`} className="block px-4 py-3 bg-[#c98a6a] text-white hover:bg-[#A75D43] text-sm font-medium text-center border-t border-gray-200">
                   Search for "{searchQuery}"
                 </Link>
               </div>
@@ -216,8 +216,8 @@ export default function Header() {
 
             {/* Search Suggestions Dropdown (Mobile) */}
             {showSuggestions && searchQuery.length > 0 && searchResults.length > 0 && (
-              <div className="absolute z-10 w-full bg-white border border-gray-200 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
-                <p className="px-4 py-2 text-xs text-gray-500 uppercase font-bold">Products</p>
+              <div className="absolute z-10 w-full bg-[#A75D43] border border-gray-200 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
+                <p className="px-4 py-2 text-xs text-white uppercase font-bold">Products</p>
                 {searchResults.map((product) => {
                   let productImg = '/images/placeholder.jpg';
                   if (Array.isArray(product.imageUrls) && product.imageUrls.length > 0) {
@@ -228,7 +228,7 @@ export default function Header() {
                     productImg = product.imageUrl;
                   }
                   return (
-                    <Link href={`/products/${product.id}`} key={product.id} className="flex items-center px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                    <Link href={`/products/${product.id}`} key={product.id} className="flex items-center px-4 py-2 hover:bg-[#c98a6a] cursor-pointer">
                       <Image
                         src={productImg}
                         alt={product.name || 'Product'}
@@ -236,11 +236,11 @@ export default function Header() {
                         height={40}
                         className="mr-3 rounded"
                       />
-                      <span className="text-sm font-medium text-gray-800">{product.name}</span>
+                      <span className="text-sm font-medium text-white">{product.name}</span>
                     </Link>
                   );
                 })}
-                <Link href={`/search?q=${encodeURIComponent(searchQuery)}`} className="block px-4 py-3 bg-gray-50 text-blue-600 hover:bg-gray-100 text-sm font-medium text-center border-t border-gray-200">
+                <Link href={`/search?q=${encodeURIComponent(searchQuery)}`} className="block px-4 py-3 bg-[#c98a6a] text-white hover:bg-[#A75D43] text-sm font-medium text-center border-t border-gray-200">
                   Search for "{searchQuery}"
                 </Link>
               </div>
