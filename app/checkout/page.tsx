@@ -186,7 +186,7 @@ export default function CheckoutPage() {
         items: cartItems.map(item => ({
           id: item.id,
           name: item.name,
-          price: typeof item.price === 'string' ? parseFloat(item.price.replace(/[^\d.]/g, '')) : Number(item.price),
+          price: parseFloat(item.price.replace(/[^\d.]/g, '')),
           quantity: item.quantity,
           image: item.image,
           size: item.selectedSize,
@@ -209,19 +209,24 @@ export default function CheckoutPage() {
 
       // Save to global productsOrder collection (for admin/global view)
       const productsOrderRef = collection(db, 'productsOrder');
-      const docRef = await addDoc(productsOrderRef, cleanOrderData);
-      console.log("Order saved to productsOrder with ID:", docRef.id);
+      // Always include userId in the global order
+      const globalOrderDoc = await addDoc(productsOrderRef, {
+        ...cleanOrderData,
+        userId: user.uid, // <-- ensure userId is always present
+      });
+      console.log("Order saved to productsOrder with ID:", globalOrderDoc.id);
 
       // Save each cart item as a document in the orderDetails subcollection
       for (const item of cleanOrderData.items) {
-        await addDoc(collection(db, 'productsOrder', docRef.id, 'orderDetails'), item);
+        await addDoc(collection(db, 'productsOrder', globalOrderDoc.id, 'orderDetails'), item);
       }
 
       // Save to per-user users/{userId}/orders/{orderId} (append order to subcollection, do not create new user doc)
       const userOrdersRef = collection(db, 'users', user.uid, 'orders');
+      // Always include globalOrderId in the user order
       const userOrderDoc = await addDoc(userOrdersRef, {
         ...cleanOrderData,
-        globalOrderId: docRef.id // reference to the global order
+        globalOrderId: globalOrderDoc.id, // <-- ensure globalOrderId is always present
       });
       console.log("Order saved to users/{userId}/orders with ID:", userOrderDoc.id);
 
@@ -230,7 +235,7 @@ export default function CheckoutPage() {
         type: "purchase",
         email: user.email,
         uid: user.uid,
-        orderId: docRef.id,
+        orderId: globalOrderDoc.id,
         timestamp: serverTimestamp(),
         items: cleanOrderData.items,
         total: cleanOrderData.total,
@@ -239,7 +244,7 @@ export default function CheckoutPage() {
       toast({
         title: "Checkout successful",
       });
-      return docRef.id;
+      return globalOrderDoc.id;
     } catch (error) {
       toast({
         title: "Error",
@@ -726,7 +731,7 @@ export default function CheckoutPage() {
                       {item.selectedSize && <p className="text-sm text-gray-500">Size: {item.selectedSize}</p>}
                     </div>
                     <p className="text-md font-medium text-gray-700">
-                      ₱{((typeof item.price === 'string' ? parseFloat(item.price.replace(/[^\d.]/g, '')) : Number(item.price)) * item.quantity).toFixed(2)}
+                      ₱{(parseFloat(item.price.replace(/[^\d.]/g, '')) * item.quantity).toFixed(2)}
                     </p>
                   </div>
                 ))}
@@ -746,7 +751,7 @@ export default function CheckoutPage() {
                   <span>PHP ₱{totalAmount}</span>
                 </div>
               </div>
-            </>
+            </> 
           )}
         </div>
       </div>
