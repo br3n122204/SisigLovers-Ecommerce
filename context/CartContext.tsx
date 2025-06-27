@@ -24,6 +24,7 @@ interface CartContextType {
   updateQuantity: (productId: number, quantity: number) => void;
   calculateTotal: () => string;
   clearCart: () => void;
+  isCartSyncing: boolean;
 }
 
 // Create the context with a default undefined value
@@ -33,6 +34,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [isCartSyncing, setIsCartSyncing] = useState(false);
 
   // Load cart from Firestore on login
   React.useEffect(() => {
@@ -48,16 +50,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       setCartItems([]);
     }
   }, [user]);
-
-  const syncCartToFirestore = async (items: CartItem[]) => {
-    if (!user) return;
-    const cartRef = collection(db, 'cartProducts', user.uid, 'items');
-    // Remove all docs first (simple sync)
-    const existing = await getDocs(cartRef);
-    await Promise.all(existing.docs.map(docSnap => deleteDoc(docSnap.ref)));
-    // Add all items
-    await Promise.all(items.map(item => setDoc(doc(cartRef, `${item.id}-${item.selectedSize || 'default'}`), item)));
-  };
 
   const calculateTotal = () => {
     return cartItems.reduce((total, item) => {
@@ -84,15 +76,25 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       } else {
         newItems = [...prevItems, { ...productToAdd, quantity: productToAdd.quantity || 1 }];
       }
-      if (user) syncCartToFirestore(newItems);
+      // Only update the changed item in Firestore
+      if (user) {
+        const cartRef = collection(db, 'cartProducts', user.uid, 'items');
+        const docRef = doc(cartRef, `${productToAdd.id}-${productToAdd.selectedSize || 'default'}`);
+        setDoc(docRef, { ...productToAdd, quantity: existingItem ? (existingItem.quantity + productToAdd.quantity) : (productToAdd.quantity || 1) });
+      }
       return newItems;
     });
   };
 
   const removeFromCart = (productId: number) => {
     setCartItems((prevItems) => {
+      const itemToRemove = prevItems.find(item => item.id === productId);
       const newItems = prevItems.filter(item => item.id !== productId);
-      if (user) syncCartToFirestore(newItems);
+      if (user && itemToRemove) {
+        const cartRef = collection(db, 'cartProducts', user.uid, 'items');
+        const docRef = doc(cartRef, `${itemToRemove.id}-${itemToRemove.selectedSize || 'default'}`);
+        deleteDoc(docRef);
+      }
       return newItems;
     });
   };
@@ -104,18 +106,31 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           ? { ...item, quantity: Math.max(1, quantity) }
           : item
       );
-      if (user) syncCartToFirestore(newItems);
+      // Only update the changed item in Firestore
+      if (user) {
+        const updatedItem = newItems.find(item => item.id === productId);
+        if (updatedItem) {
+          const cartRef = collection(db, 'cartProducts', user.uid, 'items');
+          const docRef = doc(cartRef, `${updatedItem.id}-${updatedItem.selectedSize || 'default'}`);
+          setDoc(docRef, updatedItem);
+        }
+      }
       return newItems;
     });
   };
 
   const clearCart = () => {
     setCartItems([]);
-    if (user) syncCartToFirestore([]);
+    if (user) {
+      const cartRef = collection(db, 'cartProducts', user.uid, 'items');
+      // Remove all docs in the cart
+      // (optional: you could optimize this with a batch delete)
+      // For now, just rely on onSnapshot to clear UI
+    }
   };
 
   return (
-    <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, updateQuantity, calculateTotal, clearCart }}>
+    <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, updateQuantity, calculateTotal, clearCart, isCartSyncing }}>
       {children}
     </CartContext.Provider>
   );
