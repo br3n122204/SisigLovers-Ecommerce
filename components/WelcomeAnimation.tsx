@@ -5,8 +5,10 @@ import { Dialog, DialogContent, DialogTitle } from './ui/dialog';
 
 export default function WelcomeAnimation() {
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     // Only show if not already shown in this session
     const hasSeen = typeof window !== 'undefined' && sessionStorage.getItem('welcomeShown');
     if (!hasSeen) {
@@ -15,6 +17,7 @@ export default function WelcomeAnimation() {
     }
   }, []);
 
+  if (!mounted) return null;
   if (!open) return null;
 
   return (

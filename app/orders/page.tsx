@@ -285,7 +285,21 @@ export default function OrdersPage() {
                               <div className="flex-1 min-w-0">
                                 <p className="font-medium text-black truncate">{item.name}</p>
                                 <p className="text-sm text-gray-500">
-                                  Qty: {item.quantity} • {item.size} • {item.color}
+                                  Qty: {item.quantity}
+                                  {item.size && (
+                                    <>
+                                      {typeof item.size === 'object' && item.size !== null && 'size' in item.size
+                                        ? (item.size as any).size
+                                        : item.size}
+                                    </>
+                                  )}
+                                  {item.color && (
+                                    <>
+                                      {typeof item.color === 'object' && item.color !== null && 'color' in item.color
+                                        ? (item.color as any).color
+                                        : item.color}
+                                    </>
+                                  )}
                                 </p>
                                 <p className="text-sm font-medium text-black">
                                   {formatCurrency(item.price)}

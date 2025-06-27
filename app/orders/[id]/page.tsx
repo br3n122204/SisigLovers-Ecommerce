@@ -259,7 +259,12 @@ export default function OrderDetailsPage() {
                       <div className="flex-1 min-w-0">
                         <h4 className="font-medium text-gray-900">{item.name}</h4>
                         <p className="text-sm text-gray-500 mt-1">
-                          Size: {item.size} • Color: {item.color}
+                          Size: {typeof item.size === 'object' && item.size !== null && 'size' in item.size
+                            ? (item.size as any).size
+                            : item.size}
+                          • Color: {typeof item.color === 'object' && item.color !== null && 'color' in item.color
+                            ? (item.color as any).color
+                            : item.color}
                         </p>
                         <div className="flex items-center justify-between mt-2">
                           <span className="text-sm text-gray-600">Qty: {item.quantity}</span>
