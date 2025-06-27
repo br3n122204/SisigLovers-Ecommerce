@@ -124,14 +124,17 @@ export default function DPTOneFashion() {
 
   const [products, setProducts] = useState<any[]>([])
   const [hoveredProduct, setHoveredProduct] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
     const fetchProducts = async () => {
+      setLoading(true);
       const querySnapshot = await getDocs(collection(db, 'adminProducts'))
       const items: any[] = []
       querySnapshot.forEach((docSnap) => {
         items.push({ id: docSnap.id, ...docSnap.data() })
       })
       setProducts(items)
+      setLoading(false);
     }
     fetchProducts()
   }, [])
@@ -156,35 +159,45 @@ export default function DPTOneFashion() {
             <h2 className="text-4xl font-extrabold text-center mb-12 tracking-tight text-neutral-900">
               Featured Products
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
-              {products.length === 0 ? (
-                <div className="col-span-4 text-center text-gray-500">No products found.</div>
-              ) : (
-                products.map((product) => (
-                  <Link key={product.id} href={`/products/${product.id}`} className="w-full">
-                    <div
-                      className="bg-white rounded-2xl shadow-lg p-4 flex flex-col items-center cursor-pointer hover:shadow-xl transition"
-                      onMouseEnter={() => setHoveredProduct(product.id)}
-                      onMouseLeave={() => setHoveredProduct(null)}
-                    >
-                      <img
-                        src={
-                          hoveredProduct === product.id && product.imageUrls && product.imageUrls.length > 1
-                            ? product.imageUrls[1]
-                            : product.imageUrls && product.imageUrls.length > 0
-                              ? product.imageUrls[0]
-                              : "/images/placeholder.jpg"
-                        }
-                        alt={product.name}
-                        className="w-48 h-48 object-contain mb-4"
-                      />
-                      <h3 className="font-bold text-lg text-center mb-1">{product.name}</h3>
-                      <p className="text-gray-700 font-semibold mb-4">₱{product.price}</p>
-                    </div>
-                  </Link>
-                ))
-              )}
-            </div>
+            {loading ? (
+              <div className="flex justify-center items-center py-20">
+                <svg className="animate-spin h-10 w-10 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                </svg>
+                <span className="ml-4 text-lg text-gray-700">Loading products...</span>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+                {products.length === 0 ? (
+                  <div className="col-span-4 text-center text-gray-500">No products found.</div>
+                ) : (
+                  products.map((product) => (
+                    <Link key={product.id} href={`/products/${product.id}`} className="w-full">
+                      <div
+                        className="bg-white rounded-2xl shadow-lg p-4 flex flex-col items-center cursor-pointer hover:shadow-xl transition"
+                        onMouseEnter={() => setHoveredProduct(product.id)}
+                        onMouseLeave={() => setHoveredProduct(null)}
+                      >
+                        <img
+                          src={
+                            hoveredProduct === product.id && product.imageUrls && product.imageUrls.length > 1
+                              ? product.imageUrls[1]
+                              : product.imageUrls && product.imageUrls.length > 0
+                                ? product.imageUrls[0]
+                                : "/images/placeholder.jpg"
+                          }
+                          alt={product.name}
+                          className="w-48 h-48 object-contain mb-4"
+                        />
+                        <h3 className="font-bold text-lg text-center mb-1">{product.name}</h3>
+                        <p className="text-gray-700 font-semibold mb-4">₱{product.price}</p>
+                      </div>
+                    </Link>
+                  ))
+                )}
+              </div>
+            )}
           </div>
         </section>
       </div>

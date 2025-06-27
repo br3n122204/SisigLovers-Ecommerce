@@ -214,32 +214,27 @@ export default function AddProductPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>
-            <input
-              type="number"
-              min="0"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              value={stock}
-              onChange={e => setStock(e.target.value)}
-              required
-            />
-          </div>
-          <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Sizes & Stock</label>
             <div className="space-y-2 mb-2">
               {sizes.map((entry, idx) => (
-                <div key={idx} className="flex gap-2 items-center">
-                  <input
-                    type="text"
-                    placeholder="Size"
-                    className="w-20 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                <div key={idx} className="flex gap-2 items-center bg-gray-50 p-2 rounded-md border border-gray-200">
+                  <select
+                    className="w-24 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     value={entry.size}
                     onChange={e => {
                       const newSizes = [...sizes];
-                      newSizes[idx].size = e.target.value.toUpperCase();
+                      newSizes[idx].size = e.target.value;
                       setSizes(newSizes);
                     }}
-                  />
+                    required
+                  >
+                    <option value="">Size</option>
+                    <option value="S">S</option>
+                    <option value="M">M</option>
+                    <option value="L">L</option>
+                    <option value="XL">XL</option>
+                    <option value="XXL">XXL</option>
+                  </select>
                   <input
                     type="number"
                     min="0"
@@ -251,6 +246,7 @@ export default function AddProductPage() {
                       newSizes[idx].stock = e.target.value.replace(/[^0-9]/g, '');
                       setSizes(newSizes);
                     }}
+                    required
                   />
                   <button
                     type="button"
@@ -265,7 +261,7 @@ export default function AddProductPage() {
             </div>
             <button
               type="button"
-              className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
+              className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm mt-1 shadow"
               onClick={() => setSizes([...sizes, { size: '', stock: '' }])}
             >
               + Add Size

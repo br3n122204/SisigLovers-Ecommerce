@@ -187,7 +187,9 @@ export default function CheckoutPage() {
         items: cartItems.map(item => ({
           id: item.id,
           name: item.name,
-          price: parseFloat(item.price.replace(/[^\d.]/g, '')),
+          price: typeof item.price === "string"
+            ? parseFloat(item.price.replace(/[^\d.]/g, ''))
+            : item.price,
           quantity: item.quantity,
           image: item.image,
           size: item.selectedSize,
