@@ -118,6 +118,7 @@ function ImageSlider() {
 }
 
 export default function DPTOneFashion() {
+  console.log('DEBUG: Homepage component is rendering');
   const { cartItems, addToCart } = useCart()
   const { user } = useAuth()
   const router = useRouter()

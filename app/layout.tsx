@@ -9,7 +9,7 @@ import AnnouncementBar from "@/components/AnnouncementBar"
 import Image from "next/image"
 import ClientLayout from "./ClientLayout";
 import { ThemeProvider } from "@/components/theme-provider";
-import WelcomeAnimation from '@/components/WelcomeAnimation';
+import ClientProviders from "./ClientProviders";
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -26,10 +26,11 @@ export default function RootLayout({
             <CartProvider>
               <AnnouncementBar />
               <Header />
-              <WelcomeAnimation />
-              <ClientLayout>
-                {children}
-              </ClientLayout>
+              <ClientProviders>
+                <ClientLayout>
+                  {children}
+                </ClientLayout>
+              </ClientProviders>
             </CartProvider>
           </AuthProvider>
         </ThemeProvider>
