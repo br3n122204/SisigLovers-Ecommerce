@@ -125,16 +125,24 @@ export default function DPTOneFashion() {
   const [products, setProducts] = useState<any[]>([])
   const [hoveredProduct, setHoveredProduct] = useState<string | null>(null)
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   useEffect(() => {
     const fetchProducts = async () => {
       setLoading(true);
-      const querySnapshot = await getDocs(collection(db, 'adminProducts'))
-      const items: any[] = []
-      querySnapshot.forEach((docSnap) => {
-        items.push({ id: docSnap.id, ...docSnap.data() })
-      })
-      setProducts(items)
-      setLoading(false);
+      setError(null);
+      try {
+        const querySnapshot = await getDocs(collection(db, 'adminProducts'))
+        const items: any[] = []
+        querySnapshot.forEach((docSnap) => {
+          items.push({ id: docSnap.id, ...docSnap.data() })
+        })
+        setProducts(items)
+      } catch (err: any) {
+        setError('Failed to load products. Please try again later.');
+        console.error('Error fetching products:', err);
+      } finally {
+        setLoading(false);
+      }
     }
     fetchProducts()
   }, [])
@@ -159,7 +167,11 @@ export default function DPTOneFashion() {
             <h2 className="text-4xl font-extrabold text-center mb-12 tracking-tight text-neutral-900">
               Featured Products
             </h2>
-            {loading ? (
+            {error ? (
+              <div className="flex justify-center items-center py-20 text-red-600 font-semibold">
+                {error}
+              </div>
+            ) : loading ? (
               <div className="flex justify-center items-center py-20">
                 <svg className="animate-spin h-10 w-10 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>

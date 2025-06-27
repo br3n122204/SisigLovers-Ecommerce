@@ -706,7 +706,13 @@ export default function CheckoutPage() {
                     </div>
                     <div className="flex-grow">
                       <h3 className="text-lg font-semibold text-gray-900">{item.name}</h3>
-                      {item.selectedSize && <p className="text-sm text-gray-500">Size: {item.selectedSize}</p>}
+                      {item.selectedSize && (
+                        <p className="text-sm text-gray-500">
+                          Size: {typeof item.selectedSize === 'object' && item.selectedSize !== null && 'size' in item.selectedSize
+                            ? (item.selectedSize as any).size
+                            : item.selectedSize}
+                        </p>
+                      )}
                     </div>
                     <p className="text-md font-medium text-gray-700">
                       ₱{

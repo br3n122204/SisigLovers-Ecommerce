@@ -9,10 +9,10 @@ import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 export default function CartPage() {
-  const { cartItems, removeFromCart, updateQuantity } = useCart();
+  const { cartItems, removeFromCart, updateQuantity, isCartSyncing } = useCart();
   const { user } = useAuth();
   const router = useRouter();
-  const [removingItemId, setRemovingItemId] = useState<number | null>(null);
+  const [removingItemIds, setRemovingItemIds] = useState<number[]>([]);
 
   const calculateTotal = () => {
     return cartItems.reduce((total, item) => {
@@ -31,22 +31,26 @@ export default function CartPage() {
   };
 
   const handleUpdateQuantity = (id: number, newQuantity: number) => {
-    if (newQuantity === 0) {
-      setRemovingItemId(id);
-      setTimeout(() => {
-        removeFromCart(id);
-        setRemovingItemId(null);
-      }, 300);
-    } else {
-      updateQuantity(id, newQuantity);
+    if (newQuantity < 1) {
+      // Do nothing if trying to go below 1
+      return;
     }
+    updateQuantity(id, newQuantity);
+  };
+
+  const handleRemoveFromCart = (id: number) => {
+    setRemovingItemIds((prev) => [...prev, id]);
+    setTimeout(() => {
+      removeFromCart(id);
+      setRemovingItemIds((prev) => prev.filter((itemId) => itemId !== id));
+    }, 300);
   };
 
   return (
     <div className="min-h-screen bg-white">
       {/* Main Content */}
       <div className="max-w-4xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
-        {cartItems.length === 0 ? (
+        {cartItems.length === 0 && removingItemIds.length === 0 && !isCartSyncing ? (
           <div className="text-center space-y-8">
             <h1 className="text-4xl font-bold text-gray-900">Your cart is empty</h1>
             <Link href="/" className="text-lg text-blue-600 hover:underline">Continue shopping</Link>
@@ -65,49 +69,53 @@ export default function CartPage() {
             {/* Cart Items List */}
             <div className="md:col-span-2 space-y-6">
               {cartItems.map((item) => (
-                (removingItemId === item.id) ? null : (
-                  <div key={`${item.id}-${item.selectedSize}`} className="flex items-center space-x-4 border-b border-gray-200 pb-4">
-                    <div className="relative w-24 h-24 flex-shrink-0 rounded-md overflow-hidden border border-gray-200">
-                      <Image src={item.image} alt={item.name} fill className="object-cover" />
-                    </div>
-                    <div className="flex-grow">
-                      <h2 className="text-lg font-semibold text-gray-900">{item.name}</h2>
-                      {item.selectedSize && (
-                        <p className="text-sm text-gray-500">
-                          Size: {typeof item.selectedSize === 'object' ? ((item.selectedSize as any).size ?? JSON.stringify(item.selectedSize)) : item.selectedSize}
-                        </p>
-                      )}
-                      <p className="text-md font-medium text-gray-700">{item.price}</p>
-                      <div className="flex items-center mt-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
-                          className="border-gray-300 text-gray-700 hover:bg-gray-50"
-                        >
-                          -
-                        </Button>
-                        <span className="mx-2 px-3 py-1 border border-gray-300 rounded-md text-sm">{isNaN(item.quantity) ? 0 : item.quantity}</span>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
-                          className="border-gray-300 text-gray-700 hover:bg-gray-50"
-                        >
-                          +
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeFromCart(item.id)}
-                          className="ml-4 text-red-600 hover:bg-red-50"
-                        >
-                          Remove
-                        </Button>
-                      </div>
+                <div
+                  key={`${item.id}-${item.selectedSize}`}
+                  className={`flex items-center space-x-4 border-b border-gray-200 pb-4 transition-opacity duration-300 ${removingItemIds.includes(item.id) ? 'opacity-30 pointer-events-none' : ''}`}
+                >
+                  <div className="relative w-24 h-24 flex-shrink-0 rounded-md overflow-hidden border border-gray-200">
+                    <Image src={item.image} alt={item.name} fill className="object-cover" />
+                  </div>
+                  <div className="flex-grow">
+                    <h2 className="text-lg font-semibold text-gray-900">{item.name}</h2>
+                    {item.selectedSize && (
+                      <p className="text-sm text-gray-500">
+                        Size: {typeof item.selectedSize === 'object' ? ((item.selectedSize as any).size ?? JSON.stringify(item.selectedSize)) : item.selectedSize}
+                      </p>
+                    )}
+                    <p className="text-md font-medium text-gray-700">{item.price}</p>
+                    <div className="flex items-center mt-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
+                        className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                        disabled={removingItemIds.includes(item.id)}
+                      >
+                        -
+                      </Button>
+                      <span className="mx-2 px-3 py-1 border border-gray-300 rounded-md text-sm">{isNaN(item.quantity) ? 0 : item.quantity}</span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
+                        className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                        disabled={removingItemIds.includes(item.id)}
+                      >
+                        +
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveFromCart(item.id)}
+                        className="ml-4 text-red-600 hover:bg-red-50"
+                        disabled={removingItemIds.includes(item.id)}
+                      >
+                        Remove
+                      </Button>
                     </div>
                   </div>
-                )
+                </div>
               ))}
             </div>
 

@@ -7,8 +7,15 @@ export default function WelcomeAnimation() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    setOpen(true);
+    // Only show if not already shown in this session
+    const hasSeen = typeof window !== 'undefined' && sessionStorage.getItem('welcomeShown');
+    if (!hasSeen) {
+      setOpen(true);
+      sessionStorage.setItem('welcomeShown', 'true');
+    }
   }, []);
+
+  if (!open) return null;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
