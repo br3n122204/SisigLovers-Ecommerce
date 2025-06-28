@@ -178,111 +178,92 @@ export default function AddProductPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f7f7f7]">
-      <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-xl flex flex-col items-center">
-        <h2 className="text-2xl font-bold mb-6 text-center text-gray-900">Add New Product</h2>
+    <div className="w-full h-screen flex bg-black">
+      <div className="w-full h-full bg-[#161e2e] px-8 py-10 flex flex-col">
+        <h2 className="text-2xl font-bold mb-6 text-center text-[#3390ff]">Add New Product</h2>
         <form onSubmit={handleSubmit} className="w-full space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
+            <label className="block text-sm font-medium text-[#8ec0ff] mb-1">Product Name</label>
             <input
               type="text"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 bg-[#22304a] border border-[#22304a] rounded-md focus:outline-none focus:ring-2 focus:ring-[#3390ff] text-white placeholder-[#8ec0ff]"
               value={name}
               onChange={e => setName(e.target.value)}
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <label className="block text-sm font-medium text-[#8ec0ff] mb-1">Description</label>
             <textarea
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 bg-[#22304a] border border-[#22304a] rounded-md focus:outline-none focus:ring-2 focus:ring-[#3390ff] text-white placeholder-[#8ec0ff]"
               value={description}
               onChange={e => setDescription(e.target.value)}
-              rows={3}
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Price <span className="font-bold">(₱)</span></label>
+            <label className="block text-sm font-medium text-[#8ec0ff] mb-1">Price (₱)</label>
             <input
               type="number"
-              min="0"
-              step="0.01"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 bg-[#22304a] border border-[#22304a] rounded-md focus:outline-none focus:ring-2 focus:ring-[#3390ff] text-white placeholder-[#8ec0ff]"
               value={price}
               onChange={e => setPrice(e.target.value)}
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Sizes & Stock</label>
-            <div className="space-y-2 mb-2">
-              {sizes.map((entry, idx) => (
-                <div key={idx} className="flex gap-2 items-center bg-gray-50 p-2 rounded-md border border-gray-200">
-                  <select
-                    className="w-24 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value={entry.size}
-                    onChange={e => {
-                      const newSizes = [...sizes];
-                      newSizes[idx].size = e.target.value;
-                      setSizes(newSizes);
-                    }}
-                    required
-                  >
-                    <option value="">Size</option>
-                    <option value="S">S</option>
-                    <option value="M">M</option>
-                    <option value="L">L</option>
-                    <option value="XL">XL</option>
-                    <option value="XXL">XXL</option>
-                  </select>
-                  <input
-                    type="number"
-                    min="0"
-                    placeholder="Stock"
-                    className="w-20 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value={entry.stock}
-                    onChange={e => {
-                      const newSizes = [...sizes];
-                      newSizes[idx].stock = e.target.value.replace(/[^0-9]/g, '');
-                      setSizes(newSizes);
-                    }}
-                    required
-                  />
-                  <button
-                    type="button"
-                    className="px-2 py-1 bg-red-500 text-white rounded hover:bg-red-700"
-                    onClick={() => setSizes(sizes.filter((_, i) => i !== idx))}
-                    disabled={sizes.length === 1}
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
-            </div>
-            <button
-              type="button"
-              className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm mt-1 shadow"
-              onClick={() => setSizes([...sizes, { size: '', stock: '' }])}
-            >
-              + Add Size
-            </button>
+            <label className="block text-sm font-medium text-[#8ec0ff] mb-1">Sizes & Stock</label>
+            {sizes.map((s, idx) => (
+              <div key={idx} className="flex gap-2 mb-2">
+                <select
+                  className="w-1/2 px-3 py-2 bg-[#22304a] border border-[#22304a] rounded-md text-white placeholder-[#8ec0ff]"
+                  value={s.size}
+                  onChange={e => {
+                    const newSizes = [...sizes];
+                    newSizes[idx].size = e.target.value;
+                    setSizes(newSizes);
+                  }}
+                  required
+                >
+                  <option value="">Size</option>
+                  <option value="S">S</option>
+                  <option value="M">M</option>
+                  <option value="L">L</option>
+                  <option value="XL">XL</option>
+                  <option value="2XL">2XL</option>
+                </select>
+                <input
+                  type="number"
+                  placeholder="Stock"
+                  className="w-1/2 px-3 py-2 bg-[#22304a] border border-[#22304a] rounded-md text-white placeholder-[#8ec0ff]"
+                  value={s.stock}
+                  onChange={e => {
+                    const newSizes = [...sizes];
+                    newSizes[idx].stock = e.target.value;
+                    setSizes(newSizes);
+                  }}
+                />
+                {sizes.length > 1 && (
+                  <button type="button" onClick={() => setSizes(sizes.filter((_, i) => i !== idx))} className="text-red-400 font-bold px-2">×</button>
+                )}
+              </div>
+            ))}
+            <button type="button" onClick={() => setSizes([...sizes, { size: '', stock: '' }])} className="mt-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md font-semibold">+ Add Size</button>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Brand</label>
+            <label className="block text-sm font-medium text-[#8ec0ff] mb-1">Brand</label>
             <select
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2 bg-[#22304a] border border-[#22304a] rounded-md text-white focus:outline-none focus:ring-2 focus:ring-[#3390ff]"
               value={brand}
               onChange={e => setBrand(e.target.value)}
               required
             >
               <option value="">Select a brand</option>
-              {brandOptions.map((b) => (
-                <option key={b} value={b}>{b}</option>
-              ))}
+              {brandOptions.map(b => <option key={b} value={b}>{b}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Select Product Images</label>
+            <label className="block text-sm font-medium text-[#8ec0ff] mb-1">Select Product Images</label>
+            <p className="text-xs text-[#8ec0ff] mb-2">Please select a brand to view images.</p>
             {loadingImages ? (
               <div className="text-gray-500 text-sm">Loading images...</div>
             ) : images.length === 0 ? (
@@ -321,32 +302,32 @@ export default function AddProductPage() {
               </div>
             </div>
           )}
-          <div>
-            <label className="inline-flex items-center">
-              <input
-                type="checkbox"
-                className="form-checkbox h-4 w-4 text-blue-600"
-                checked={isFeatured}
-                onChange={e => setIsFeatured(e.target.checked)}
-              />
-              <span className="ml-2 text-sm text-gray-700">Featured Product (also show in homepage featured section)</span>
-            </label>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={isFeatured}
+              onChange={e => setIsFeatured(e.target.checked)}
+              className="accent-[#3390ff] w-4 h-4"
+            />
+            <span className="text-[#8ec0ff] text-sm">Featured Product (also show in homepage featured section)</span>
           </div>
-          <button
-            type="submit"
-            className="w-full bg-blue-600 text-white py-3 px-4 rounded-md font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? "Adding..." : "Add Product"}
-          </button>
-          <button
-            type="button"
-            className="w-full bg-gray-200 text-gray-700 py-3 px-4 rounded-md font-semibold hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-colors duration-200"
-            onClick={() => router.push("/admin/products")}
-            disabled={isSubmitting}
-          >
-            Cancel
-          </button>
+          <div className="flex gap-4 mt-6">
+            <button
+              type="submit"
+              className="flex-1 bg-[#3390ff] hover:bg-[#2360b7] text-white py-3 px-4 rounded-md font-semibold text-lg shadow"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Adding..." : "Add Product"}
+            </button>
+            <button
+              type="button"
+              className="flex-1 bg-[#22304a] hover:bg-[#2a3a5a] text-[#8ec0ff] py-3 px-4 rounded-md font-semibold text-lg shadow"
+              onClick={() => router.push('/admin/products')}
+              disabled={isSubmitting}
+            >
+              Cancel
+            </button>
+          </div>
         </form>
       </div>
       {/* Cropper Modal */}

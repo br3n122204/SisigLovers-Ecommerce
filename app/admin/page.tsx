@@ -9,6 +9,11 @@ import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import AdminSidebar from "@/components/AdminSidebar";
+import AddProductPage from "./add-product/page";
+import AdminProductsPage from "./products/page";
+import AdminOrdersPage from "./orders/page";
+// You can create placeholder components for Analytics and Activities for now
 
 interface User {
   id: string;
@@ -25,6 +30,12 @@ interface Activity {
   orderId?: string;
   total?: number;
   items?: any[];
+}
+
+interface ActivitiesSectionProps {
+  recentActivities: Activity[];
+  isLoadingActivities: boolean;
+  fetchRecentActivities: () => void;
 }
 
 // Separate LoginForm component to isolate input handling
@@ -61,70 +72,131 @@ function LoginForm({ onLogin }: { onLogin: (email: string, password: string) => 
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-lg">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-2 text-gray-800">DPT ONE Admin</h2>
-          <p className="text-gray-600">Administrator Access Required</p>
-        </div>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <input
-              type="email"
-              required
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Admin Email"
-              value={email}
-              onChange={handleEmailChange}
-              autoComplete="email"
-            />
+    <div className="flex min-h-screen w-full bg-black">
+      <AdminSidebar />
+      <main className="flex-1 flex items-center justify-center">
+        <div className="w-full max-w-md p-8 space-y-6 bg-[#161e2e] rounded-2xl shadow-2xl border border-[#22304a]">
+          <div className="text-center">
+            <h2 className="text-2xl font-bold mb-2 text-[#3390ff]">DPT ONE Admin</h2>
+            <p className="text-[#8ec0ff]">Administrator Access Required</p>
           </div>
-          
-          <div>
-            <input
-              type="password"
-              required
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              placeholder="Admin Password"
-              value={password}
-              onChange={handlePasswordChange}
-              autoComplete="current-password"
-            />
-          </div>
-          
-          {error && (
-            <div className="text-red-600 text-sm text-center p-2 bg-red-50 rounded-md">
-              {error}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <input
+                type="email"
+                required
+                className="w-full px-4 py-2 bg-[#22304a] border border-[#22304a] rounded-md focus:outline-none focus:ring-2 focus:ring-[#3390ff] text-white placeholder-[#8ec0ff]"
+                placeholder="Admin Email"
+                value={email}
+                onChange={handleEmailChange}
+                autoComplete="email"
+              />
             </div>
-          )}
-          
-          <button
-            type="submit"
-            className={`w-full bg-blue-600 text-white py-3 px-4 rounded-md font-semibold hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 ${
-              isLoading ? "opacity-50 cursor-not-allowed" : ""
-            }`}
-            disabled={isLoading}
-          >
-            {isLoading ? "Authenticating..." : "Access Admin Panel"}
-          </button>
-        </form>
-        
-        <div className="text-center">
-          <button
-            type="button"
-            onClick={() => router.push("/")}
-            className="text-blue-600 hover:underline text-sm"
-          >
-            ← Back to Home
-          </button>
+            <div>
+              <input
+                type="password"
+                required
+                className="w-full px-4 py-2 bg-[#22304a] border border-[#22304a] rounded-md focus:outline-none focus:ring-2 focus:ring-[#3390ff] text-white placeholder-[#8ec0ff]"
+                placeholder="Admin Password"
+                value={password}
+                onChange={handlePasswordChange}
+                autoComplete="current-password"
+              />
+            </div>
+            {error && (
+              <div className="text-red-400 text-sm text-center p-2 bg-[#2a1a1a] rounded-md">
+                {error}
+              </div>
+            )}
+            <button
+              type="submit"
+              className={`w-full bg-[#3390ff] text-white py-3 px-4 rounded-md font-semibold hover:bg-[#2360b7] focus:outline-none focus:ring-2 focus:ring-[#3390ff] focus:ring-offset-2 transition-colors duration-200 ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+              disabled={isLoading}
+            >
+              {isLoading ? "Authenticating..." : "Access Admin Panel"}
+            </button>
+          </form>
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={() => router.push("/")}
+              className="text-[#8ec0ff] hover:underline text-sm"
+            >
+              ← Back to Home
+            </button>
+          </div>
         </div>
+      </main>
+    </div>
+  );
+}
+
+function AnalyticsSection() {
+  return (
+    <div className="w-full h-full flex flex-col items-center justify-center text-[#8ec0ff]">
+      <h2 className="text-2xl font-bold mb-4">Analytics Dashboard</h2>
+      <p>Analytics content goes here.</p>
+    </div>
+  );
+}
+
+function ActivitiesSection({ recentActivities, isLoadingActivities, fetchRecentActivities }: ActivitiesSectionProps) {
+  return (
+    <div className="w-full h-full flex flex-col bg-[#161e2e] rounded-lg shadow-lg p-6 border border-[#22304a] mt-0">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold text-[#8ec0ff]">Recent Activity</h2>
+        <button
+          onClick={fetchRecentActivities}
+          disabled={isLoadingActivities}
+          className="text-[#3390ff] hover:text-[#8ec0ff] text-sm font-medium disabled:opacity-50"
+        >
+          {isLoadingActivities ? "Loading..." : "Refresh"}
+        </button>
+      </div>
+      <div className="space-y-4 flex-1 overflow-y-auto">
+        {isLoadingActivities ? (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3390ff] mx-auto"></div>
+            <p className="text-[#8ec0ff] mt-2">Loading recent activities...</p>
+          </div>
+        ) : recentActivities.length > 0 ? (
+          recentActivities.map((activity: Activity) => (
+            <div key={activity.id} className="flex items-center justify-between p-4 bg-[#22304a] rounded-lg">
+              <div>
+                {activity.type === "user_created" ? (
+                  <>
+                    <p className="font-medium text-white">User account created</p>
+                    <p className="text-sm text-[#8ec0ff]">Email: {activity.email}</p>
+                  </>
+                ) : activity.type === "purchase" ? (
+                  <>
+                    <p className="font-medium text-white">Purchase made</p>
+                    <p className="text-sm text-[#8ec0ff]">Email: {activity.email}</p>
+                    <p className="text-sm text-[#8ec0ff]">Order ID: {activity.orderId}</p>
+                    <p className="text-sm text-[#8ec0ff]">Total: ₱{activity.total}</p>
+                  </>
+                ) : null}
+              </div>
+              <span className="text-sm text-[#8ec0ff]">
+                {activity.timestamp ? (
+                  new Date(activity.timestamp.toDate()).toLocaleString()
+                ) : (
+                  "Just now"
+                )}
+              </span>
+            </div>
+          ))
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-[#8ec0ff]">No recent activities.</p>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-export default function AdminPage() {
+export default function AdminDashboardSinglePage() {
   const { user, loading } = useAuth();
   const [recentUsers, setRecentUsers] = useState<User[]>([]);
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
@@ -136,6 +208,7 @@ export default function AdminPage() {
   const [totalSalesAmount, setTotalSalesAmount] = useState(0);
   const router = useRouter();
   const { toast } = useToast();
+  const [activeSection, setActiveSection] = useState("add-product");
 
   const ADMIN_UID = "1BeqoY3h5gTa4LBUsAiaDLHHhnT2";
 
@@ -291,126 +364,41 @@ export default function AdminPage() {
     }
   }, [user]);
 
-  // Admin Dashboard Content
-  const AdminDashboard = () => (
-    <div className="min-h-screen bg-gray-50 p-8">
-      <div className="max-w-7xl mx-auto">
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold text-gray-900">DPT ONE Admin Dashboard</h1>
-            <button
-              onClick={handleLogout}
-              className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
-            >
-              Logout
-            </button>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Stats Cards */}
-            <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
-              <h3 className="text-lg font-semibold text-blue-900">Total Orders</h3>
-              <p className="text-3xl font-bold text-blue-600">{totalOrders}</p>
-            </div>
-            
-            <div className="bg-green-50 border border-green-200 rounded-lg p-6 flex-1 min-w-[220px]">
-              <div className="text-lg font-semibold text-green-800 mb-2">Sales</div>
-              <div className="text-4xl font-extrabold text-green-600 mb-1">₱{totalSalesAmount.toLocaleString()}</div>
-              <div className="text-sm text-green-500">Completed sales</div>
-            </div>
-            
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-6 flex-1 min-w-[220px]">
-              <div className="text-lg font-semibold text-purple-800 mb-2">Products</div>
-              <div className="text-4xl font-extrabold text-purple-600 mb-1">{totalProducts}</div>
-              <div className="text-sm text-purple-500">Active products</div>
-            </div>
-            
-            <div className="bg-orange-50 p-6 rounded-lg border border-orange-200">
-              <h3 className="text-lg font-semibold text-orange-900">Customers</h3>
-              <p className="text-3xl font-bold text-orange-600">{recentUsers.length}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Quick Actions */}
-        <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
-          <div className="flex flex-wrap gap-4 mb-6">
-            <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-x-4 gap-y-2">
-              <Link href="/admin/add-product" className="flex-1">
-                <Button className="w-full h-14 bg-blue-600 hover:bg-blue-700 text-white text-lg font-semibold rounded-full shadow flex items-center justify-center">
-                  Add New Product
-                </Button>
-              </Link>
-              <button className="w-full h-14 bg-yellow-500 text-white text-lg font-semibold rounded-full flex-1 hover:bg-yellow-600 transition-colors flex items-center justify-center" onClick={() => router.push('/admin/products')}>Manage Products</button>
-              <button className="w-full h-14 bg-green-600 text-white text-lg font-semibold rounded-full flex-1 hover:bg-green-700 transition-colors flex items-center justify-center" onClick={() => router.push('/admin/orders')}>View Orders</button>
-              <button className="w-full h-14 bg-purple-600 text-white text-lg font-semibold rounded-full flex-1 hover:bg-purple-700 transition-colors flex items-center justify-center" onClick={() => router.push('/admin/analytics')}>Analytics</button>
-              <button className="w-full h-14 bg-gray-500 text-white text-lg font-semibold rounded-full flex-1 hover:bg-gray-700 transition-colors flex items-center justify-center" onClick={() => router.push('/')}>Go to Homepage</button>
-            </div>
-          </div>
-        </div>
-
-        {/* Recent Activity */}
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Recent Activity</h2>
-            <button
-              onClick={fetchRecentActivities}
-              disabled={isLoadingActivities}
-              className="text-blue-600 hover:text-blue-700 text-sm font-medium disabled:opacity-50"
-            >
-              {isLoadingActivities ? "Loading..." : "Refresh"}
-            </button>
-          </div>
-          <div className="space-y-4">
-            {isLoadingActivities ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="text-gray-500 mt-2">Loading recent activities...</p>
-              </div>
-            ) : recentActivities.length > 0 ? (
-              recentActivities.map((activity) => (
-                <div key={activity.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div>
-                    {activity.type === "user_created" ? (
-                      <>
-                        <p className="font-medium">User account created</p>
-                        <p className="text-sm text-gray-600">Email: {activity.email}</p>
-                      </>
-                    ) : activity.type === "purchase" ? (
-                      <>
-                        <p className="font-medium">Purchase made</p>
-                        <p className="text-sm text-gray-600">Email: {activity.email}</p>
-                        <p className="text-sm text-gray-600">Order ID: {activity.orderId}</p>
-                        <p className="text-sm text-gray-600">Total: ₱{activity.total}</p>
-                      </>
-                    ) : null}
-                  </div>
-                  <span className="text-sm text-gray-500">
-                    {activity.timestamp ? (
-                      new Date(activity.timestamp.toDate()).toLocaleString()
-                    ) : (
-                      "Just now"
-                    )}
-                  </span>
-                </div>
-              ))
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-gray-500">No recent activities.</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  let content;
+  switch (activeSection) {
+    case "add-product":
+      content = <AddProductPage />;
+      break;
+    case "manage-products":
+      content = <AdminProductsPage />;
+      break;
+    case "manage-orders":
+      content = <AdminOrdersPage />;
+      break;
+    case "view-analytics":
+      content = <AnalyticsSection />;
+      break;
+    case "recent-activities":
+      content = <ActivitiesSection recentActivities={recentActivities} isLoadingActivities={isLoadingActivities} fetchRecentActivities={fetchRecentActivities} />;
+      break;
+    default:
+      content = <AddProductPage />;
+  }
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
 
+  if (!user) {
+    return <LoginForm onLogin={handleLogin} />;
+  }
   const isAdmin = user && user.uid === ADMIN_UID;
-
-  return isAdmin ? <AdminDashboard /> : <LoginForm onLogin={handleLogin} />;
+  return isAdmin ? (
+    <div className="flex min-h-screen w-full bg-black">
+      <AdminSidebar activeSection={activeSection} onSectionChange={setActiveSection} />
+      <main className="flex-1 w-full h-screen bg-[#161e2e] px-8 py-10 flex flex-col">
+        {content}
+      </main>
+    </div>
+  ) : <LoginForm onLogin={handleLogin} />;
 } 
