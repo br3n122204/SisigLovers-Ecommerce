@@ -153,7 +153,7 @@ export default function LoginPage() {
             id="email"
             type="email"
             required
-            className="w-full px-4 py-3 border-2 border-[#A75D43] rounded-lg focus:ring-2 focus:ring-[#A75D43] focus:border-[#F5C16C] bg-[#FAF9F6] text-[#001F3F] placeholder-[#A75D43]"
+            className="w-full px-4 py-3 border-2 border-[#A75D43] rounded-lg focus:ring-2 focus:ring-[#A75D43] focus:border-[#F5C16C] bg-[#FAF9F6] text-[#001F3F] placeholder-[#001F3F]"
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -163,7 +163,7 @@ export default function LoginPage() {
             id="password"
             type="password"
             required
-            className="w-full px-4 py-3 border-2 border-[#A75D43] rounded-lg focus:ring-2 focus:ring-[#A75D43] focus:border-[#F5C16C] bg-[#FAF9F6] text-[#001F3F] placeholder-[#A75D43]"
+            className="w-full px-4 py-3 border-2 border-[#A75D43] rounded-lg focus:ring-2 focus:ring-[#A75D43] focus:border-[#F5C16C] bg-[#FAF9F6] text-[#001F3F] placeholder-[#001F3F]"
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -174,7 +174,7 @@ export default function LoginPage() {
               id="confirm-password"
               type="password"
               required
-              className="w-full px-4 py-3 border-2 border-[#A75D43] rounded-lg focus:ring-2 focus:ring-[#A75D43] focus:border-[#F5C16C] bg-[#FAF9F6] text-[#001F3F] placeholder-[#A75D43]"
+              className="w-full px-4 py-3 border-2 border-[#A75D43] rounded-lg focus:ring-2 focus:ring-[#A75D43] focus:border-[#F5C16C] bg-[#FAF9F6] text-[#001F3F] placeholder-[#001F3F]"
               placeholder="Confirm Password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
@@ -188,7 +188,7 @@ export default function LoginPage() {
           )}
           <button
             type="submit"
-            className={`w-full bg-[#A75D43] text-white py-3 px-4 rounded-lg font-bold border-2 border-[#F5C16C] shadow-md hover:bg-[#c98a6a] hover:border-[#A75D43] focus:outline-none focus:ring-2 focus:ring-[#F5C16C] focus:ring-offset-2 transition-colors duration-200 ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+            className={`w-full bg-[#A75D43] text-[#001F3F] py-3 px-4 rounded-lg font-bold border-2 border-[#F5C16C] shadow-md hover:bg-[#c98a6a] hover:border-[#A75D43] focus:outline-none focus:ring-2 focus:ring-[#F5C16C] focus:ring-offset-2 transition-colors duration-200 ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
             disabled={isLoading}
           >
             {isLoading ? (isRegistering ? "Registering..." : "Logging In...") : (isRegistering ? "Sign Up" : "Sign In")}
@@ -196,13 +196,13 @@ export default function LoginPage() {
         </form>
         <div className="text-center text-sm mt-4">
           {isRegistering ? (
-            <>Already have an account? <button onClick={() => { setIsRegistering(false); }} className="text-[#A75D43] font-semibold hover:underline">Sign In</button></>
+            <>Already have an account? <button onClick={() => { setIsRegistering(false); }} className="text-[#001F3F] font-semibold hover:underline">Sign In</button></>
           ) : (
-            <>Don't have an account? <button onClick={() => { setIsRegistering(true); }} className="text-[#A75D43] font-semibold hover:underline">Sign Up</button></>
+            <>Don't have an account? <button onClick={() => { setIsRegistering(true); }} className="text-[#001F3F] font-semibold hover:underline">Sign Up</button></>
           )}
         </div>
         <div className="text-xs text-[#001F3F] text-center mt-4">
-          By continuing, you agree to our <span className="text-[#A75D43] font-semibold">Terms of Service</span>
+          By continuing, you agree to our <span className="text-[#001F3F] font-semibold">Terms of Service</span>
         </div>
       </div>
     </div>
