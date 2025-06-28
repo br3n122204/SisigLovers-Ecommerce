@@ -133,7 +133,7 @@ export default function OrdersPage() {
       case 'shipped': return 'bg-purple-100 text-purple-800';
       case 'delivered': return 'bg-green-100 text-green-800';
       case 'cancelled': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 text-[#001F3F]';
     }
   };
 
@@ -176,7 +176,7 @@ export default function OrdersPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading orders...</p>
+          <p className="mt-4 text-[#001F3F]">Loading orders...</p>
         </div>
       </div>
     );
@@ -187,8 +187,8 @@ export default function OrdersPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-black mb-2">My Orders</h1>
-          <p className="text-gray-600">Track and manage your orders</p>
+          <h1 className="text-3xl font-bold text-[#001F3F] mb-2">My Orders</h1>
+          <p className="text-[#001F3F]">Track and manage your orders</p>
         </div>
 
         {/* Filters */}
@@ -196,7 +196,7 @@ export default function OrdersPage() {
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#001F3F] h-4 w-4" />
                 <Input
                   placeholder="Search orders or products..."
                   value={searchTerm}
@@ -226,9 +226,9 @@ export default function OrdersPage() {
         {/* Orders List */}
         {filteredOrders.length === 0 ? (
           <div className="text-center py-12">
-            <Package className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No orders found</h3>
-            <p className="mt-1 text-sm text-gray-500">
+            <Package className="mx-auto h-12 w-12 text-[#001F3F]" />
+            <h3 className="mt-2 text-sm font-medium text-[#001F3F]">No orders found</h3>
+            <p className="mt-1 text-sm text-[#001F3F]">
               {searchTerm || statusFilter !== "all" 
                 ? "Try adjusting your search or filter criteria."
                 : "Get started by placing your first order."
@@ -257,8 +257,8 @@ export default function OrdersPage() {
                           </Badge>
                         </div>
                         <div>
-                          <p className="font-medium text-black">{order.orderNumber}</p>
-                          <p className="text-sm text-gray-500">
+                          <p className="font-medium text-[#001F3F]">{order.orderNumber}</p>
+                          <p className="text-sm text-[#001F3F]">
                             <Calendar className="inline h-3 w-3 mr-1" />
                             {formatDate(order.orderDate)}
                           </p>
@@ -266,11 +266,11 @@ export default function OrdersPage() {
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="p-6 bg-white text-black">
+                  <CardContent className="p-6 bg-white text-[#001F3F]">
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                       {/* Order Items */}
                       <div className="lg:col-span-2">
-                        <h4 className="font-medium text-black mb-3">Items</h4>
+                        <h4 className="font-medium text-[#001F3F] mb-3">Items</h4>
                         <div className="space-y-3">
                           {order.items.map((item) => (
                             <div key={item.id} className="flex items-center gap-3">
@@ -283,8 +283,8 @@ export default function OrdersPage() {
                                 />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="font-medium text-black truncate">{item.name}</p>
-                                <p className="text-sm text-gray-500">
+                                <p className="font-medium text-[#001F3F] truncate">{item.name}</p>
+                                <p className="text-sm text-[#001F3F]">
                                   Qty: {item.quantity}
                                   {item.size && (
                                     <>
@@ -301,7 +301,7 @@ export default function OrdersPage() {
                                     </>
                                   )}
                                 </p>
-                                <p className="text-sm font-medium text-black">
+                                <p className="text-sm font-medium text-[#001F3F]">
                                   {formatCurrency(item.price)}
                                 </p>
                               </div>
@@ -313,7 +313,7 @@ export default function OrdersPage() {
                       {/* Order Summary */}
                       <div className="space-y-4">
                         <div>
-                          <h4 className="font-medium text-black mb-2">Order Summary</h4>
+                          <h4 className="font-medium text-[#001F3F] mb-2">Order Summary</h4>
                           <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
                               <span>Subtotal:</span>
@@ -331,8 +331,8 @@ export default function OrdersPage() {
                         </div>
 
                         <div>
-                          <h4 className="font-medium text-black mb-2">Shipping Address</h4>
-                          <p className="text-sm text-gray-600">
+                          <h4 className="font-medium text-[#001F3F] mb-2">Shipping Address</h4>
+                          <p className="text-sm text-[#001F3F]">
                             {order.shippingAddress.firstName} {order.shippingAddress.lastName}<br />
                             {order.shippingAddress.address1}<br />
                             {order.shippingAddress.city}, {order.shippingAddress.region} {order.shippingAddress.postalCode}<br />
@@ -342,8 +342,8 @@ export default function OrdersPage() {
 
                         {order.trackingNumber && (
                           <div>
-                            <h4 className="font-medium text-black mb-2">Tracking</h4>
-                            <p className="text-sm text-gray-600">
+                            <h4 className="font-medium text-[#001F3F] mb-2">Tracking</h4>
+                            <p className="text-sm text-[#001F3F]">
                               Number: {order.trackingNumber}<br />
                               {order.estimatedDelivery && (
                                 <>Estimated Delivery: {formatDate(order.estimatedDelivery)}</>

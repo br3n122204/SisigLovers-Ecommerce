@@ -6,17 +6,17 @@
 @layer base {
   :root {
     --background: 40 33% 98%; /* #FAF9F6 */
-    --foreground: 0 0% 13%;   /* #222222 */
+    --foreground: 220 100% 20%;   /* Dark Blue #001F3F */
     --card: 40 33% 98%;       /* #FAF9F6 */
-    --card-foreground: 0 0% 13%;
+    --card-foreground: 220 100% 20%;
     --popover: 40 33% 98%;
-    --popover-foreground: 0 0% 13%;
-    --primary: 0 0% 13%;      /* #222222 */
+    --popover-foreground: 220 100% 20%;
+    --primary: 0 0% 13%;      /* #222222 - Keep original */
     --primary-foreground: 40 33% 98%;
     --secondary: 44 77% 70%;  /* #F5C16C */
     --secondary-foreground: 0 0% 13%;
     --muted: 44 77% 96%;
-    --muted-foreground: 0 0% 40%;
+    --muted-foreground: 220 100% 40%;
     --accent: 44 77% 70%;     /* #F5C16C */
     --accent-foreground: 0 0% 13%;
     --destructive: 0 84.2% 60.2%;
@@ -29,21 +29,21 @@
 
   .dark {
     --background: 0 0% 13%;
-    --foreground: 40 33% 98%;
+    --foreground: 220 100% 85%;
     --card: 0 0% 13%;
-    --card-foreground: 40 33% 98%;
+    --card-foreground: 220 100% 85%;
     --popover: 0 0% 13%;
-    --popover-foreground: 40 33% 98%;
+    --popover-foreground: 220 100% 85%;
     --primary: 40 33% 98%;
     --primary-foreground: 0 0% 13%;
     --secondary: 44 77% 70%;
-    --secondary-foreground: 40 33% 98%;
+    --secondary-foreground: 220 100% 85%;
     --muted: 0 0% 20%;
-    --muted-foreground: 40 33% 98%;
+    --muted-foreground: 220 100% 85%;
     --accent: 44 77% 70%;
-    --accent-foreground: 40 33% 98%;
+    --accent-foreground: 220 100% 85%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 40 33% 98%;
+    --destructive-foreground: 220 100% 85%;
     --border: 0 0% 30%;
     --input: 0 0% 30%;
     --ring: 40 33% 98%;
@@ -58,7 +58,7 @@
     @apply bg-background text-foreground;
     font-family: 'Montserrat', 'Proxima Nova', 'Inter', 'Segoe UI', 'system-ui', 'sans-serif';
     background-color: #FAF9F6;
-    color: #222222;
+    color: #001F3F;
   }
 }
 

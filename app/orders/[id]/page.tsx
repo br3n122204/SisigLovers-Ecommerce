@@ -132,7 +132,7 @@ export default function OrderDetailsPage() {
       case 'shipped': return 'bg-purple-100 text-purple-800';
       case 'delivered': return 'bg-green-100 text-green-800';
       case 'cancelled': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 text-[#001F3F]';
     }
   };
 
@@ -169,7 +169,7 @@ export default function OrderDetailsPage() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading order details...</p>
+          <p className="mt-4 text-[#001F3F]">Loading order details...</p>
         </div>
       </div>
     );
@@ -179,9 +179,9 @@ export default function OrderDetailsPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <Package className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">Order not found</h3>
-          <p className="mt-1 text-sm text-gray-500">The order you're looking for doesn't exist.</p>
+          <Package className="mx-auto h-12 w-12 text-[#001F3F]" />
+          <h3 className="mt-2 text-sm font-medium text-[#001F3F]">Order not found</h3>
+          <p className="mt-1 text-sm text-[#001F3F]">The order you're looking for doesn't exist.</p>
           <div className="mt-6">
             <Link href="/orders">
               <Button>Back to Orders</Button>
@@ -197,14 +197,14 @@ export default function OrderDetailsPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <Link href="/orders" className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 mb-4">
+          <Link href="/orders" className="inline-flex items-center text-sm text-[#001F3F] hover:text-[#003366] mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Orders
           </Link>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Order {order.orderNumber}</h1>
-              <p className="text-gray-600 mt-1">Placed on {formatDate(order.orderDate)}</p>
+              <h1 className="text-3xl font-bold text-[#001F3F]">Order {order.orderNumber}</h1>
+              <p className="text-[#001F3F] mt-1">Placed on {formatDate(order.orderDate)}</p>
             </div>
           </div>
         </div>
@@ -226,7 +226,7 @@ export default function OrderDetailsPage() {
                     {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                   </Badge>
                   {order.estimatedDelivery && (
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm text-[#001F3F]">
                       Estimated delivery: {formatDate(order.estimatedDelivery)}
                     </span>
                   )}
@@ -257,8 +257,8 @@ export default function OrderDetailsPage() {
                         />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-gray-900">{item.name}</h4>
-                        <p className="text-sm text-gray-500 mt-1">
+                        <h4 className="font-medium text-[#001F3F]">{item.name}</h4>
+                        <p className="text-sm text-[#001F3F] mt-1">
                           Size: {typeof item.size === 'object' && item.size !== null && 'size' in item.size
                             ? (item.size as any).size
                             : item.size}
@@ -267,8 +267,8 @@ export default function OrderDetailsPage() {
                             : item.color}
                         </p>
                         <div className="flex items-center justify-between mt-2">
-                          <span className="text-sm text-gray-600">Qty: {item.quantity}</span>
-                          <span className="font-medium text-gray-900">
+                          <span className="text-sm text-[#001F3F]">Qty: {item.quantity}</span>
+                          <span className="font-medium text-[#001F3F]">
                             {formatCurrency(item.price)}
                           </span>
                         </div>
@@ -320,7 +320,7 @@ export default function OrderDetailsPage() {
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <CreditCard className="h-4 w-4 text-gray-400" />
+                    <CreditCard className="h-4 w-4 text-[#001F3F]" />
                     <span className="text-sm">{order.paymentMethod}</span>
                   </div>
                   <div className="flex items-center gap-2">
@@ -342,14 +342,14 @@ export default function OrderDetailsPage() {
                   <p className="font-medium">
                     {order.shippingAddress.firstName} {order.shippingAddress.lastName}
                   </p>
-                  <p className="text-sm text-gray-600">{order.shippingAddress.address1}</p>
+                  <p className="text-sm text-[#001F3F]">{order.shippingAddress.address1}</p>
                   {order.shippingAddress.address2 && (
-                    <p className="text-sm text-gray-600">{order.shippingAddress.address2}</p>
+                    <p className="text-sm text-[#001F3F]">{order.shippingAddress.address2}</p>
                   )}
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-[#001F3F]">
                     {order.shippingAddress.city}, {order.shippingAddress.region} {order.shippingAddress.postalCode}
                   </p>
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <div className="flex items-center gap-2 text-sm text-[#001F3F]">
                     <Phone className="h-3 w-3" />
                     {order.shippingAddress.phone}
                   </div>
@@ -368,14 +368,14 @@ export default function OrderDetailsPage() {
                     <p className="font-medium">
                       {order.billingAddress.firstName} {order.billingAddress.lastName}
                     </p>
-                    <p className="text-sm text-gray-600">{order.billingAddress.address1}</p>
+                    <p className="text-sm text-[#001F3F]">{order.billingAddress.address1}</p>
                     {order.billingAddress.address2 && (
-                      <p className="text-sm text-gray-600">{order.billingAddress.address2}</p>
+                      <p className="text-sm text-[#001F3F]">{order.billingAddress.address2}</p>
                     )}
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-[#001F3F]">
                       {order.billingAddress.city}, {order.billingAddress.region} {order.billingAddress.postalCode}
                     </p>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <div className="flex items-center gap-2 text-sm text-[#001F3F]">
                       <Phone className="h-3 w-3" />
                       {order.billingAddress.phone}
                     </div>
@@ -390,7 +390,7 @@ export default function OrderDetailsPage() {
                 <CardTitle>Need Help?</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="text-sm text-[#001F3F] mb-4">
                   Questions about your order? We're here to help!
                 </p>
                 <div className="space-y-2">

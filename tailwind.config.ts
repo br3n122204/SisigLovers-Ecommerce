@@ -26,7 +26,7 @@ const config: Config = {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "#EE4D2D", // DPT ONE Orange
+          DEFAULT: "#EE4D2D", // DPT ONE Orange - Keep original
           foreground: "hsl(var(--primary-foreground))",
         },
         secondary: {
@@ -58,15 +58,15 @@ const config: Config = {
           orange: "#EE4D2D",
           red: "#D0011B",
           pink: "#FF6B9D",
-          blue: "#1976D2",
+          blue: "#1976D2", // Keep original blue
           green: "#00BFA5",
         },
         tecovas: {
           background: '#FAF9F6',
-          text: '#222222',
+          text: '#001F3F', // Keep dark blue text
           accent: '#F5C16C',
           border: '#E5E5E5',
-          button: '#222222',
+          button: '#222222', // Keep original
         },
       },
       borderRadius: {

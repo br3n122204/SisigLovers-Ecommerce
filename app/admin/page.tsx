@@ -64,8 +64,8 @@ function LoginForm({ onLogin }: { onLogin: (email: string, password: string) => 
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-lg">
         <div className="text-center">
-          <h2 className="text-2xl font-bold mb-2 text-gray-800">DPT ONE Admin</h2>
-          <p className="text-gray-600">Administrator Access Required</p>
+          <h2 className="text-2xl font-bold mb-2 text-[#001F3F]">DPT ONE Admin</h2>
+          <p className="text-[#001F3F]">Administrator Access Required</p>
         </div>
         
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -297,7 +297,7 @@ export default function AdminPage() {
       <div className="max-w-7xl mx-auto">
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-3xl font-bold text-gray-900">DPT ONE Admin Dashboard</h1>
+            <h1 className="text-3xl font-bold text-[#001F3F]">DPT ONE Admin Dashboard</h1>
             <button
               onClick={handleLogout}
               className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
@@ -334,7 +334,7 @@ export default function AdminPage() {
 
         {/* Quick Actions */}
         <div className="bg-white rounded-lg shadow-lg p-6 mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
+          <h2 className="text-xl font-semibold text-[#001F3F] mb-4">Quick Actions</h2>
           <div className="flex flex-wrap gap-4 mb-6">
             <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-5 gap-x-4 gap-y-2">
               <Link href="/admin/add-product" className="flex-1">
@@ -353,7 +353,7 @@ export default function AdminPage() {
         {/* Recent Activity */}
         <div className="bg-white rounded-lg shadow-lg p-6">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-900">Recent Activity</h2>
+            <h2 className="text-xl font-semibold text-[#001F3F]">Recent Activity</h2>
             <button
               onClick={fetchRecentActivities}
               disabled={isLoadingActivities}
@@ -366,7 +366,7 @@ export default function AdminPage() {
             {isLoadingActivities ? (
               <div className="text-center py-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="text-gray-500 mt-2">Loading recent activities...</p>
+                <p className="text-[#001F3F] mt-2">Loading recent activities...</p>
               </div>
             ) : recentActivities.length > 0 ? (
               recentActivities.map((activity) => (
@@ -375,18 +375,18 @@ export default function AdminPage() {
                     {activity.type === "user_created" ? (
                       <>
                         <p className="font-medium">User account created</p>
-                        <p className="text-sm text-gray-600">Email: {activity.email}</p>
+                        <p className="text-sm text-[#001F3F]">Email: {activity.email}</p>
                       </>
                     ) : activity.type === "purchase" ? (
                       <>
                         <p className="font-medium">Purchase made</p>
-                        <p className="text-sm text-gray-600">Email: {activity.email}</p>
-                        <p className="text-sm text-gray-600">Order ID: {activity.orderId}</p>
-                        <p className="text-sm text-gray-600">Total: ₱{activity.total}</p>
+                        <p className="text-sm text-[#001F3F]">Email: {activity.email}</p>
+                        <p className="text-sm text-[#001F3F]">Order ID: {activity.orderId}</p>
+                        <p className="text-sm text-[#001F3F]">Total: ₱{activity.total}</p>
                       </>
                     ) : null}
                   </div>
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-[#001F3F]">
                     {activity.timestamp ? (
                       new Date(activity.timestamp.toDate()).toLocaleString()
                     ) : (
@@ -397,7 +397,7 @@ export default function AdminPage() {
               ))
             ) : (
               <div className="text-center py-8">
-                <p className="text-gray-500">No recent activities.</p>
+                <p className="text-[#001F3F]">No recent activities.</p>
               </div>
             )}
           </div>

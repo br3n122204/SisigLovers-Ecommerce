@@ -34,14 +34,14 @@ export default function UserProfile() {
       <div className="flex items-center space-x-4">
         <Link href="/login">
           <button
-            className="px-4 py-2 rounded-md border-2 border-[#A75D43] text-[#A75D43] bg-white font-semibold hover:bg-[#f5f2ef] hover:border-[#c98a6a] transition-all"
+            className="px-4 py-2 rounded-md border-2 border-[#A75D43] text-[#001F3F] bg-white font-semibold hover:bg-[#f5f2ef] hover:border-[#c98a6a] transition-all"
           >
             Log In
           </button>
         </Link>
         <Link href="/login?signup=true">
           <button
-            className="px-4 py-2 rounded-md border-2 border-[#A75D43] text-[#A75D43] bg-white font-semibold hover:bg-[#f5f2ef] hover:border-[#c98a6a] transition-all"
+            className="px-4 py-2 rounded-md border-2 border-[#A75D43] text-[#001F3F] bg-white font-semibold hover:bg-[#f5f2ef] hover:border-[#c98a6a] transition-all"
           >
             Sign Up
           </button>
@@ -53,10 +53,10 @@ export default function UserProfile() {
   return (
     <div className="relative">
       <button
-        className="flex items-center space-x-1 text-gray-700 hover:text-gray-900 focus:outline-none"
+        className="flex items-center space-x-1 text-[#001F3F] hover:text-[#003366] focus:outline-none"
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
       >
-        <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-semibold text-gray-700">
+        <div className="w-8 h-8 rounded-full bg-[#e6f0ff] flex items-center justify-center text-sm font-semibold text-[#001F3F]">
           {getInitials(user.displayName)}
         </div>
         <span className="hidden md:inline text-sm font-medium">{user.displayName || user.email}</span>
@@ -68,17 +68,17 @@ export default function UserProfile() {
       </button>
       {isDropdownOpen && (
         <div className="absolute right-0 mt-2 w-[300px] bg-white border border-gray-200 rounded-md shadow-lg py-1 z-10">
-          <div className="flex items-center px-4 py-2 text-sm text-gray-700 border-b border-gray-200">
-            <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-sm font-semibold text-gray-700 mr-1 flex-shrink-0">
+          <div className="flex items-center px-4 py-2 text-sm text-[#001F3F] border-b border-gray-200">
+            <div className="w-8 h-8 rounded-full bg-[#e6f0ff] flex items-center justify-center text-sm font-semibold text-[#001F3F] mr-1 flex-shrink-0">
               {getInitials(user.displayName)}
             </div>
             <div className="max-w-full">
-              <div className="font-semibold text-gray-800">{user.displayName || 'Your Name'}</div>
-              <div className="text-gray-600">{user.email}</div>
+              <div className="font-semibold text-[#001F3F]">{user.displayName || 'Your Name'}</div>
+              <div className="text-[#003366]">{user.email}</div>
             </div>
           </div>
-          <Link href="/profile" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={() => setIsDropdownOpen(false)}>Profile</Link>
-          <Link href="/settings" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100" onClick={() => setIsDropdownOpen(false)}>Settings</Link>
+          <Link href="/profile" className="block px-4 py-2 text-sm text-[#001F3F] hover:bg-[#f0f4f8]" onClick={() => setIsDropdownOpen(false)}>Profile</Link>
+          <Link href="/settings" className="block px-4 py-2 text-sm text-[#001F3F] hover:bg-[#f0f4f8]" onClick={() => setIsDropdownOpen(false)}>Settings</Link>
           <button
             onClick={() => { handleSignOut(); setIsDropdownOpen(false); }}
             className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"

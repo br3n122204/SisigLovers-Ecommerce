@@ -92,7 +92,7 @@ export default function Header() {
               priority
             />
           </Link>
-          <nav className="flex items-center gap-6 text-sm font-medium text-white">
+          <nav className="flex items-center gap-6 text-sm font-medium text-[#001F3F]">
             {/* Shop by Brand Dropdown */}
             {!isAdminPage && (
               <div className="relative">
@@ -105,11 +105,11 @@ export default function Header() {
                     className={`h-4 w-4 transform transition-transform duration-200 ${isBrandDropdownOpen ? 'rotate-180' : ''}`}
                   />
                 </button>
-                <div className={`absolute ${isBrandDropdownOpen ? 'block' : 'hidden'} bg-[#A75D43] shadow-lg rounded-md py-1 mt-2 w-40 z-20`}>
-                  <button type="button" className="block w-full text-left px-4 py-2 text-white hover:bg-[#c98a6a] hover:text-white" onClick={() => { router.push('/search?brand=MN%2BLA'); setIsBrandDropdownOpen(false); }}>MN+LA</button>
-                  <button type="button" className="block w-full text-left px-4 py-2 text-white hover:bg-[#c98a6a] hover:text-white" onClick={() => { router.push('/search?brand=Charlotte%20Folk'); setIsBrandDropdownOpen(false); }}>Charlotte Folk</button>
-                  <button type="button" className="block w-full text-left px-4 py-2 text-white hover:bg-[#c98a6a] hover:text-white" onClick={() => { router.push('/search?brand=Strap'); setIsBrandDropdownOpen(false); }}>Strap</button>
-                  <button type="button" className="block w-full text-left px-4 py-2 text-white hover:bg-[#c98a6a] hover:text-white" onClick={() => { router.push('/search?brand=Richboyz'); setIsBrandDropdownOpen(false); }}>Richboyz</button>
+                <div className={`absolute ${isBrandDropdownOpen ? 'block' : 'hidden'} bg-[#001F3F] shadow-lg rounded-md py-1 mt-2 w-40 z-20`}>
+                  <button type="button" className="block w-full text-left px-4 py-2 text-white hover:bg-[#003366] hover:text-white" onClick={() => { router.push('/search?brand=MN%2BLA'); setIsBrandDropdownOpen(false); }}>MN+LA</button>
+                  <button type="button" className="block w-full text-left px-4 py-2 text-white hover:bg-[#003366] hover:text-white" onClick={() => { router.push('/search?brand=Charlotte%20Folk'); setIsBrandDropdownOpen(false); }}>Charlotte Folk</button>
+                  <button type="button" className="block w-full text-left px-4 py-2 text-white hover:bg-[#003366] hover:text-white" onClick={() => { router.push('/search?brand=Strap'); setIsBrandDropdownOpen(false); }}>Strap</button>
+                  <button type="button" className="block w-full text-left px-4 py-2 text-white hover:bg-[#003366] hover:text-white" onClick={() => { router.push('/search?brand=Richboyz'); setIsBrandDropdownOpen(false); }}>Richboyz</button>
                 </div>
               </div>
             )}
@@ -118,7 +118,7 @@ export default function Header() {
             )}
             {!isAdminPage && (
               (!user || user.email === "sisiglovers@gmail.com") && (
-                <Link href="/admin" className="hover:text-[#fff9f3] text-white font-semibold">Admin Dashboard</Link>
+                <Link href="/admin" className="hover:text-[#fff9f3] text-[#001F3F] font-semibold">Admin Dashboard</Link>
               )
             )}
           </nav>
@@ -133,19 +133,19 @@ export default function Header() {
               onChange={handleInputChange}
               onFocus={() => setShowSuggestions(true)}
               onBlur={() => setTimeout(() => setShowSuggestions(false), 100)}
-              className="w-full px-5 py-2.5 pl-12 pr-5 border-2 border-[#c98a6a] rounded-full bg-[#f5f2ef] text-[#222] placeholder-[#A75D43] focus:outline-none focus:ring-3 focus:ring-[#A75D43] focus:border-[#A75D43] transition-all duration-300 ease-in-out shadow-md text-base"
+              className="w-full px-5 py-2.5 pl-12 pr-5 border-2 border-[#c98a6a] rounded-full bg-[#f5f2ef] text-[#001F3F] placeholder-[#001F3F] focus:outline-none focus:ring-3 focus:ring-[#A75D43] focus:border-[#A75D43] transition-all duration-300 ease-in-out shadow-md text-base"
             />
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#A75D43]" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#001F3F]" />
             <button
               type="submit"
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#A75D43] hover:text-[#fff9f3] transition-colors"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#001F3F] hover:text-[#fff9f3] transition-colors"
             >
               <Search className="h-5 w-5" />
             </button>
 
             {/* Search Suggestions Dropdown (Desktop) */}
             {showSuggestions && searchQuery.length > 0 && searchResults.length > 0 && (
-              <div className="absolute z-10 w-full bg-[#A75D43] border border-gray-200 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
+              <div className="absolute z-10 w-full bg-[#001F3F] border border-gray-200 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
                 <p className="px-4 py-2 text-xs text-white uppercase font-bold">Products</p>
                 {searchResults.map((product) => {
                   let productImg = '/images/placeholder.jpg';
@@ -157,7 +157,7 @@ export default function Header() {
                     productImg = product.imageUrl;
                   }
                   return (
-                    <Link href={`/products/${product.id}`} key={product.id} className="flex items-center px-4 py-2 hover:bg-[#c98a6a] cursor-pointer">
+                    <Link href={`/products/${product.id}`} key={product.id} className="flex items-center px-4 py-2 hover:bg-[#003366] cursor-pointer">
                       <Image
                         src={productImg}
                         alt={product.name || 'Product'}
@@ -169,7 +169,7 @@ export default function Header() {
                     </Link>
                   );
                 })}
-                <Link href={`/search?q=${encodeURIComponent(searchQuery)}`} className="block px-4 py-3 bg-[#c98a6a] text-white hover:bg-[#A75D43] text-sm font-medium text-center border-t border-gray-200">
+                <Link href={`/search?q=${encodeURIComponent(searchQuery)}`} className="block px-4 py-3 bg-[#003366] text-white hover:bg-[#001F3F] text-sm font-medium text-center border-t border-gray-200">
                   Search for "{searchQuery}"
                 </Link>
               </div>
@@ -181,7 +181,7 @@ export default function Header() {
           <div className="flex items-center space-x-4">
             <UserProfile />
             <Link href="/cart" className="relative flex items-center justify-center">
-              <ShoppingCart className="h-6 w-6 text-gray-700 hover:text-gray-900 transition-colors" />
+              <ShoppingCart className="h-6 w-6 text-[#001F3F] hover:text-[#003366] transition-colors" />
               {cartItems.length > 0 && (
                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                   {cartItems.length}
@@ -203,20 +203,20 @@ export default function Header() {
               onChange={handleInputChange}
               onFocus={() => setShowSuggestions(true)}
               onBlur={() => setTimeout(() => setShowSuggestions(false), 100)}
-              className="w-full px-5 py-2.5 pl-12 pr-5 border-2 border-gray-300 rounded-full bg-gray-100 text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-3 focus:ring-blue-600 focus:border-blue-600 transition-all duration-300 ease-in-out shadow-md"
+              className="w-full px-5 py-2.5 pl-12 pr-5 border-2 border-gray-300 rounded-full bg-gray-100 text-[#001F3F] placeholder-gray-500 focus:outline-none focus:ring-3 focus:ring-[#001F3F] focus:border-[#001F3F] transition-all duration-300 ease-in-out shadow-md"
               autoFocus
             />
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-600" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#001F3F]" />
             <button
               type="submit"
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-blue-700 transition-colors"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#001F3F] hover:text-[#003366] transition-colors"
             >
               <Search className="h-5 w-5" />
             </button>
 
             {/* Search Suggestions Dropdown (Mobile) */}
             {showSuggestions && searchQuery.length > 0 && searchResults.length > 0 && (
-              <div className="absolute z-10 w-full bg-[#A75D43] border border-gray-200 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
+              <div className="absolute z-10 w-full bg-[#001F3F] border border-gray-200 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
                 <p className="px-4 py-2 text-xs text-white uppercase font-bold">Products</p>
                 {searchResults.map((product) => {
                   let productImg = '/images/placeholder.jpg';
@@ -228,7 +228,7 @@ export default function Header() {
                     productImg = product.imageUrl;
                   }
                   return (
-                    <Link href={`/products/${product.id}`} key={product.id} className="flex items-center px-4 py-2 hover:bg-[#c98a6a] cursor-pointer">
+                    <Link href={`/products/${product.id}`} key={product.id} className="flex items-center px-4 py-2 hover:bg-[#003366] cursor-pointer">
                       <Image
                         src={productImg}
                         alt={product.name || 'Product'}
@@ -240,7 +240,7 @@ export default function Header() {
                     </Link>
                   );
                 })}
-                <Link href={`/search?q=${encodeURIComponent(searchQuery)}`} className="block px-4 py-3 bg-[#c98a6a] text-white hover:bg-[#A75D43] text-sm font-medium text-center border-t border-gray-200">
+                <Link href={`/search?q=${encodeURIComponent(searchQuery)}`} className="block px-4 py-3 bg-[#003366] text-white hover:bg-[#001F3F] text-sm font-medium text-center border-t border-gray-200">
                   Search for "{searchQuery}"
                 </Link>
               </div>
