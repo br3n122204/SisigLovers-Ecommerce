@@ -331,10 +331,10 @@ export default function CheckoutPage() {
   const totalAmount = (parseFloat(calculateTotal()) + getShippingPrice()).toFixed(2);
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-black py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Left Column: Delivery and Payment */}
-        <div className="bg-white p-8 rounded-lg shadow-md">
+        <div className="bg-black p-8 rounded-lg shadow-md">
           <h1 className="text-2xl font-bold mb-6 text-[#001F3F]">Checkout</h1>
 
           {/* Account Section */}
@@ -689,7 +689,7 @@ export default function CheckoutPage() {
         </div>
 
         {/* Right Column: Order Summary */}
-        <div className="bg-white p-8 rounded-lg shadow-md sticky top-8 h-fit">
+        <div className="bg-black p-8 rounded-lg shadow-md sticky top-8 h-fit">
           <h2 className="text-xl font-bold text-[#001F3F] mb-4">Your order</h2>
           {cartItems.length === 0 ? (
             <p className="text-[#001F3F]">Your cart is empty.</p>
