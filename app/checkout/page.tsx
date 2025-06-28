@@ -680,7 +680,7 @@ export default function CheckoutPage() {
 
           {/* Pay Now Button */}
           <Button
-            className="w-full bg-[#A75D43] text-white py-3 rounded-md hover:bg-[#c98a6a] transition-colors"
+            className="w-full bg-[#A75D43] text-[#001F3F] py-3 rounded-md hover:bg-[#c98a6a] transition-colors"
             onClick={handleProceedToPayment}
             disabled={isProcessing}
           >
