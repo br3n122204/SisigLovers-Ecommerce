@@ -55,7 +55,7 @@ function ImageSlider() {
   const goToNext = () => setCurrentSlide((prev) => (prev + 1) % sliderImages.length)
 
   return (
-    <div className="relative w-full h-[70vh] min-h-[500px] bg-neutral-100 overflow-hidden flex items-center justify-center">
+    <div className="relative w-full h-[70vh] min-h-[500px] bg-black overflow-hidden flex items-center justify-center">
       {/* Slider Images */}
       <div
         className="flex transition-transform duration-700 ease-in-out h-full w-full"
@@ -152,13 +152,13 @@ export default function DPTOneFashion() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-black">
       {/* Main Content Container */}
       <div className="w-full">
         {/* Hero / Slider Section */}
         <ImageSlider />
         {/* Featured Products Section */}
-        <section className="py-20 bg-neutral-50">
+        <section className="py-20 bg-black">
           <div className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-12">
             <h2 className="text-4xl font-extrabold text-center mb-12 tracking-tight text-[#001F3F]">
               Featured Products
@@ -183,7 +183,7 @@ export default function DPTOneFashion() {
                   products.map((product) => (
                     <Link key={product.id} href={`/products/${product.id}`} className="w-full">
                       <div
-                        className="bg-white rounded-2xl shadow-lg p-4 flex flex-col items-center cursor-pointer hover:shadow-xl transition"
+                        className="bg-black rounded-2xl shadow-lg p-4 flex flex-col items-center cursor-pointer hover:shadow-xl transition"
                         onMouseEnter={() => setHoveredProduct(product.id)}
                         onMouseLeave={() => setHoveredProduct(null)}
                       >
