@@ -50,11 +50,7 @@ export default function AddProductPage() {
       // List images only from the mapped brand's folder
       const folder = brandFolderMap[brand] || brand;
       const { data, error } = await supabase.storage.from('product-images').list(`${folder}/`, { limit: 100 });
-      console.log('Supabase list data:', data);
-      console.log('Supabase list error:', error);
       if (error) {
-        setImages([]);
-        setLoadingImages(false);
         setImages([]);
         setLoadingImages(false);
         (window as any).supabaseListError = error; // for easy inspection
@@ -65,7 +61,6 @@ export default function AddProductPage() {
       ) || [];
       setImages(urls);
       setLoadingImages(false);
-      // Show the data structure in the UI for debugging
       (window as any).supabaseListData = data;
     };
     fetchImages();
