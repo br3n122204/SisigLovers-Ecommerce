@@ -10,7 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import AdminSidebar from "@/components/AdminSidebar";
-import AddProductPage from "./add-product/page";
+import AddProductPage from "@/components/AddProductPage";
 import AdminProductsPage from "./products/page";
 import AdminOrdersPage from "./orders/page";
 // You can create placeholder components for Analytics and Activities for now
@@ -73,7 +73,7 @@ function LoginForm({ onLogin }: { onLogin: (email: string, password: string) => 
 
   return (
     <div className="flex min-h-screen w-full bg-black">
-      <AdminSidebar />
+      <AdminSidebar activeSection="add-product" onSectionChange={() => {}} />
       <main className="flex-1 flex items-center justify-center">
         <div className="w-full max-w-md p-8 space-y-6 bg-[#161e2e] rounded-2xl shadow-2xl border border-[#22304a]">
           <div className="text-center">
