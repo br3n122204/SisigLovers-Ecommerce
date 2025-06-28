@@ -40,7 +40,7 @@ export default function WelcomeAnimation() {
             <div className="flex justify-center">
               <button
                 onClick={() => setOpen(false)}
-                className="mt-2 px-6 py-2 rounded-full bg-[#A75D43] text-white font-semibold text-lg shadow hover:bg-[#c98a6a] transition-all duration-200"
+                className="mt-2 px-6 py-2 rounded-full bg-[#A75D43] text-[#001F3F] font-semibold text-lg shadow hover:bg-[#c98a6a] transition-all duration-200"
               >
                 Start Exploring
               </button>
