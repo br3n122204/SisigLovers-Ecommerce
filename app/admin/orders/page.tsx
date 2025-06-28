@@ -260,34 +260,34 @@ export default function AdminOrdersPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto"></div>
-          <p className="mt-4 text-[#001F3F]">Loading orders...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3390ff] mx-auto"></div>
+          <p className="mt-4 text-[#8ec0ff]">Loading orders...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div className="w-full h-screen flex bg-black">
+      <div className="w-full h-full bg-[#161e2e] px-8 py-10 flex flex-col">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <div className="flex gap-2 items-center">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#001F3F] h-4 w-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#8ec0ff] h-4 w-4" />
               <input
                 type="text"
                 placeholder="Search orders, customer name, or email..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent text-[#001F3F] bg-white"
+                className="pl-10 pr-4 py-2 border border-[#22304a] rounded-md focus:outline-none focus:ring-2 focus:ring-[#3390ff] focus:border-transparent text-white bg-[#22304a] placeholder-[#8ec0ff]"
               />
             </div>
             <select
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-2 text-[#001F3F] bg-white"
+              className="border border-[#22304a] rounded-md px-3 py-2 text-white bg-[#22304a] focus:outline-none focus:ring-2 focus:ring-[#3390ff]"
             >
               <option value="all">All Statuses</option>
               <option value="pending">Pending</option>
@@ -299,7 +299,7 @@ export default function AdminOrdersPage() {
             <select
               value={sortBy}
               onChange={e => setSortBy(e.target.value)}
-              className="border border-gray-300 rounded-md px-3 py-2 text-[#001F3F] bg-white"
+              className="border border-[#22304a] rounded-md px-3 py-2 text-white bg-[#22304a] focus:outline-none focus:ring-2 focus:ring-[#3390ff]"
             >
               <option value="date-desc">Newest First</option>
               <option value="date-asc">Oldest First</option>
@@ -309,29 +309,36 @@ export default function AdminOrdersPage() {
           </div>
           <button
             onClick={exportToCSV}
-            className="flex items-center gap-2 px-4 py-2 bg-[#001F3F] text-white rounded-md hover:bg-[#003366]"
+            className="flex items-center gap-2 px-4 py-2 bg-[#3390ff] text-white rounded-md hover:bg-[#2360b7]"
           >
             <Download className="w-4 h-4" /> Export CSV
           </button>
         </div>
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[#001F3F] mb-2">All Orders</h1>
-          <p className="text-[#001F3F]">View and manage all active orders</p>
+          <h1 className="text-3xl font-bold text-[#3390ff] mb-2">All Orders</h1>
+          <p className="text-[#8ec0ff]">View and manage all active orders</p>
         </div>
         {filteredOrders.length === 0 ? (
           <div className="text-center py-12">
-            <h3 className="mt-2 text-sm font-medium text-[#001F3F]">No orders found</h3>
-            <p className="mt-1 text-sm text-[#001F3F]">No orders have been placed yet.</p>
+            <h3 className="mt-2 text-sm font-medium text-[#8ec0ff]">No orders found</h3>
+            <p className="mt-1 text-sm text-[#8ec0ff]">No orders have been placed yet.</p>
           </div>
         ) : (
-          <div className="space-y-6">
+          <div className="space-y-6 overflow-x-auto w-full">
             {filteredOrders.map((order) => (
-              <Card key={order.id} className="overflow-hidden bg-white text-[#001F3F] border-gray-300">
-                <CardHeader className="bg-white">
+              <Card key={order.id} className="overflow-hidden bg-[#161e2e] text-white border border-[#22304a] w-full max-w-full box-border">
+                <CardHeader className="bg-[#22304a]">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div className="flex items-center gap-4">
                       <span className="text-2xl">{getStatusIcon(order.status)}</span>
-                      <Badge className={getStatusColor(order.status)}>
+                      <Badge className={
+                        order.status === 'pending' ? 'bg-yellow-300 text-black' :
+                        order.status === 'processing' ? 'bg-blue-400 text-white' :
+                        order.status === 'shipped' ? 'bg-purple-400 text-white' :
+                        order.status === 'delivered' ? 'bg-green-400 text-white' :
+                        order.status === 'cancelled' ? 'bg-red-400 text-white' :
+                        'bg-[#8ec0ff] text-black'
+                      }>
                         <select
                           value={order.status}
                           onChange={async (e) => {
@@ -339,50 +346,48 @@ export default function AdminOrdersPage() {
                             await updateOrderStatus({
                               orderId: order.id,
                               newStatus,
-                              userId: order.userId || "",
+                              userId: "",
                               setOrders
                             });
                           }}
-                          className={
-                            "bg-transparent border-none text-inherit font-semibold focus:outline-none focus:ring-2 focus:ring-primary rounded"
-                          }
+                          className="bg-transparent border-none text-inherit font-semibold focus:outline-none focus:ring-2 focus:ring-[#3390ff] rounded"
                         >
                           {ORDER_STATUSES.map(status => (
-                            <option key={status} value={status} className="text-[#001F3F]">
+                            <option key={status} value={status} className="text-black">
                               {status.charAt(0).toUpperCase() + status.slice(1)}
                             </option>
                           ))}
                         </select>
                       </Badge>
                       <div>
-                        <p className="font-medium text-[#001F3F]">{order.orderNumber}</p>
-                        <p className="text-sm text-[#001F3F]">
+                        <p className="font-medium text-white">{order.orderNumber}</p>
+                        <p className="text-sm text-[#8ec0ff]">
                           <Calendar className="inline h-3 w-3 mr-1" />
                           {formatDate(order.orderDate, true)}
                         </p>
                         {order.userEmail && (
-                          <p className="text-xs text-[#001F3F]">{order.userEmail}</p>
+                          <p className="text-xs text-[#8ec0ff]">{order.userEmail}</p>
                         )}
                         {order.userPhone && (
-                          <p className="text-xs text-[#001F3F]">{order.userPhone}</p>
+                          <p className="text-xs text-[#8ec0ff]">{order.userPhone}</p>
                         )}
                       </div>
                     </div>
                     <div className="text-right">
-                      <span className="block text-xs text-[#001F3F] font-semibold">Payment: {order.paymentMethod?.toUpperCase() || 'N/A'}</span>
-                      <span className="block text-xs text-[#001F3F]">Status: {order.paymentStatus?.charAt(0).toUpperCase() + order.paymentStatus?.slice(1) || 'N/A'}</span>
+                      <span className="block text-xs text-[#8ec0ff] font-semibold">Payment: {order.paymentMethod?.toUpperCase() || 'N/A'}</span>
+                      <span className="block text-xs text-[#8ec0ff]">Status: {order.paymentStatus?.charAt(0).toUpperCase() + order.paymentStatus?.slice(1) || 'N/A'}</span>
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent className="p-6 bg-white text-[#001F3F]">
+                <CardContent className="p-6 bg-[#161e2e] text-white">
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Order Items */}
                     <div className="lg:col-span-2">
-                      <h4 className="font-medium text-[#001F3F] mb-3">Items Ordered</h4>
+                      <h4 className="font-medium text-[#8ec0ff] mb-3">Items Ordered</h4>
                       <div className="space-y-3">
                         {order.items.map((item) => (
                           <div key={item.id} className="flex items-center gap-3">
-                            <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100">
+                            <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-[#22304a]">
                               <img
                                 src={item.image}
                                 alt={item.name}
@@ -390,11 +395,21 @@ export default function AdminOrdersPage() {
                               />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-medium text-[#001F3F] truncate">{item.name}</p>
-                              <p className="text-sm text-[#001F3F]">
-                                Qty: {item.quantity} {item.size && <>• {item.size}</>} {item.color && <>• {item.color}</>}
+                              <p className="font-medium text-white truncate">{item.name}</p>
+                              <p className="text-sm text-[#8ec0ff]">
+                                Qty: {item.quantity}
+                                {Array.isArray(item.size)
+                                  ? (item.size as any[]).map((s, idx) => (
+                                      <span key={idx}> • {s.size}: {s.stock}</span>
+                                    ))
+                                  : item.size && typeof item.size === 'object'
+                                    ? ` • ${(item.size as any).size}: ${(item.size as any).stock}`
+                                    : item.size
+                                      ? ` • ${item.size}`
+                                      : null}
+                                {item.color && <> • {item.color}</>}
                               </p>
-                              <p className="text-sm font-medium text-[#001F3F]">
+                              <p className="text-sm font-medium text-[#3390ff]">
                                 {formatCurrency(item.price)}
                               </p>
                             </div>
@@ -402,56 +417,30 @@ export default function AdminOrdersPage() {
                         ))}
                       </div>
                     </div>
-
-                    {/* Order Summary & Addresses */}
-                    <div className="space-y-4">
-                      <div>
-                        <h4 className="font-medium text-[#001F3F] mb-2">Order Summary</h4>
-                        <div className="space-y-2 text-sm">
-                          <div className="flex justify-between">
-                            <span>Subtotal:</span>
-                            <span>{formatCurrency(order.subtotal || 0)}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span>Shipping:</span>
-                            <span>{order.shipping === 0 ? 'Free' : formatCurrency(order.shipping || 0)}</span>
-                          </div>
-                          {order.tax > 0 && (
-                            <div className="flex justify-between">
-                              <span>Tax:</span>
-                              <span>{formatCurrency(order.tax)}</span>
-                            </div>
-                          )}
-                          <div className="border-t pt-2 flex justify-between font-medium">
-                            <span>Total:</span>
-                            <span>{formatCurrency(order.total || 0)}</span>
-                          </div>
-                        </div>
+                    {/* Order Summary */}
+                    <div className="bg-[#22304a] rounded-lg p-4">
+                      <h4 className="font-medium text-[#8ec0ff] mb-3">Order Summary</h4>
+                      <div className="flex flex-col gap-1 text-sm">
+                        <span>Subtotal: <span className="text-[#3390ff]">{formatCurrency(order.subtotal)}</span></span>
+                        <span>Shipping: <span className="text-[#3390ff]">{formatCurrency(order.shipping)}</span></span>
+                        <span>Tax: <span className="text-[#3390ff]">{formatCurrency(order.tax)}</span></span>
+                        <span className="font-semibold">Total: <span className="text-[#3390ff]">{formatCurrency(order.total)}</span></span>
                       </div>
-
-                      <div>
-                        <h4 className="font-medium text-[#001F3F] mb-2">Shipping Address</h4>
-                        <p className="text-sm text-[#001F3F]">
-                          {formatAddress(order.shippingAddress)}
-                        </p>
+                      <div className="mt-4">
+                        <span className="block text-xs text-[#8ec0ff]">Tracking #: {order.trackingNumber || 'N/A'}</span>
+                        <span className="block text-xs text-[#8ec0ff]">Est. Delivery: {order.estimatedDelivery ? formatDate(order.estimatedDelivery, true) : 'N/A'}</span>
                       </div>
-                      <div>
-                        <h4 className="font-medium text-[#001F3F] mb-2">Billing Address</h4>
-                        <p className="text-sm text-[#001F3F]">
-                          {formatAddress(order.billingAddress)}
-                        </p>
-                      </div>
-                      {order.trackingNumber && (
-                        <div>
-                          <h4 className="font-medium text-[#001F3F] mb-2">Tracking</h4>
-                          <p className="text-sm text-[#001F3F]">
-                            Number: {order.trackingNumber}<br />
-                            {order.estimatedDelivery && (
-                              <>Estimated Delivery: {formatDate(order.estimatedDelivery, true)}</>
-                            )}
-                          </p>
-                        </div>
-                      )}
+                    </div>
+                  </div>
+                  {/* Addresses */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                    <div className="bg-[#22304a] rounded-lg p-4">
+                      <h4 className="font-medium text-[#8ec0ff] mb-2">Shipping Address</h4>
+                      <p className="text-sm text-white">{formatAddress(order.shippingAddress)}</p>
+                    </div>
+                    <div className="bg-[#22304a] rounded-lg p-4">
+                      <h4 className="font-medium text-[#8ec0ff] mb-2">Billing Address</h4>
+                      <p className="text-sm text-white">{formatAddress(order.billingAddress)}</p>
                     </div>
                   </div>
                 </CardContent>

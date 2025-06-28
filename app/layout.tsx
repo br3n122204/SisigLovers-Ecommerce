@@ -1,22 +1,17 @@
-import type React from "react"
-import type { Metadata } from "next"
+import type { ReactNode } from "react"
 import { Inter } from "next/font/google"
 import "./globals.css"
+import { ThemeProvider } from "@/components/theme-provider"
 import { CartProvider } from '@/context/CartContext'
 import { AuthProvider } from "@/context/AuthContext"
-import Header from "@/components/Header"
-import AnnouncementBar from "@/components/AnnouncementBar"
-import Image from "next/image"
-import ClientLayout from "./ClientLayout";
-import { ThemeProvider } from "@/components/theme-provider";
-import ClientProviders from "./ClientProviders";
+import ConditionalHeader from "@/components/ConditionalHeader"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: ReactNode
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
@@ -24,13 +19,8 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AuthProvider>
             <CartProvider>
-              <AnnouncementBar />
-              <Header />
-              <ClientProviders>
-                <ClientLayout>
-                  {children}
-                </ClientLayout>
-              </ClientProviders>
+              <ConditionalHeader />
+              {children}
             </CartProvider>
           </AuthProvider>
         </ThemeProvider>
