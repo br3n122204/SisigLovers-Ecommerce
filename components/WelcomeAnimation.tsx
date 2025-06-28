@@ -33,15 +33,19 @@ export default function WelcomeAnimation() {
             <Image src="/images/logo.png" alt="Sisig Lovers Logo" width={100} height={100} className="rounded-full shadow-lg" priority />
           </div>
           <DialogTitle asChild>
-            <h1 className="text-3xl font-extrabold text-[#A75D43] mb-2 text-center drop-shadow-lg">Welcome to DPT ONE!</h1>
+            <h1 className="text-3xl font-extrabold text-[#001F3F] mb-2 text-center drop-shadow-lg">Welcome to DPT ONE!</h1>
           </DialogTitle>
-          <p className="text-lg text-[#A75D43] mb-6 text-center font-medium">Discover the best local streetwear and exclusive drops. Enjoy shopping with us!</p>
-          <button
-            onClick={() => setOpen(false)}
-            className="mt-2 px-6 py-2 rounded-full bg-[#A75D43] text-white font-semibold text-lg shadow hover:bg-[#c98a6a] transition-all duration-200"
-          >
-            Start Exploring
-          </button>
+          <div className="text-center">
+            <p className="text-lg text-[#001F3F] mb-6 text-center font-medium">Discover the best local streetwear and exclusive drops. Enjoy shopping with us!</p>
+            <div className="flex justify-center">
+              <button
+                onClick={() => setOpen(false)}
+                className="mt-2 px-6 py-2 rounded-full bg-[#A75D43] text-white font-semibold text-lg shadow hover:bg-[#c98a6a] transition-all duration-200"
+              >
+                Start Exploring
+              </button>
+            </div>
+          </div>
         </div>
       </DialogContent>
       <style jsx global>{`

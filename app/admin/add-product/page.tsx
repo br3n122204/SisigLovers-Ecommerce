@@ -180,10 +180,10 @@ export default function AddProductPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f7f7f7]">
       <div className="w-full max-w-md p-8 bg-white rounded-xl shadow-xl flex flex-col items-center">
-        <h2 className="text-2xl font-bold mb-6 text-center text-gray-900">Add New Product</h2>
+        <h2 className="text-2xl font-bold mb-6 text-center text-[#001F3F]">Add New Product</h2>
         <form onSubmit={handleSubmit} className="w-full space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Product Name</label>
+            <label className="block text-sm font-medium text-[#001F3F] mb-1">Product Name</label>
             <input
               type="text"
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -193,7 +193,7 @@ export default function AddProductPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <label className="block text-sm font-medium text-[#001F3F] mb-1">Description</label>
             <textarea
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               value={description}
@@ -202,7 +202,7 @@ export default function AddProductPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Price <span className="font-bold">(₱)</span></label>
+            <label className="block text-sm font-medium text-[#001F3F] mb-1">Price <span className="font-bold">(₱)</span></label>
             <input
               type="number"
               min="0"
@@ -214,7 +214,7 @@ export default function AddProductPage() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Sizes & Stock</label>
+            <label className="block text-sm font-medium text-[#001F3F] mb-1">Sizes & Stock</label>
             <div className="space-y-2 mb-2">
               {sizes.map((entry, idx) => (
                 <div key={idx} className="flex gap-2 items-center bg-gray-50 p-2 rounded-md border border-gray-200">
@@ -268,7 +268,7 @@ export default function AddProductPage() {
             </button>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Brand</label>
+            <label className="block text-sm font-medium text-[#001F3F] mb-1">Brand</label>
             <select
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               value={brand}
@@ -282,11 +282,11 @@ export default function AddProductPage() {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Select Product Images</label>
+            <label className="block text-sm font-medium text-[#001F3F] mb-1">Select Product Images</label>
             {loadingImages ? (
-              <div className="text-gray-500 text-sm">Loading images...</div>
+              <div className="text-[#001F3F] text-sm">Loading images...</div>
             ) : images.length === 0 ? (
-              <div className="text-gray-500 text-sm">Please select a brand to view images.</div>
+              <div className="text-[#001F3F] text-sm">Please select a brand to view images.</div>
             ) : (
               <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
                 {images.map((img, idx) => (
@@ -329,7 +329,7 @@ export default function AddProductPage() {
                 checked={isFeatured}
                 onChange={e => setIsFeatured(e.target.checked)}
               />
-              <span className="ml-2 text-sm text-gray-700">Featured Product (also show in homepage featured section)</span>
+              <span className="ml-2 text-sm text-[#001F3F]">Featured Product (also show in homepage featured section)</span>
             </label>
           </div>
           <button
@@ -341,7 +341,7 @@ export default function AddProductPage() {
           </button>
           <button
             type="button"
-            className="w-full bg-gray-200 text-gray-700 py-3 px-4 rounded-md font-semibold hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-colors duration-200"
+            className="w-full bg-gray-200 text-[#001F3F] py-3 px-4 rounded-md font-semibold hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2 transition-colors duration-200"
             onClick={() => router.push("/admin/products")}
             disabled={isSubmitting}
           >

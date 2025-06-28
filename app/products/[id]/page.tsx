@@ -18,7 +18,7 @@ const navBtnStyles = `
   bg-black border-2 border-white
   text-white text-2xl font-bold
   transition-transform transition-opacity duration-200
-  hover:scale-110 hover:bg-white hover:text-black hover:border-black hover:opacity-90
+  hover:scale-110 hover:bg-white hover:text-[#001F3F] hover:border-black hover:opacity-90
   active:scale-95
   focus:outline-none
 `;
@@ -111,7 +111,7 @@ export default function ProductDetailPage() {
   if (!product) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <p className="text-xl text-gray-700">Product not found.</p>
+        <p className="text-xl text-[#001F3F]">Product not found.</p>
       </div>
     );
   }
@@ -126,7 +126,7 @@ export default function ProductDetailPage() {
       <div className="mx-16 pt-8 pb-16">
         {/* Back to Home Button */}
         <Link href="/" passHref>
-          <Button variant="outline" className="mb-8 border-gray-300 text-gray-700 hover:bg-gray-50">
+          <Button variant="outline" className="mb-8 border-gray-300 text-[#001F3F] hover:bg-gray-50">
             ← Back to Home
           </Button>
         </Link>
@@ -158,7 +158,7 @@ export default function ProductDetailPage() {
                     style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
                   />
                 ) : (
-                  <div className="w-full h-[400px] flex items-center justify-center bg-gray-100 text-gray-400">No Image</div>
+                  <div className="w-full h-[400px] flex items-center justify-center bg-gray-100 text-[#001F3F]">No Image</div>
                 )}
                 {/* Fade in next image */}
                 {isFading && fadeNextImage && (
@@ -200,13 +200,13 @@ export default function ProductDetailPage() {
           </div>
           {/* Product Info */}
           <div className="md:w-1/2 flex flex-col justify-center">
-            <span className="text-sm text-gray-500 uppercase font-medium mb-2">{product.brand}</span>
-            <h1 className="text-4xl font-extrabold text-gray-900 mb-2">{product.name?.toUpperCase()}</h1>
-            <p className="text-xl text-gray-700 font-bold mb-4">₱{product.price}</p>
-            <p className="text-gray-600 mb-6 leading-relaxed">{product.description}</p>
+            <span className="text-sm text-[#001F3F] uppercase font-medium mb-2">{product.brand}</span>
+            <h1 className="text-4xl font-extrabold text-[#001F3F] mb-2">{product.name?.toUpperCase()}</h1>
+            <p className="text-xl text-[#001F3F] font-bold mb-4">₱{product.price}</p>
+            <p className="text-[#001F3F] mb-6 leading-relaxed">{product.description}</p>
             {product.sizes && product.sizes.length > 0 && (
               <div className="mb-6">
-                <h3 className="text-md font-semibold text-gray-800 mb-2">SIZES</h3>
+                <h3 className="text-md font-semibold text-[#001F3F] mb-2">SIZES</h3>
                 <div className="flex flex-wrap gap-2">
                   {["S", "M", "L", "XL", "2XL"].map(sizeLabel => {
                     const found = product.sizes.find((entry: { size: string, stock: number }) => entry.size === sizeLabel);
@@ -216,9 +216,9 @@ export default function ProductDetailPage() {
                         key={sizeLabel}
                         variant="outline"
                         onClick={() => !isOutOfStock && setSelectedSize(sizeLabel)}
-                        className={`border-gray-300 text-gray-700 transition-colors
-                          ${selectedSize === sizeLabel ? 'bg-black text-white' : ''}
-                          ${isOutOfStock ? 'opacity-50 cursor-not-allowed bg-gray-200 text-gray-400' : 'hover:bg-black hover:text-white'}
+                        className={`border-gray-300 text-[#001F3F] transition-colors
+                          ${selectedSize === sizeLabel ? 'bg-[#001F3F] text-white' : ''}
+                          ${isOutOfStock ? 'opacity-50 cursor-not-allowed bg-gray-200 text-[#001F3F]' : 'hover:bg-[#001F3F] hover:text-white'}
                         `}
                         disabled={isOutOfStock}
                       >
@@ -230,11 +230,11 @@ export default function ProductDetailPage() {
               </div>
             )}
             <div className="mb-8">
-              <h3 className="text-md font-semibold text-gray-800 mb-2">Quantity</h3>
+              <h3 className="text-md font-semibold text-[#001F3F] mb-2">Quantity</h3>
               <div className="flex items-center space-x-2">
-                <Button variant="outline" onClick={() => handleQuantityChange(-1)} className="border-gray-300 text-gray-700 hover:bg-gray-50">-</Button>
+                <Button variant="outline" onClick={() => handleQuantityChange(-1)} className="border-gray-300 text-[#001F3F] hover:bg-gray-50">-</Button>
                 <span className="px-4 py-2 border border-gray-300 rounded-md">{quantity}</span>
-                <Button variant="outline" onClick={() => handleQuantityChange(1)} className="border-gray-300 text-gray-700 hover:bg-gray-50">+</Button>
+                <Button variant="outline" onClick={() => handleQuantityChange(1)} className="border-gray-300 text-[#001F3F] hover:bg-gray-50">+</Button>
               </div>
             </div>
             <div className="space-y-4">
@@ -244,7 +244,7 @@ export default function ProductDetailPage() {
               >
                 Add to cart
               </Button>
-              <Button variant="outline" className="w-full border-2 border-black text-black py-3 rounded-md hover:bg-gray-100 transition-colors">
+              <Button variant="outline" className="w-full border-2 border-black text-[#001F3F] py-3 rounded-md hover:bg-gray-100 transition-colors">
                 Buy it now
               </Button>
             </div>

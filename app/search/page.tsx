@@ -105,7 +105,7 @@ export default function SearchPage() {
       <div className="w-full pt-8 pb-16">
         {/* Back to Home Button */}
         <Link href="/" passHref>
-          <Button variant="outline" className="mb-8 border-gray-300 text-gray-700 hover:bg-gray-50">
+          <Button variant="outline" className="mb-8 border-gray-300 text-[#001F3F] hover:bg-gray-50">
             ← Back to Home
           </Button>
         </Link>
@@ -117,42 +117,42 @@ export default function SearchPage() {
             <Button variant="outline" onClick={() => setShowFilters(!showFilters)}>
               <Filter className="h-4 w-4 mr-2" /> Filters
             </Button>
-            <span className="text-gray-500 text-sm">{filteredProducts.length} products found</span>
+            <span className="text-[#001F3F] text-sm">{filteredProducts.length} products found</span>
           </div>
         </div>
 
         {/* Active Filters */}
         {hasActiveFilters && (
           <div className="flex items-center space-x-2 mb-4">
-            <span className="text-sm text-gray-600">Active filters:</span>
+            <span className="text-sm text-[#001F3F]">Active filters:</span>
             {selectedBrand && (
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800">
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-[#001F3F]">
                 Brand: {selectedBrand}
                 <button
                   onClick={() => setSelectedBrand('')}
-                  className="ml-1 text-gray-500 hover:text-gray-700"
+                  className="ml-1 text-[#001F3F] hover:text-[#003366]"
                 >
                   <X className="h-3 w-3" />
                 </button>
               </span>
             )}
             {selectedColor && (
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800">
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-[#001F3F]">
                 Color: {selectedColor}
                 <button
                   onClick={() => setSelectedColor('')}
-                  className="ml-1 text-gray-500 hover:text-gray-700"
+                  className="ml-1 text-[#001F3F] hover:text-[#003366]"
                 >
                   <X className="h-3 w-3" />
                 </button>
               </span>
             )}
             {priceRange && (
-              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800">
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-gray-100 text-[#001F3F]">
                 Max Price: ₱{priceRange}
                 <button
                   onClick={() => setPriceRange('')}
-                  className="ml-1 text-gray-500 hover:text-gray-700"
+                  className="ml-1 text-[#001F3F] hover:text-[#003366]"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -178,7 +178,7 @@ export default function SearchPage() {
                 
                 {/* Brand Filter */}
                 <div className="mb-6">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Brand</h4>
+                  <h4 className="text-sm font-medium text-[#001F3F] mb-2">Brand</h4>
                   <div className="space-y-2">
                     {brands.map(brand => (
                       <label key={brand} className="flex items-center">
@@ -190,7 +190,7 @@ export default function SearchPage() {
                           onChange={(e) => setSelectedBrand(e.target.value)}
                           className="mr-2" style={{ accentColor: '#A75D43' }}
                         />
-                        <span className="text-sm text-gray-600">{brand}</span>
+                        <span className="text-sm text-[#001F3F]">{brand}</span>
                       </label>
                     ))}
                   </div>
@@ -198,7 +198,7 @@ export default function SearchPage() {
 
                 {/* Color Filter */}
                 <div className="mb-6">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Color</h4>
+                  <h4 className="text-sm font-medium text-[#001F3F] mb-2">Color</h4>
                   <div className="space-y-2">
                     {colors.map(color => (
                       <label key={color} className="flex items-center">
@@ -210,7 +210,7 @@ export default function SearchPage() {
                           onChange={(e) => setSelectedColor(e.target.value)}
                           className="mr-2" style={{ accentColor: '#A75D43' }}
                         />
-                        <span className="text-sm text-gray-600">{color}</span>
+                        <span className="text-sm text-[#001F3F]">{color}</span>
                       </label>
                     ))}
                   </div>
@@ -218,7 +218,7 @@ export default function SearchPage() {
 
                 {/* Price Range Filter */}
                 <div className="mb-6">
-                  <h4 className="text-sm font-medium text-gray-700 mb-2">Max Price</h4>
+                  <h4 className="text-sm font-medium text-[#001F3F] mb-2">Max Price</h4>
                   <input
                     type="number"
                     className="w-full px-2 py-1 border border-gray-300 rounded"
@@ -233,7 +233,7 @@ export default function SearchPage() {
                   <Button
                     variant="outline"
                     onClick={clearFilters}
-                    className="w-full border-gray-300 text-gray-700 hover:bg-gray-50"
+                    className="w-full border-gray-300 text-[#001F3F] hover:bg-gray-50"
                   >
                     Clear Filters
                   </Button>
@@ -246,15 +246,15 @@ export default function SearchPage() {
           <div className="flex-1">
             {filteredProducts.length === 0 ? (
               <div className="text-center py-12">
-                <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No products found</h3>
-                <p className="text-gray-600 mb-4">
+                <Search className="h-12 w-12 text-[#001F3F] mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-[#001F3F] mb-2">No products found</h3>
+                <p className="text-[#001F3F] mb-4">
                   Try adjusting your search terms or filters to find what you're looking for.
                 </p>
                 <Button
                   variant="outline"
                   onClick={clearFilters}
-                  className="border-gray-300 text-gray-700 hover:bg-gray-50"
+                  className="border-gray-300 text-[#001F3F] hover:bg-gray-50"
                 >
                   Clear all filters
                 </Button>
@@ -289,7 +289,7 @@ export default function SearchPage() {
                       </div>
                       <div className="p-4">
                         <h3 className="text-lg font-semibold">{product.name}</h3>
-                        <p className="text-gray-600 mb-2">₱{product.price}</p>
+                        <p className="text-[#001F3F] mb-2">₱{product.price}</p>
                         <Button
                           className="w-full mt-2 bg-black text-white hover:bg-gray-800"
                           onClick={() => handleAddToCart({
