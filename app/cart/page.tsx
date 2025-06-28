@@ -47,7 +47,7 @@ export default function CartPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-black">
       {/* Main Content */}
       <div className="max-w-4xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
         {cartItems.length === 0 && removingItemIds.length === 0 && !isCartSyncing ? (
@@ -120,7 +120,7 @@ export default function CartPage() {
             </div>
 
             {/* Cart Summary */}
-            <div className="md:col-span-1 bg-gray-50 p-6 rounded-lg shadow-sm h-fit sticky top-20">
+            <div className="md:col-span-1 bg-black p-6 rounded-lg shadow-sm h-fit sticky top-20">
               <h2 className="text-xl font-bold text-[#001F3F] mb-4">Order Summary</h2>
               <div className="space-y-2 text-[#001F3F]">
                 <div className="flex justify-between">
