@@ -235,12 +235,12 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold mb-6 text-gray-800">Profile</h1>
+        <h1 className="text-2xl font-bold mb-6 text-[#001F3F]">Profile</h1>
 
         {/* Profile Information Section */}
         <div className="bg-white border border-gray-200 rounded-lg p-6 mb-8">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-800">{user?.displayName || 'Your Name'}</h2>
+            <h2 className="text-xl font-semibold text-[#001F3F]">{user?.displayName || 'Your Name'}</h2>
             <Button variant="ghost" onClick={handleEditClick} className="text-blue-600 hover:text-blue-800">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-1">
                 <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 18.07a4.5 4.5 0 0 1-1.897 1.13L6 20l1.123-3.723a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
@@ -248,13 +248,13 @@ export default function ProfilePage() {
               Edit
             </Button>
           </div>
-          <p className="text-gray-600">Email: {userEmail}</p>
+          <p className="text-[#001F3F]">Email: {userEmail}</p>
         </div>
 
         {/* Addresses Section */}
         <div className="bg-white border border-gray-200 rounded-lg p-6">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-gray-800">Addresses</h2>
+            <h2 className="text-xl font-semibold text-[#001F3F]">Addresses</h2>
             <Button variant="ghost" onClick={handleAddAddressClick} className="text-blue-600 hover:text-blue-800">
               <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-1">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -263,7 +263,7 @@ export default function ProfilePage() {
             </Button>
           </div>
           {addresses.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-[#001F3F]">
               <p>No addresses added</p>
             </div>
           ) : (
@@ -305,7 +305,7 @@ export default function ProfilePage() {
             <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold">Edit profile</h2>
-                <button onClick={handleCancel} className="text-gray-500 hover:text-gray-800">
+                <button onClick={handleCancel} className="text-[#001F3F] hover:text-[#003366]">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
                   </svg>
@@ -313,7 +313,7 @@ export default function ProfilePage() {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div>
-                  <label htmlFor="firstName" className="block text-sm font-medium text-gray-700">First name</label>
+                  <label htmlFor="firstName" className="block text-sm font-medium text-[#001F3F]">First name</label>
                   <input
                     type="text"
                     id="firstName"
@@ -323,7 +323,7 @@ export default function ProfilePage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">Last name</label>
+                  <label htmlFor="lastName" className="block text-sm font-medium text-[#001F3F]">Last name</label>
                   <input
                     type="text"
                     id="lastName"
@@ -333,7 +333,7 @@ export default function ProfilePage() {
                   />
                 </div>
                 <div className="md:col-span-2">
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email</label>
+                  <label htmlFor="email" className="block text-sm font-medium text-[#001F3F]">Email</label>
                   <input
                     type="email"
                     id="email"
@@ -341,12 +341,12 @@ export default function ProfilePage() {
                     value={userEmail}
                     readOnly
                   />
-                  <p className="mt-2 text-sm text-gray-500">Email used for login can't be changed</p>
+                  <p className="mt-2 text-sm text-[#001F3F]">Email used for login can't be changed</p>
                 </div>
               </div>
               <div className="flex justify-end space-x-3">
-                <Button variant="outline" onClick={handleCancel} className="border-gray-300 text-gray-700 hover:bg-gray-50">Cancel</Button>
-                <Button onClick={handleSave} className="bg-blue-600 text-white hover:bg-blue-700">Save</Button>
+                <Button variant="outline" onClick={handleCancel} className="border-gray-300 text-[#001F3F] hover:bg-gray-50">Cancel</Button>
+                <Button onClick={handleSave} className="bg-[#001F3F] text-white hover:bg-[#003366]">Save</Button>
               </div>
             </div>
           </div>
@@ -358,14 +358,14 @@ export default function ProfilePage() {
             <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-[700px]">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-bold">Add address</h2>
-                <button onClick={handleAddressModalClose} className="text-gray-500 hover:text-gray-800">
+                <button onClick={handleAddressModalClose} className="text-[#001F3F] hover:text-[#003366]">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
                   </svg>
                 </button>
               </div>
               <div className="space-y-4">
-                <label className="flex items-center text-sm text-gray-700">
+                <label className="flex items-center text-sm text-[#001F3F]">
                   <input
                     type="checkbox"
                     className="form-checkbox h-4 w-4 text-blue-600 mr-2"
@@ -375,7 +375,7 @@ export default function ProfilePage() {
                   This is my default address
                 </label>
                 <div>
-                  <label htmlFor="country" className="block text-sm font-medium text-gray-700">Country/region</label>
+                  <label htmlFor="country" className="block text-sm font-medium text-[#001F3F]">Country/region</label>
                   <select
                     id="country"
                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
@@ -397,7 +397,7 @@ export default function ProfilePage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="addressFirstName" className="block text-sm font-medium text-gray-700">First name</label>
+                    <label htmlFor="addressFirstName" className="block text-sm font-medium text-[#001F3F]">First name</label>
                     <input
                       type="text"
                       id="addressFirstName"
@@ -407,7 +407,7 @@ export default function ProfilePage() {
                     />
                   </div>
                   <div>
-                    <label htmlFor="addressLastName" className="block text-sm font-medium text-gray-700">Last name</label>
+                    <label htmlFor="addressLastName" className="block text-sm font-medium text-[#001F3F]">Last name</label>
                     <input
                       type="text"
                       id="addressLastName"
@@ -418,7 +418,7 @@ export default function ProfilePage() {
                   </div>
                 </div>
                 <div>
-                  <label htmlFor="addressLine1" className="block text-sm font-medium text-gray-700">Address</label>
+                  <label htmlFor="addressLine1" className="block text-sm font-medium text-[#001F3F]">Address</label>
                   <input
                     type="text"
                     id="addressLine1"
@@ -428,7 +428,7 @@ export default function ProfilePage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="addressLine2" className="block text-sm font-medium text-gray-700">Apartment, suite, etc (optional)</label>
+                  <label htmlFor="addressLine2" className="block text-sm font-medium text-[#001F3F]">Apartment, suite, etc (optional)</label>
                   <input
                     type="text"
                     id="addressLine2"
@@ -439,7 +439,7 @@ export default function ProfilePage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label htmlFor="postalCode" className="block text-sm font-medium text-gray-700">Postal code</label>
+                    <label htmlFor="postalCode" className="block text-sm font-medium text-[#001F3F]">Postal code</label>
                     <input
                       type="text"
                       id="postalCode"
@@ -449,7 +449,7 @@ export default function ProfilePage() {
                     />
                   </div>
                   <div>
-                    <label htmlFor="city" className="block text-sm font-medium text-gray-700">City</label>
+                    <label htmlFor="city" className="block text-sm font-medium text-[#001F3F]">City</label>
                     <input
                       type="text"
                       id="city"
@@ -460,7 +460,7 @@ export default function ProfilePage() {
                   </div>
                 </div>
                 <div>
-                  <label htmlFor="region" className="block text-sm font-medium text-gray-700">Region</label>
+                  <label htmlFor="region" className="block text-sm font-medium text-[#001F3F]">Region</label>
                   <select
                     id="region"
                     className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
@@ -487,11 +487,11 @@ export default function ProfilePage() {
                   </select>
                 </div>
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone</label>
+                  <label htmlFor="phone" className="block text-sm font-medium text-[#001F3F]">Phone</label>
                   <div className="mt-1 flex rounded-md shadow-sm">
                     <select
                       id="phoneCode"
-                      className="block w-28 border border-gray-300 rounded-l-md bg-gray-50 text-gray-700 p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                      className="block w-28 border border-gray-300 rounded-l-md bg-gray-50 text-[#001F3F] p-2 focus:ring-[#001F3F] focus:border-[#001F3F] sm:text-sm"
                       value={newAddress.phoneCode}
                       onChange={e => setNewAddress({ ...newAddress, phoneCode: e.target.value })}
                     >
@@ -519,7 +519,7 @@ export default function ProfilePage() {
                 </div>
               </div>
               <div className="flex justify-end space-x-3 mt-6">
-                <Button variant="outline" onClick={handleAddressModalClose} className="border-gray-300 text-gray-700 hover:bg-gray-50">Cancel</Button>
+                <Button variant="outline" onClick={handleAddressModalClose} className="border-gray-300 text-[#001F3F] hover:bg-gray-50">Cancel</Button>
                 <button type="button" onClick={handleAddressSave} className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md">Save</button>
               </div>
             </div>
