@@ -487,7 +487,7 @@ export default function CheckoutPage() {
             <div className="mb-4">
               <label htmlFor="region" className="block text-sm font-medium text-[#60A5FA]">Region</label>
               <Select value={deliveryDetails.region} onValueChange={value => setDeliveryDetails(prev => ({ ...prev, region: value }))}>
-                <SelectTrigger className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm px-4 py-2 h-12 flex items-center justify-between text-base focus:outline-none focus:ring-2 focus:ring-[#A75D43] focus:border-[#A75D43]">
+                <SelectTrigger className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm px-4 py-2 h-12 flex items-center justify-between text-base bg-[#101828] text-[#60A5FA] focus:outline-none focus:ring-2 focus:ring-[#60A5FA] focus:border-[#60A5FA]">
                   <SelectValue placeholder="Select region" />
                 </SelectTrigger>
                 <SelectContent>
@@ -570,7 +570,7 @@ export default function CheckoutPage() {
                     setBillingDetails(addr);
                   }
                 }}>
-                  <SelectTrigger className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm px-4 py-2 h-12 flex items-center justify-between text-base focus:outline-none focus:ring-2 focus:ring-[#A75D43] focus:border-[#A75D43]">
+                  <SelectTrigger className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm px-4 py-2 h-12 flex items-center justify-between text-base bg-[#101828] text-[#60A5FA] focus:outline-none focus:ring-2 focus:ring-[#60A5FA] focus:border-[#60A5FA]">
                     <SelectValue placeholder="Select a saved address" />
                   </SelectTrigger>
                   <SelectContent>
@@ -583,7 +583,7 @@ export default function CheckoutPage() {
               <div className="mb-4">
                 <label htmlFor="countryBilling" className="block text-sm font-medium text-[#60A5FA]">Country/Region</label>
                 <Select value={billingDetails.country} onValueChange={value => setBillingDetails(prev => ({ ...prev, country: value }))}>
-                  <SelectTrigger className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm px-4 py-2 h-12 flex items-center justify-between text-base focus:outline-none focus:ring-2 focus:ring-[#A75D43] focus:border-[#A75D43]">
+                  <SelectTrigger className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm px-4 py-2 h-12 flex items-center justify-between text-base bg-[#101828] text-[#60A5FA] focus:outline-none focus:ring-2 focus:ring-[#60A5FA] focus:border-[#60A5FA]">
                     <SelectValue placeholder="Select country" />
                   </SelectTrigger>
                   <SelectContent>
@@ -674,7 +674,7 @@ export default function CheckoutPage() {
               <div className="mb-4">
                 <label htmlFor="regionBilling" className="block text-sm font-medium text-[#60A5FA]">Region</label>
                 <Select value={billingDetails.region} onValueChange={value => setBillingDetails(prev => ({ ...prev, region: value }))}>
-                  <SelectTrigger className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm px-4 py-2 h-12 flex items-center justify-between text-base focus:outline-none focus:ring-2 focus:ring-[#A75D43] focus:border-[#A75D43]">
+                  <SelectTrigger className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm px-4 py-2 h-12 flex items-center justify-between text-base bg-[#101828] text-[#60A5FA] focus:outline-none focus:ring-2 focus:ring-[#60A5FA] focus:border-[#60A5FA]">
                     <SelectValue placeholder="Select region" />
                   </SelectTrigger>
                   <SelectContent>
@@ -716,6 +716,7 @@ export default function CheckoutPage() {
           ) : (
             <>
               <div className="space-y-4 mb-6">
+                
                 {selectedCartItems.map((item) => (
                   <div key={`${item.id}-${item.selectedSize}`} className="flex items-center space-x-4">
                     <div className="relative w-24 h-24 flex-shrink-0 rounded-md overflow-hidden border border-gray-200">

@@ -233,298 +233,64 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold mb-6 text-[#001F3F]">Profile</h1>
-
-        {/* Profile Information Section */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6 mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-[#001F3F]">{user?.displayName || 'Your Name'}</h2>
-            <Button variant="ghost" onClick={handleEditClick} className="text-blue-600 hover:text-blue-800">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-1">
-                <path strokeLinecap="round" strokeLinejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 18.07a4.5 4.5 0 0 1-1.897 1.13L6 20l1.123-3.723a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+    <div className="min-h-screen bg-[#101828] text-[#60A5FA]">
+      <div className="max-w-3xl mx-auto py-12 px-4 sm:px-8">
+        <div className="bg-[#19223a] rounded-2xl shadow-lg p-8">
+          <h1 className="text-3xl font-extrabold mb-8 text-[#60A5FA]">Profile</h1>
+          <div className="bg-[#101828] rounded-xl p-6 mb-8 flex items-center justify-between">
+            <div>
+              <h2 className="text-xl font-bold text-[#60A5FA] mb-1">Your Name</h2>
+              <p className="text-[#60A5FA]">Email: {userEmail}</p>
+            </div>
+            <button className="flex items-center gap-2 text-[#60A5FA] border border-[#60A5FA] px-4 py-2 rounded-lg font-semibold hover:bg-[#60A5FA] hover:text-[#101828] transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487a2.25 2.25 0 1 1 3.182 3.183L7.5 20.213l-4.243 1.06 1.06-4.243 12.545-12.543z" />
               </svg>
               Edit
-            </Button>
+            </button>
           </div>
-          <p className="text-[#001F3F]">Email: {userEmail}</p>
-        </div>
-
-        {/* Addresses Section */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold text-[#001F3F]">Addresses</h2>
-            <Button variant="ghost" onClick={handleAddAddressClick} className="text-blue-600 hover:text-blue-800">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-5 h-5 mr-1">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-              </svg>
-              Add
-            </Button>
-          </div>
-          {addresses.length === 0 ? (
-            <div className="text-center py-8 text-[#001F3F]">
-              <p>No addresses added</p>
+          <div className="bg-[#101828] rounded-xl p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-[#60A5FA]">Addresses</h2>
+              <button className="flex items-center gap-2 text-[#60A5FA] border border-[#60A5FA] px-4 py-2 rounded-lg font-semibold hover:bg-[#60A5FA] hover:text-[#101828] transition-colors">
+                <span className="text-lg font-bold">+</span> Add
+              </button>
             </div>
-          ) : (
-            <div className="space-y-4">
-              {[...addresses].sort((a, b) => (b.isDefault ? 1 : 0) - (a.isDefault ? 1 : 0)).map((addr) => (
-                <div key={addr.id} className="border p-4 rounded-md">
-                  <p className="font-semibold">{addr.firstName} {addr.lastName}</p>
-                  <p>{addr.address1}</p>
-                  {addr.address2 && <p>{addr.address2}</p>}
-                  <p>{addr.city}, {addr.postalCode}</p>
-                  <p>{addr.region}, {addr.country}</p>
-                  <p>Phone: {addr.phone}</p>
-                  {addr.isDefault && <span className="text-xs text-blue-600">Default Address</span>}
-                  <div className="flex items-center space-x-4 mt-2">
-                    {!addr.isDefault && (
-                      <button
-                        className="text-xs text-blue-600 underline hover:text-blue-800"
-                        onClick={() => handleSetDefaultAddress(addr.id!)}
-                      >
-                        Set as Default
-                      </button>
-                    )}
-                    <button
-                      className="text-xs text-red-600 underline hover:text-red-800"
-                      onClick={() => handleRemoveAddress(addr.id!)}
-                    >
-                      Remove
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Edit Profile Modal */}
-        {isEditing && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold">Edit profile</h2>
-                <button onClick={handleCancel} className="text-[#001F3F] hover:text-[#003366]">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div>
-                  <label htmlFor="firstName" className="block text-sm font-medium text-[#001F3F]">First name</label>
-                  <input
-                    type="text"
-                    id="firstName"
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    value={firstName}
-                    onChange={(e) => setFirstName(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label htmlFor="lastName" className="block text-sm font-medium text-[#001F3F]">Last name</label>
-                  <input
-                    type="text"
-                    id="lastName"
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <label htmlFor="email" className="block text-sm font-medium text-[#001F3F]">Email</label>
-                  <input
-                    type="email"
-                    id="email"
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 bg-gray-100 cursor-not-allowed sm:text-sm"
-                    value={userEmail}
-                    readOnly
-                  />
-                  <p className="mt-2 text-sm text-[#001F3F]">Email used for login can't be changed</p>
-                </div>
-              </div>
-              <div className="flex justify-end space-x-3">
-                <Button variant="outline" onClick={handleCancel} className="border-gray-300 text-[#001F3F] hover:bg-gray-50">Cancel</Button>
-                <Button onClick={handleSave} className="bg-[#001F3F] text-white hover:bg-[#003366]">Save</Button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Add Address Modal */}
-        {isAddingAddress && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-[700px]">
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold">Add address</h2>
-                <button onClick={handleAddressModalClose} className="text-[#001F3F] hover:text-[#003366]">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
+            {addresses.length === 0 ? (
+              <p className="text-[#60A5FA]">No addresses added</p>
+            ) : (
               <div className="space-y-4">
-                <label className="flex items-center text-sm text-[#001F3F]">
-                  <input
-                    type="checkbox"
-                    className="form-checkbox h-4 w-4 text-blue-600 mr-2"
-                    checked={newAddress.isDefault}
-                    onChange={(e) => setNewAddress({ ...newAddress, isDefault: e.target.checked })}
-                  />
-                  This is my default address
-                </label>
-                <div>
-                  <label htmlFor="country" className="block text-sm font-medium text-[#001F3F]">Country/region</label>
-                  <select
-                    id="country"
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    value={newAddress.country}
-                    onChange={(e) => setNewAddress({ ...newAddress, country: e.target.value })}
-                  >
-                    <option value="Philippines">Philippines</option>
-                    <option value="Brunei">Brunei</option>
-                    <option value="Cambodia">Cambodia</option>
-                    <option value="Indonesia">Indonesia</option>
-                    <option value="Laos">Laos</option>
-                    <option value="Malaysia">Malaysia</option>
-                    <option value="Myanmar">Myanmar</option>
-                    <option value="Singapore">Singapore</option>
-                    <option value="Thailand">Thailand</option>
-                    <option value="Timor-Leste">Timor-Leste</option>
-                    <option value="Vietnam">Vietnam</option>
-                  </select>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="addressFirstName" className="block text-sm font-medium text-[#001F3F]">First name</label>
-                    <input
-                      type="text"
-                      id="addressFirstName"
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 sm:text-sm"
-                      value={newAddress.firstName}
-                      onChange={(e) => setNewAddress({ ...newAddress, firstName: e.target.value })}
-                    />
+                {[...addresses].sort((a, b) => (b.isDefault ? 1 : 0) - (a.isDefault ? 1 : 0)).map((addr) => (
+                  <div key={addr.id} className="border p-4 rounded-md">
+                    <p className="font-semibold">{addr.firstName} {addr.lastName}</p>
+                    <p>{addr.address1}</p>
+                    {addr.address2 && <p>{addr.address2}</p>}
+                    <p>{addr.city}, {addr.postalCode}</p>
+                    <p>{addr.region}, {addr.country}</p>
+                    <p>Phone: {addr.phone}</p>
+                    {addr.isDefault && <span className="text-xs text-blue-600">Default Address</span>}
+                    <div className="flex items-center space-x-4 mt-2">
+                      {!addr.isDefault && (
+                        <button
+                          className="text-xs text-blue-600 underline hover:text-blue-800"
+                          onClick={() => handleSetDefaultAddress(addr.id!)}
+                        >
+                          Set as Default
+                        </button>
+                      )}
+                      <button
+                        className="text-xs text-red-600 underline hover:text-red-800"
+                        onClick={() => handleRemoveAddress(addr.id!)}
+                      >
+                        Remove
+                      </button>
+                    </div>
                   </div>
-                  <div>
-                    <label htmlFor="addressLastName" className="block text-sm font-medium text-[#001F3F]">Last name</label>
-                    <input
-                      type="text"
-                      id="addressLastName"
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 sm:text-sm"
-                      value={newAddress.lastName}
-                      onChange={(e) => setNewAddress({ ...newAddress, lastName: e.target.value })}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label htmlFor="addressLine1" className="block text-sm font-medium text-[#001F3F]">Address</label>
-                  <input
-                    type="text"
-                    id="addressLine1"
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 sm:text-sm"
-                    value={newAddress.address1}
-                    onChange={(e) => setNewAddress({ ...newAddress, address1: e.target.value })}
-                  />
-                </div>
-                <div>
-                  <label htmlFor="addressLine2" className="block text-sm font-medium text-[#001F3F]">Apartment, suite, etc (optional)</label>
-                  <input
-                    type="text"
-                    id="addressLine2"
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 sm:text-sm"
-                    value={newAddress.address2}
-                    onChange={(e) => setNewAddress({ ...newAddress, address2: e.target.value })}
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label htmlFor="postalCode" className="block text-sm font-medium text-[#001F3F]">Postal code</label>
-                    <input
-                      type="text"
-                      id="postalCode"
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 sm:text-sm"
-                      value={newAddress.postalCode}
-                      onChange={(e) => setNewAddress({ ...newAddress, postalCode: e.target.value })}
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="city" className="block text-sm font-medium text-[#001F3F]">City</label>
-                    <input
-                      type="text"
-                      id="city"
-                      className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 sm:text-sm"
-                      value={newAddress.city}
-                      onChange={(e) => setNewAddress({ ...newAddress, city: e.target.value })}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label htmlFor="region" className="block text-sm font-medium text-[#001F3F]">Region</label>
-                  <select
-                    id="region"
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                    value={newAddress.region}
-                    onChange={(e) => setNewAddress({ ...newAddress, region: e.target.value })}
-                  >
-                    <option value="Abra">Abra</option>
-                    <option value="Cebu">Cebu</option>
-                    <option value="Davao del Sur">Davao del Sur</option>
-                    <option value="Jakarta">Jakarta</option>
-                    <option value="Bali">Bali</option>
-                    <option value="Johor">Johor</option>
-                    <option value="Sabah">Sabah</option>
-                    <option value="Bangkok">Bangkok</option>
-                    <option value="Chiang Mai">Chiang Mai</option>
-                    <option value="Hanoi">Hanoi</option>
-                    <option value="Ho Chi Minh">Ho Chi Minh</option>
-                    <option value="Central Singapore">Central Singapore</option>
-                    <option value="Phnom Penh">Phnom Penh</option>
-                    <option value="Vientiane">Vientiane</option>
-                    <option value="Dili">Dili</option>
-                    <option value="Yangon">Yangon</option>
-                    {/* Add more regions as needed */}
-                  </select>
-                </div>
-                <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-[#001F3F]">Phone</label>
-                  <div className="mt-1 flex rounded-md shadow-sm">
-                    <select
-                      id="phoneCode"
-                      className="block w-28 border border-gray-300 rounded-l-md bg-gray-50 text-[#001F3F] p-2 focus:ring-[#001F3F] focus:border-[#001F3F] sm:text-sm"
-                      value={newAddress.phoneCode}
-                      onChange={e => setNewAddress({ ...newAddress, phoneCode: e.target.value })}
-                    >
-                      <option value="+673">+673</option>
-                      <option value="+855">+855</option>
-                      <option value="+62">+62</option>
-                      <option value="+856">+856</option>
-                      <option value="+60">+60</option>
-                      <option value="+95">+95</option>
-                      <option value="+63">+63</option>
-                      <option value="+65">+65</option>
-                      <option value="+66">+66</option>
-                      <option value="+670">+670</option>
-                      <option value="+84">+84</option>
-                    </select>
-                    <input
-                      type="text"
-                      id="phone"
-                      className="flex-1 block w-full rounded-none rounded-r-md border border-gray-300 p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                      value={newAddress.phone}
-                      onChange={e => setNewAddress({ ...newAddress, phone: e.target.value })}
-                      placeholder="Phone number"
-                    />
-                  </div>
-                </div>
+                ))}
               </div>
-              <div className="flex justify-end space-x-3 mt-6">
-                <Button variant="outline" onClick={handleAddressModalClose} className="border-gray-300 text-[#001F3F] hover:bg-gray-50">Cancel</Button>
-                <button type="button" onClick={handleAddressSave} className="bg-blue-600 text-white hover:bg-blue-700 px-4 py-2 rounded-md">Save</button>
-              </div>
-            </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
