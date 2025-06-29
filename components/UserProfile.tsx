@@ -53,35 +53,35 @@ export default function UserProfile() {
   return (
     <div className="relative">
       <button
-        className="flex items-center space-x-1 text-[#001F3F] hover:text-[#003366] focus:outline-none"
+        className="flex items-center space-x-1 text-white hover:text-[#60A5FA] focus:outline-none"
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
       >
-        <div className="w-8 h-8 rounded-full bg-[#e6f0ff] flex items-center justify-center text-sm font-semibold text-[#001F3F]">
+        <div className="w-8 h-8 rounded-full bg-[#222f43] flex items-center justify-center text-sm font-semibold text-[#60A5FA]">
           {getInitials(user.displayName)}
         </div>
-        <span className="hidden md:inline text-sm font-medium">{user.displayName || user.email}</span>
+        <span className="hidden md:inline text-sm font-medium text-white">{user.displayName || user.email}</span>
         <svg
-          className={`h-4 w-4 transform transition-transform ${isDropdownOpen ? 'rotate-180' : 'rotate-0'}`}
+          className={`h-4 w-4 transform transition-transform text-white ${isDropdownOpen ? 'rotate-180' : 'rotate-0'}`}
           fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
         </svg>
       </button>
       {isDropdownOpen && (
-        <div className="absolute right-0 mt-2 w-[300px] bg-white border border-gray-200 rounded-md shadow-lg py-1 z-10">
-          <div className="flex items-center px-4 py-2 text-sm text-[#001F3F] border-b border-gray-200">
-            <div className="w-8 h-8 rounded-full bg-[#e6f0ff] flex items-center justify-center text-sm font-semibold text-[#001F3F] mr-1 flex-shrink-0">
+        <div className="absolute right-0 mt-2 w-[300px] bg-[#19223a] border border-[#222f43] rounded-md shadow-lg py-1 z-10">
+          <div className="flex items-center px-4 py-2 text-sm text-white border-b border-[#222f43]">
+            <div className="w-8 h-8 rounded-full bg-[#222f43] flex items-center justify-center text-sm font-semibold text-[#60A5FA] mr-1 flex-shrink-0">
               {getInitials(user.displayName)}
             </div>
             <div className="max-w-full">
-              <div className="font-semibold text-[#001F3F]">{user.displayName || 'Your Name'}</div>
-              <div className="text-[#003366]">{user.email}</div>
+              <div className="font-semibold text-white">{user.displayName || 'Your Name'}</div>
+              <div className="text-[#60A5FA]">{user.email}</div>
             </div>
           </div>
-          <Link href="/profile" className="block px-4 py-2 text-sm text-[#001F3F] hover:bg-[#f0f4f8]" onClick={() => setIsDropdownOpen(false)}>Profile</Link>
-          <Link href="/settings" className="block px-4 py-2 text-sm text-[#001F3F] hover:bg-[#f0f4f8]" onClick={() => setIsDropdownOpen(false)}>Settings</Link>
+          <Link href="/profile" className="block px-4 py-2 text-sm text-white hover:bg-[#222f43]" onClick={() => setIsDropdownOpen(false)}>Profile</Link>
+          <Link href="/settings" className="block px-4 py-2 text-sm text-white hover:bg-[#222f43]" onClick={() => setIsDropdownOpen(false)}>Settings</Link>
           <button
             onClick={() => { handleSignOut(); setIsDropdownOpen(false); }}
-            className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+            className="block w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-[#222f43]"
           >
             Log out
           </button>
