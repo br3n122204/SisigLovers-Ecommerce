@@ -10,6 +10,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
 import { db } from '@/lib/firebase'
 import { collection, getDocs } from 'firebase/firestore'
+import WelcomeCard from "@/components/WelcomeCard"
 
 // Sample slider images data
 const sliderImages = [
@@ -157,63 +158,66 @@ export default function DPTOneFashion() {
   }
 
   return (
-    <div className="min-h-screen bg-[#101828] text-[#60A5FA]">
-      {/* Main Content Container */}
-      <div className="w-full">
-        {/* Hero / Slider Section */}
-        <ImageSlider />
-        {/* Featured Products Section */}
-        <section className="py-20 bg-[#101828]">
-          <div className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-12">
-            <h2 className="text-4xl font-extrabold text-center mb-12 tracking-tight text-[#60A5FA]">
-              Featured Products
-            </h2>
-            {error ? (
-              <div className="flex justify-center items-center py-20 text-red-400 font-semibold">
-                {error}
-              </div>
-            ) : loading ? (
-              <div className="flex justify-center items-center py-20">
-                <svg className="animate-spin h-10 w-10 text-[#60A5FA]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
-                </svg>
-                <span className="ml-4 text-lg text-[#60A5FA]">Loading products...</span>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
-                {products.length === 0 ? (
-                  <div className="col-span-4 text-center text-[#60A5FA]">No products found.</div>
-                ) : (
-                  products.map((product) => (
-                    <Link key={product.id} href={`/products/${product.id}`} className="w-full">
-                      <div
-                        className="bg-[#19223a] rounded-2xl shadow-lg p-4 flex flex-col items-center cursor-pointer hover:shadow-xl transition text-[#60A5FA]"
-                        onMouseEnter={() => setHoveredProduct(product.id)}
-                        onMouseLeave={() => setHoveredProduct(null)}
-                      >
-                        <img
-                          src={
-                            hoveredProduct === product.id && product.imageUrls && product.imageUrls.length > 1
-                              ? product.imageUrls[1]
-                              : product.imageUrls && product.imageUrls.length > 0
-                                ? product.imageUrls[0]
-                                : "/images/placeholder.jpg"
-                          }
-                          alt={product.name}
-                          className="w-48 h-48 object-contain mb-4"
-                        />
-                        <h3 className="font-bold text-lg text-center mb-1">{product.name}</h3>
-                        <p className="text-[#60A5FA] font-semibold mb-4">₱{product.price}</p>
-                      </div>
-                    </Link>
-                  ))
-                )}
-              </div>
-            )}
-          </div>
-        </section>
+    <>
+      <WelcomeCard />
+      <div className="min-h-screen bg-[#101828] text-[#60A5FA]">
+        {/* Main Content Container */}
+        <div className="w-full">
+          {/* Hero / Slider Section */}
+          <ImageSlider />
+          {/* Featured Products Section */}
+          <section className="py-20 bg-[#101828]">
+            <div className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-12">
+              <h2 className="text-4xl font-extrabold text-center mb-12 tracking-tight text-[#60A5FA]">
+                Featured Products
+              </h2>
+              {error ? (
+                <div className="flex justify-center items-center py-20 text-red-400 font-semibold">
+                  {error}
+                </div>
+              ) : loading ? (
+                <div className="flex justify-center items-center py-20">
+                  <svg className="animate-spin h-10 w-10 text-[#60A5FA]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
+                  </svg>
+                  <span className="ml-4 text-lg text-[#60A5FA]">Loading products...</span>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+                  {products.length === 0 ? (
+                    <div className="col-span-4 text-center text-[#60A5FA]">No products found.</div>
+                  ) : (
+                    products.map((product) => (
+                      <Link key={product.id} href={`/products/${product.id}`} className="w-full">
+                        <div
+                          className="bg-[#19223a] rounded-2xl shadow-lg p-4 flex flex-col items-center cursor-pointer hover:shadow-xl transition text-[#60A5FA]"
+                          onMouseEnter={() => setHoveredProduct(product.id)}
+                          onMouseLeave={() => setHoveredProduct(null)}
+                        >
+                          <img
+                            src={
+                              hoveredProduct === product.id && product.imageUrls && product.imageUrls.length > 1
+                                ? product.imageUrls[1]
+                                : product.imageUrls && product.imageUrls.length > 0
+                                  ? product.imageUrls[0]
+                                  : "/images/placeholder.jpg"
+                            }
+                            alt={product.name}
+                            className="w-48 h-48 object-contain mb-4"
+                          />
+                          <h3 className="font-bold text-lg text-center mb-1">{product.name}</h3>
+                          <p className="text-[#60A5FA] font-semibold mb-4">₱{product.price}</p>
+                        </div>
+                      </Link>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+          </section>
+        </div>
       </div>
-    </div>
+    </>
   )
 }
