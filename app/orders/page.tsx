@@ -9,14 +9,14 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/context/AuthContext";
-import { collection, query, where, orderBy, getDocs } from "firebase/firestore";
+import { collection, query, where, orderBy, getDocs, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Calendar, Package, Search, Filter, Eye, Download } from "lucide-react";
 
 interface Order {
   id: string;
   orderNumber: string;
-  orderDate: Date;
+  dateOrdered: Date | undefined;
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   total: number;
   items: OrderItem[];
@@ -56,55 +56,64 @@ export default function OrdersPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
   useEffect(() => {
+    let unsubscribe: (() => void) | undefined;
     if (user) {
-      // Fetch orders from per-user users/{userId}/orders subcollection
-      const fetchOrders = async () => {
+      // Fetch orders from per-user users/{userId}/orders subcollection in real-time
+      const fetchOrders = () => {
         try {
           const userOrdersRef = collection(db, 'users', user.uid, 'orders');
           const q = query(
             userOrdersRef,
-            orderBy('orderDate', 'desc')
+            orderBy('dateOrdered', 'desc')
           );
-          const querySnapshot = await getDocs(q);
-          const fetchedOrders: Order[] = [];
-          
-          querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            fetchedOrders.push({
-              id: doc.id,
-              orderNumber: data.orderNumber,
-              orderDate: data.orderDate && typeof data.orderDate.toDate === 'function'
-                ? data.orderDate.toDate()
-                : new Date(data.orderDate || Date.now()),
-              status: data.status,
-              total: data.total,
-              items: data.items || [],
-              shippingAddress: data.shippingAddress,
-              paymentMethod: data.paymentMethod,
-              trackingNumber: data.trackingNumber,
-              estimatedDelivery: data.estimatedDelivery && typeof data.estimatedDelivery.toDate === 'function'
-                ? data.estimatedDelivery.toDate()
-                : (data.estimatedDelivery ? new Date(data.estimatedDelivery) : undefined)
+          unsubscribe = onSnapshot(q, (querySnapshot) => {
+            const fetchedOrders: Order[] = [];
+            querySnapshot.forEach((doc) => {
+              const data = doc.data();
+              let dateOrderedValue: Date | undefined = undefined;
+              if (data.dateOrdered && typeof data.dateOrdered.toDate === 'function') {
+                dateOrderedValue = data.dateOrdered.toDate();
+              } else if (data.dateOrdered) {
+                dateOrderedValue = new Date(data.dateOrdered);
+              }
+              fetchedOrders.push({
+                id: doc.id,
+                orderNumber: data.orderNumber,
+                dateOrdered: dateOrderedValue,
+                status: data.status,
+                total: data.total,
+                items: data.items || [],
+                shippingAddress: data.shippingAddress,
+                paymentMethod: data.paymentMethod,
+                trackingNumber: data.trackingNumber,
+                estimatedDelivery: data.estimatedDelivery && typeof data.estimatedDelivery.toDate === 'function'
+                  ? data.estimatedDelivery.toDate()
+                  : (data.estimatedDelivery ? new Date(data.estimatedDelivery) : undefined)
+              });
             });
+            setOrders(fetchedOrders);
+            setFilteredOrders(fetchedOrders);
+            setLoading(false);
+          }, (error) => {
+            console.error("Error fetching orders:", error);
+            setOrders([]);
+            setFilteredOrders([]);
+            setLoading(false);
           });
-          
-          setOrders(fetchedOrders);
-          setFilteredOrders(fetchedOrders);
         } catch (error) {
           console.error("Error fetching orders:", error);
           setOrders([]);
           setFilteredOrders([]);
-        } finally {
           setLoading(false);
         }
       };
-      
       fetchOrders();
     } else {
       setOrders([]);
       setFilteredOrders([]);
       setLoading(false);
     }
+    return () => { if (unsubscribe) unsubscribe(); };
   }, [user]);
 
   useEffect(() => {
@@ -148,18 +157,33 @@ export default function OrdersPage() {
     }
   };
 
-  const formatDate = (date: Date | string | undefined | null) => {
+  // Helper to get a valid date from order (robust for Firestore Timestamp, string, number, or serverTimestamp placeholder)
+  const getOrderDate = (order: any) => {
+    const d = order.dateOrdered;
+    if (!d) return undefined;
+    if (typeof d.toDate === 'function') return d.toDate(); // Firestore Timestamp
+    if (typeof d === 'object' && d._methodName === 'serverTimestamp') return 'pending'; // Pending server timestamp
+    if (typeof d === 'string' || typeof d === 'number') {
+      const dateObj = new Date(d);
+      if (!isNaN(dateObj.getTime())) return dateObj;
+    }
+    return undefined;
+  };
+
+  // Use a long date format for 'Date Ordered', handle 'pending' state
+  const formatDateLong = (date: Date | string | undefined | null) => {
     if (!date) return "N/A";
+    if (date === 'pending') return "Pending...";
     let d: Date;
     if (typeof date === "string") {
       d = new Date(date);
     } else {
-      d = date;
+      d = date as Date;
     }
     if (isNaN(d.getTime())) return "N/A";
     return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
-      month: 'short',
+      month: 'long',
       day: 'numeric'
     }).format(d);
   };
@@ -244,118 +268,118 @@ export default function OrdersPage() {
           </div>
         ) : (
           <div className="space-y-6">
-            {filteredOrders.map((order) => (
-              <Link key={order.id} href={`/orders/${order.id}`} className="block">
-                <Card className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow bg-[#19223a] border-[#60A5FA] text-[#60A5FA]">
-                  <CardHeader className="bg-[#19223a] border-b border-[#60A5FA]">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                      <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2">
-                          <span className="text-2xl">{getStatusIcon(order.status)}</span>
-                          <Badge className="bg-[#60A5FA] text-[#101828]">
-                            {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                          </Badge>
-                        </div>
-                        <div>
-                          <p className="font-medium text-[#60A5FA]">{order.orderNumber}</p>
-                          <p className="text-sm text-[#60A5FA]">
-                            <Calendar className="inline h-3 w-3 mr-1" />
-                            {formatDate(order.orderDate)}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="p-6 bg-[#19223a] text-[#60A5FA]">
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                      {/* Order Items */}
-                      <div className="lg:col-span-2">
-                        <h4 className="font-medium text-[#60A5FA] mb-3">Items</h4>
-                        <div className="space-y-3">
-                          {order.items.map((item) => (
-                            <div key={item.id} className="flex items-center gap-3">
-                              <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100">
-                                {item.image ? (
-                                  <Image src={item.image} alt={item.name} fill className="object-cover" />
-                                ) : (
-                                  <div className="w-16 h-16 flex items-center justify-center bg-[#101828] text-[#60A5FA] text-xs">No Image</div>
-                                )}
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium text-[#60A5FA] truncate">{item.name}</p>
-                                <p className="text-sm text-[#60A5FA]">
-                                  Qty: {item.quantity}
-                                  {item.size && (
-                                    <>
-                                      {typeof item.size === 'object' && item.size !== null && 'size' in item.size
-                                        ? (item.size as any).size
-                                        : item.size}
-                                    </>
-                                  )}
-                                  {item.color && (
-                                    <>
-                                      {typeof item.color === 'object' && item.color !== null && 'color' in item.color
-                                        ? (item.color as any).color
-                                        : item.color}
-                                    </>
-                                  )}
-                                </p>
-                                <p className="text-sm font-medium text-[#60A5FA]">
-                                  {formatCurrency(item.price)}
-                                </p>
-                              </div>
-                            </div>
-                          ))}
+            {filteredOrders.map((order) => {
+              const dateObj = getOrderDate(order);
+              return (
+                <Link key={order.id} href={`/orders/${order.id}`} className="block">
+                  <Card className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow bg-[#19223a] border-[#60A5FA] text-[#60A5FA]">
+                    <CardHeader className="bg-[#19223a] border-b border-[#60A5FA]">
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center gap-2">
+                            <span className="text-2xl">{getStatusIcon(order.status)}</span>
+                            <Badge className="bg-[#60A5FA] text-[#101828]">
+                              {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                            </Badge>
+                          </div>
+                          <div>
+                            <p className="font-medium text-[#60A5FA]">{order.orderNumber}</p>
+                            <p className="text-sm text-[#60A5FA]">Date Ordered: {formatDateLong(dateObj)}</p>
+                          </div>
                         </div>
                       </div>
-
-                      {/* Order Summary */}
-                      <div className="space-y-4">
-                        <div>
-                          <h4 className="font-medium text-[#60A5FA] mb-2">Order Summary</h4>
-                          <div className="space-y-2 text-sm">
-                            <div className="flex justify-between">
-                              <span>Subtotal:</span>
-                              <span>{formatCurrency(order.total)}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Shipping:</span>
-                              <span>Free</span>
-                            </div>
-                            <div className="border-t pt-2 flex justify-between font-medium">
-                              <span>Total:</span>
-                              <span>{formatCurrency(order.total)}</span>
-                            </div>
+                    </CardHeader>
+                    <CardContent className="p-6 bg-[#19223a] text-[#60A5FA]">
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        {/* Order Items */}
+                        <div className="lg:col-span-2">
+                          <h4 className="font-medium text-[#60A5FA] mb-3">Items</h4>
+                          <div className="space-y-3">
+                            {order.items.map((item) => (
+                              <div key={item.id} className="flex items-center gap-3">
+                                <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100">
+                                  {item.image ? (
+                                    <Image src={item.image} alt={item.name} fill className="object-cover" />
+                                  ) : (
+                                    <div className="w-16 h-16 flex items-center justify-center bg-[#101828] text-[#60A5FA] text-xs">No Image</div>
+                                  )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium text-[#60A5FA] truncate">{item.name}</p>
+                                  <p className="text-sm text-[#60A5FA]">
+                                    Qty: {item.quantity}
+                                    {item.size && (
+                                      <>
+                                        {typeof item.size === 'object' && item.size !== null && 'size' in item.size
+                                          ? (item.size as any).size
+                                          : item.size}
+                                      </>
+                                    )}
+                                    {item.color && (
+                                      <>
+                                        {typeof item.color === 'object' && item.color !== null && 'color' in item.color
+                                          ? (item.color as any).color
+                                          : item.color}
+                                      </>
+                                    )}
+                                  </p>
+                                  <p className="text-sm font-medium text-[#60A5FA]">
+                                    {formatCurrency(item.price)}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         </div>
 
-                        <div>
-                          <h4 className="font-medium text-[#60A5FA] mb-2">Shipping Address</h4>
-                          <p className="text-sm text-[#60A5FA]">
-                            {order.shippingAddress.firstName} {order.shippingAddress.lastName}<br />
-                            {order.shippingAddress.address1}<br />
-                            {order.shippingAddress.city}, {order.shippingAddress.region} {order.shippingAddress.postalCode}<br />
-                            {order.shippingAddress.phone}
-                          </p>
-                        </div>
-
-                        {order.trackingNumber && (
+                        {/* Order Summary */}
+                        <div className="space-y-4">
                           <div>
-                            <h4 className="font-medium text-[#60A5FA] mb-2">Tracking</h4>
+                            <h4 className="font-medium text-[#60A5FA] mb-2">Order Summary</h4>
+                            <div className="space-y-2 text-sm">
+                              <div className="flex justify-between">
+                                <span>Subtotal:</span>
+                                <span>{formatCurrency(order.total)}</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span>Shipping:</span>
+                                <span>Free</span>
+                              </div>
+                              <div className="border-t pt-2 flex justify-between font-medium">
+                                <span>Total:</span>
+                                <span>{formatCurrency(order.total)}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div>
+                            <h4 className="font-medium text-[#60A5FA] mb-2">Shipping Address</h4>
                             <p className="text-sm text-[#60A5FA]">
-                              Number: {order.trackingNumber}<br />
-                              {order.estimatedDelivery && (
-                                <>Estimated Delivery: {formatDate(order.estimatedDelivery)}</>
-                              )}
+                              {order.shippingAddress.firstName} {order.shippingAddress.lastName}<br />
+                              {order.shippingAddress.address1}<br />
+                              {order.shippingAddress.city}, {order.shippingAddress.region} {order.shippingAddress.postalCode}<br />
+                              {order.shippingAddress.phone}
                             </p>
                           </div>
-                        )}
+
+                          {order.trackingNumber && (
+                            <div>
+                              <h4 className="font-medium text-[#60A5FA] mb-2">Tracking</h4>
+                              <p className="text-sm text-[#60A5FA]">
+                                Number: {order.trackingNumber}<br />
+                                {order.estimatedDelivery && (
+                                  <>Estimated Delivery: {formatDateLong(order.estimatedDelivery)}</>
+                                )}
+                              </p>
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
-            ))}
+                    </CardContent>
+                  </Card>
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>

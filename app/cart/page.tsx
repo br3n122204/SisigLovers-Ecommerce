@@ -6,16 +6,30 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function CartPage() {
   const { cartItems, removeFromCart, updateQuantity, isCartSyncing } = useCart();
   const { user } = useAuth();
   const router = useRouter();
   const [removingItemIds, setRemovingItemIds] = useState<number[]>([]);
+  const [selectedItemIds, setSelectedItemIds] = useState<number[]>([]);
+
+  useEffect(() => {
+    // By default, select all items when cart changes
+    setSelectedItemIds(cartItems.map(item => item.id));
+  }, [cartItems]);
+
+  const handleSelectItem = (id: number) => {
+    setSelectedItemIds(prev =>
+      prev.includes(id) ? prev.filter(itemId => itemId !== id) : [...prev, id]
+    );
+  };
+
+  const selectedCartItems = cartItems.filter(item => selectedItemIds.includes(item.id));
 
   const calculateTotal = () => {
-    return cartItems.reduce((total, item) => {
+    return selectedCartItems.reduce((total, item) => {
       let price: number;
       if (typeof item.price === 'string') {
         price = parseFloat(item.price.replace(/[^\d.]/g, ''));
@@ -27,7 +41,9 @@ export default function CartPage() {
   };
 
   const handleProceedToCheckout = () => {
-    router.push('/checkout');
+    if (selectedCartItems.length === 0) return;
+    // Pass selected item IDs to checkout page as a query string
+    router.push(`/checkout?selected=${selectedItemIds.join(',')}`);
   };
 
   const handleUpdateQuantity = (id: number, newQuantity: number) => {
@@ -44,6 +60,18 @@ export default function CartPage() {
       removeFromCart(id);
       setRemovingItemIds((prev) => prev.filter((itemId) => itemId !== id));
     }, 300);
+  };
+
+  // Determine if all, some, or none are selected
+  const allSelected = cartItems.length > 0 && selectedItemIds.length === cartItems.length;
+  const someSelected = selectedItemIds.length > 0 && selectedItemIds.length < cartItems.length;
+
+  const handleSelectAll = () => {
+    if (allSelected) {
+      setSelectedItemIds([]);
+    } else {
+      setSelectedItemIds(cartItems.map(item => item.id));
+    }
   };
 
   return (
@@ -68,11 +96,30 @@ export default function CartPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Cart Items List */}
             <div className="md:col-span-2 space-y-6">
+              {/* Select All Checkbox */}
+              {cartItems.length > 0 && (
+                <div className="flex items-center mb-2">
+                  <input
+                    type="checkbox"
+                    checked={allSelected}
+                    ref={el => { if (el) el.indeterminate = someSelected; }}
+                    onChange={handleSelectAll}
+                    className="mr-2 accent-[#60A5FA] w-5 h-5"
+                  />
+                  <span className="text-[#60A5FA] font-medium">Select All</span>
+                </div>
+              )}
               {cartItems.map((item) => (
                 <div
                   key={`${item.id}-${item.selectedSize}`}
                   className={`flex items-center space-x-4 border-b border-[#60A5FA] pb-4 transition-opacity duration-300 ${removingItemIds.includes(item.id) ? 'opacity-30 pointer-events-none' : ''}`}
                 >
+                  <input
+                    type="checkbox"
+                    checked={selectedItemIds.includes(item.id)}
+                    onChange={() => handleSelectItem(item.id)}
+                    className="mr-2 accent-[#60A5FA] w-5 h-5"
+                  />
                   <div className="relative w-24 h-24 flex-shrink-0 rounded-md overflow-hidden border border-gray-200">
                     {item.image ? (
                       <Image src={item.image} alt={item.name} fill className="object-cover" />
