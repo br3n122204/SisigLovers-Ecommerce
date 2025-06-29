@@ -326,19 +326,12 @@ export default function AdminOrdersPage() {
         ) : (
           <div className="space-y-6 overflow-x-auto w-full">
             {filteredOrders.map((order) => (
-              <Card key={order.id} className="overflow-hidden bg-[#161e2e] text-white border border-[#22304a] w-full max-w-full box-border">
-                <CardHeader className="bg-[#22304a]">
+              <Card key={order.id} className="overflow-hidden bg-[var(--card)] text-[var(--foreground)] border border-[var(--sidebar)] w-full max-w-full box-border">
+                <CardHeader className="bg-[var(--sidebar)]">
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div className="flex items-center gap-4">
                       <span className="text-2xl">{getStatusIcon(order.status)}</span>
-                      <Badge className={
-                        order.status === 'pending' ? 'bg-yellow-300 text-black' :
-                        order.status === 'processing' ? 'bg-blue-400 text-white' :
-                        order.status === 'shipped' ? 'bg-purple-400 text-white' :
-                        order.status === 'delivered' ? 'bg-green-400 text-white' :
-                        order.status === 'cancelled' ? 'bg-red-400 text-white' :
-                        'bg-[#8ec0ff] text-black'
-                      }>
+                      <Badge variant={order.status as any} className="font-semibold">
                         <select
                           value={order.status}
                           onChange={async (e) => {
@@ -350,7 +343,7 @@ export default function AdminOrdersPage() {
                               setOrders
                             });
                           }}
-                          className="bg-transparent border-none text-inherit font-semibold focus:outline-none focus:ring-2 focus:ring-[#3390ff] rounded"
+                          className="bg-transparent border-none text-inherit font-semibold focus:outline-none focus:ring-2 focus:ring-[var(--accent)] rounded"
                         >
                           {ORDER_STATUSES.map(status => (
                             <option key={status} value={status} className="text-black">
@@ -360,34 +353,34 @@ export default function AdminOrdersPage() {
                         </select>
                       </Badge>
                       <div>
-                        <p className="font-medium text-white">{order.orderNumber}</p>
-                        <p className="text-sm text-[#8ec0ff]">
+                        <p className="font-medium text-[var(--foreground)]">{order.orderNumber}</p>
+                        <p className="text-sm text-[var(--accent)]">
                           <Calendar className="inline h-3 w-3 mr-1" />
                           {formatDate(order.orderDate, true)}
                         </p>
                         {order.userEmail && (
-                          <p className="text-xs text-[#8ec0ff]">{order.userEmail}</p>
+                          <p className="text-xs text-[var(--accent)]">{order.userEmail}</p>
                         )}
                         {order.userPhone && (
-                          <p className="text-xs text-[#8ec0ff]">{order.userPhone}</p>
+                          <p className="text-xs text-[var(--accent)]">{order.userPhone}</p>
                         )}
                       </div>
                     </div>
                     <div className="text-right">
-                      <span className="block text-xs text-[#8ec0ff] font-semibold">Payment: {order.paymentMethod?.toUpperCase() || 'N/A'}</span>
-                      <span className="block text-xs text-[#8ec0ff]">Status: {order.paymentStatus?.charAt(0).toUpperCase() + order.paymentStatus?.slice(1) || 'N/A'}</span>
+                      <span className="block text-xs text-[var(--accent)] font-semibold">Payment: {order.paymentMethod?.toUpperCase() || 'N/A'}</span>
+                      <span className="block text-xs text-[var(--accent)]">Status: {order.paymentStatus?.charAt(0).toUpperCase() + order.paymentStatus?.slice(1) || 'N/A'}</span>
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent className="p-6 bg-[#161e2e] text-white">
+                <CardContent className="p-6 bg-[var(--card)] text-[var(--foreground)]">
                   <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {/* Order Items */}
                     <div className="lg:col-span-2">
-                      <h4 className="font-medium text-[#8ec0ff] mb-3">Items Ordered</h4>
+                      <h4 className="font-medium text-[var(--accent)] mb-3">Items Ordered</h4>
                       <div className="space-y-3">
                         {order.items.map((item) => (
                           <div key={item.id} className="flex items-center gap-3">
-                            <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-[#22304a]">
+                            <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-[var(--sidebar)]">
                               <img
                                 src={item.image}
                                 alt={item.name}
@@ -395,8 +388,8 @@ export default function AdminOrdersPage() {
                               />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-medium text-white truncate">{item.name}</p>
-                              <p className="text-sm text-[#8ec0ff]">
+                              <p className="font-medium text-[var(--foreground)] truncate">{item.name}</p>
+                              <p className="text-sm text-[var(--accent)]">
                                 Qty: {item.quantity}
                                 {Array.isArray(item.size)
                                   ? (item.size as any[]).map((s, idx) => (
@@ -409,7 +402,7 @@ export default function AdminOrdersPage() {
                                       : null}
                                 {item.color && <> • {item.color}</>}
                               </p>
-                              <p className="text-sm font-medium text-[#3390ff]">
+                              <p className="text-sm font-medium text-[var(--accent)]">
                                 {formatCurrency(item.price)}
                               </p>
                             </div>
@@ -418,29 +411,29 @@ export default function AdminOrdersPage() {
                       </div>
                     </div>
                     {/* Order Summary */}
-                    <div className="bg-[#22304a] rounded-lg p-4">
-                      <h4 className="font-medium text-[#8ec0ff] mb-3">Order Summary</h4>
+                    <div className="bg-[var(--sidebar)] rounded-lg p-4">
+                      <h4 className="font-medium text-[var(--accent)] mb-3">Order Summary</h4>
                       <div className="flex flex-col gap-1 text-sm">
-                        <span>Subtotal: <span className="text-[#3390ff]">{formatCurrency(order.subtotal)}</span></span>
-                        <span>Shipping: <span className="text-[#3390ff]">{formatCurrency(order.shipping)}</span></span>
-                        <span>Tax: <span className="text-[#3390ff]">{formatCurrency(order.tax)}</span></span>
-                        <span className="font-semibold">Total: <span className="text-[#3390ff]">{formatCurrency(order.total)}</span></span>
+                        <span>Subtotal: <span className="text-[var(--accent)]">{formatCurrency(order.subtotal)}</span></span>
+                        <span>Shipping: <span className="text-[var(--accent)]">{formatCurrency(order.shipping)}</span></span>
+                        <span>Tax: <span className="text-[var(--accent)]">{formatCurrency(order.tax)}</span></span>
+                        <span className="font-semibold">Total: <span className="text-[var(--accent)]">{formatCurrency(order.total)}</span></span>
                       </div>
                       <div className="mt-4">
-                        <span className="block text-xs text-[#8ec0ff]">Tracking #: {order.trackingNumber || 'N/A'}</span>
-                        <span className="block text-xs text-[#8ec0ff]">Est. Delivery: {order.estimatedDelivery ? formatDate(order.estimatedDelivery, true) : 'N/A'}</span>
+                        <span className="block text-xs text-[var(--accent)]">Tracking #: {order.trackingNumber || 'N/A'}</span>
+                        <span className="block text-xs text-[var(--accent)]">Est. Delivery: {order.estimatedDelivery ? formatDate(order.estimatedDelivery, true) : 'N/A'}</span>
                       </div>
                     </div>
                   </div>
                   {/* Addresses */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                    <div className="bg-[#22304a] rounded-lg p-4">
-                      <h4 className="font-medium text-[#8ec0ff] mb-2">Shipping Address</h4>
-                      <p className="text-sm text-white">{formatAddress(order.shippingAddress)}</p>
+                    <div className="bg-[var(--sidebar)] rounded-lg p-4">
+                      <h4 className="font-medium text-[var(--accent)] mb-2">Shipping Address</h4>
+                      <p className="text-sm text-[var(--foreground)]">{formatAddress(order.shippingAddress)}</p>
                     </div>
-                    <div className="bg-[#22304a] rounded-lg p-4">
-                      <h4 className="font-medium text-[#8ec0ff] mb-2">Billing Address</h4>
-                      <p className="text-sm text-white">{formatAddress(order.billingAddress)}</p>
+                    <div className="bg-[var(--sidebar)] rounded-lg p-4">
+                      <h4 className="font-medium text-[var(--accent)] mb-2">Billing Address</h4>
+                      <p className="text-sm text-[var(--foreground)]">{formatAddress(order.billingAddress)}</p>
                     </div>
                   </div>
                 </CardContent>

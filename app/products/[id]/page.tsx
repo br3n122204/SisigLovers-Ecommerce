@@ -44,6 +44,10 @@ export default function ProductDetailPage() {
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         const data = docSnap.data();
+        // Ensure price is always a number
+        if (data.price && typeof data.price !== 'number') {
+          data.price = Number(String(data.price).replace(/[^\d.]/g, ''));
+        }
         setProduct(data);
         setSelectedSize(data.sizes ? data.sizes[0] : undefined);
         if (data.imageUrls && data.imageUrls.length > 0) {
@@ -62,11 +66,21 @@ export default function ProductDetailPage() {
 
   const handleAddToCart = () => {
     if (product && selectedSize) {
+      console.log('Add to cart image debug:', { mainImage, imageUrl: product.imageUrl, imageUrls: product.imageUrls });
+      let imageToUse = mainImage;
+      if (!imageToUse) {
+        if (product.imageUrl) imageToUse = product.imageUrl;
+        else if (product.imageUrls && product.imageUrls.length > 0) imageToUse = product.imageUrls[0];
+        else imageToUse = "/images/placeholder.jpg";
+      }
+      // Always pass a number for price, fallback to 0 if invalid
+      let priceToUse = typeof product.price === 'number' ? product.price : Number(String(product.price).replace(/[^\d.]/g, ''));
+      if (isNaN(priceToUse)) priceToUse = 0;
       addToCart({
         id: productId,
         name: product.name,
-        image: mainImage,
-        price: typeof product.price === 'number' ? product.price : Number(product.price),
+        image: imageToUse,
+        price: priceToUse,
         quantity: Number(quantity),
         selectedSize: selectedSize,
       });

@@ -5,59 +5,29 @@
 
 @layer base {
   :root {
-    --background: 40 33% 98%; /* #FAF9F6 */
-    --foreground: 220 100% 20%;   /* Dark Blue #001F3F */
-    --card: 40 33% 98%;       /* #FAF9F6 */
-    --card-foreground: 220 100% 20%;
-    --popover: 40 33% 98%;
-    --popover-foreground: 220 100% 20%;
-    --primary: 0 0% 13%;      /* #222222 - Keep original */
-    --primary-foreground: 40 33% 98%;
-    --secondary: 44 77% 70%;  /* #F5C16C */
-    --secondary-foreground: 0 0% 13%;
-    --muted: 44 77% 96%;
-    --muted-foreground: 220 100% 40%;
-    --accent: 44 77% 70%;     /* #F5C16C */
-    --accent-foreground: 0 0% 13%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 40 33% 98%;
-    --border: 0 0% 90%;       /* #E5E5E5 */
-    --input: 0 0% 90%;        /* #E5E5E5 */
-    --ring: 0 0% 13%;
-    --radius: 0.5rem;
+    --background: #0A101E;
+    --foreground: #B8C7F9;
+    --card: #11182A;
+    --sidebar: #151B2B;
+    --accent: #1976D2;
+    --badge-pending: #FFF9C4;
+    --badge-processing: #BBDEFB;
+    --badge-shipped: #F8BBD0;
+    --badge-delivered: #C8E6C9;
+    --badge-text-pending: #7B7300;
+    --badge-text-processing: #0D47A1;
+    --badge-text-shipped: #AD1457;
+    --badge-text-delivered: #1B5E20;
   }
 
-  .dark {
-    --background: 0 0% 13%;
-    --foreground: 220 100% 85%;
-    --card: 0 0% 13%;
-    --card-foreground: 220 100% 85%;
-    --popover: 0 0% 13%;
-    --popover-foreground: 220 100% 85%;
-    --primary: 40 33% 98%;
-    --primary-foreground: 0 0% 13%;
-    --secondary: 44 77% 70%;
-    --secondary-foreground: 220 100% 85%;
-    --muted: 0 0% 20%;
-    --muted-foreground: 220 100% 85%;
-    --accent: 44 77% 70%;
-    --accent-foreground: 220 100% 85%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 220 100% 85%;
-    --border: 0 0% 30%;
-    --input: 0 0% 30%;
-    --ring: 40 33% 98%;
-  }
-}
-
-@layer base {
-  * {
-    @apply border-border;
-  }
   body {
-    @apply text-foreground;
-    font-family: 'Montserrat', 'Proxima Nova', 'Inter', 'Segoe UI', 'system-ui', 'sans-serif';
-    color: #001F3F;
+    background: var(--background) !important;
+    color: var(--foreground) !important;
+    font-family: 'Montserrat', 'Inter', 'Segoe UI', 'system-ui', 'sans-serif';
+  }
+
+  * {
+    box-sizing: border-box;
   }
 }
 
@@ -67,18 +37,19 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: #151B2B;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #888;
+  background: #222B3A;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: #1976D2;
 }
 
 html, body {
-  background: #000 !important;
+  background: var(--background) !important;
+  color: var(--foreground) !important;
 }

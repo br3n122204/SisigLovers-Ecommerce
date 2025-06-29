@@ -331,417 +331,233 @@ export default function CheckoutPage() {
   const totalAmount = (parseFloat(calculateTotal()) + getShippingPrice()).toFixed(2);
 
   return (
-    <div className="min-h-screen bg-black py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Left Column: Delivery and Payment */}
-        <div className="bg-black p-8 rounded-lg shadow-md">
-          <h1 className="text-2xl font-bold mb-6 text-[#001F3F]">Checkout</h1>
-
-          {/* Account Section */}
-          <div className="mb-8 pb-4 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-[#001F3F] mb-4">Account</h2>
-            <div className="flex items-center space-x-2 mb-4">
-              <span className="font-medium">{deliveryDetails.email}</span>
+    <div className="min-h-screen bg-[var(--background)]">
+      <div className="max-w-5xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+          {/* Checkout Form */}
+          <div className="md:col-span-2 space-y-10">
+            <h1 className="text-3xl font-bold text-[var(--accent)] mb-6">Checkout</h1>
+            {/* Account Section */}
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold text-[var(--accent)] mb-2">Account</h2>
+              <p className="text-[var(--foreground)] font-semibold">{user?.email}</p>
             </div>
-          </div>
-
-          {/* Address Selector */}
-          {addresses.length > 0 && (
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-[#001F3F]">Select Address</label>
-              <select
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-[#001F3F]"
-                value={selectedAddressId || ""}
-                onChange={e => {
-                  setSelectedAddressId(e.target.value);
-                  const addr = addresses.find(a => a.id === e.target.value);
-                  if (addr) {
-                    setDeliveryDetails(prev => ({
-                      ...prev,
-                      firstName: addr.firstName,
-                      lastName: addr.lastName,
-                      address1: addr.address1,
-                      address2: addr.address2 || "",
-                      postalCode: addr.postalCode,
-                      city: addr.city,
-                      region: addr.region,
-                      phone: addr.phone,
-                    }));
-                  }
-                }}
-              >
-                {addresses.map(addr => (
-                  <option key={addr.id} value={addr.id}>
-                    {addr.isDefault ? "[Default] " : ""}
-                    {addr.address1}, {addr.city}, {addr.region}
-                  </option>
+            <hr className="border-[var(--sidebar)] my-6" />
+            {/* Address Selector */}
+            {addresses.length > 0 && (
+              <div className="mb-4">
+                <label className="block text-[var(--foreground)] mb-1">Select Address</label>
+                <select
+                  className="w-full px-3 py-2 rounded bg-[var(--card)] text-[var(--foreground)] border border-[var(--sidebar)] focus:border-[var(--accent)] focus:outline-none"
+                  value={selectedAddressId || ""}
+                  onChange={e => {
+                    setSelectedAddressId(e.target.value);
+                    const addr = addresses.find(a => a.id === e.target.value);
+                    if (addr) {
+                      setDeliveryDetails(prev => ({
+                        ...prev,
+                        firstName: addr.firstName,
+                        lastName: addr.lastName,
+                        address1: addr.address1,
+                        address2: addr.address2 || "",
+                        postalCode: addr.postalCode,
+                        city: addr.city,
+                        region: addr.region,
+                        phone: addr.phone,
+                      }));
+                    }
+                  }}
+                >
+                  {addresses.map(addr => (
+                    <option key={addr.id} value={addr.id} className="bg-[var(--card)] text-[var(--foreground)]">
+                      {addr.isDefault ? "[Default] " : ""}
+                      {addr.address1}, {addr.city}, {addr.region}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            {/* Delivery Section */}
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold text-[var(--accent)] mb-2">Delivery</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[var(--foreground)] mb-1">First name</label>
+                  <input name="firstName" value={deliveryDetails.firstName} onChange={handleInputChange} className="w-full px-3 py-2 rounded bg-[var(--card)] text-[var(--foreground)] border border-[var(--sidebar)] focus:border-[var(--accent)] focus:outline-none" />
+                </div>
+                <div>
+                  <label className="block text-[var(--foreground)] mb-1">Last name</label>
+                  <input name="lastName" value={deliveryDetails.lastName} onChange={handleInputChange} className="w-full px-3 py-2 rounded bg-[var(--card)] text-[var(--foreground)] border border-[var(--sidebar)] focus:border-[var(--accent)] focus:outline-none" />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-[var(--foreground)] mb-1">Address (Please do not forget to include your Barangay)</label>
+                  <input name="address1" value={deliveryDetails.address1} onChange={handleInputChange} className="w-full px-3 py-2 rounded bg-[var(--card)] text-[var(--foreground)] border border-[var(--sidebar)] focus:border-[var(--accent)] focus:outline-none" />
+                </div>
+                <div className="md:col-span-2">
+                  <label className="block text-[var(--foreground)] mb-1">Apartment, suite, etc. (optional)</label>
+                  <input name="address2" value={deliveryDetails.address2} onChange={handleInputChange} className="w-full px-3 py-2 rounded bg-[var(--card)] text-[var(--foreground)] border border-[var(--sidebar)] focus:border-[var(--accent)] focus:outline-none" />
+                </div>
+                <div>
+                  <label className="block text-[var(--foreground)] mb-1">Postal code</label>
+                  <input name="postalCode" value={deliveryDetails.postalCode} onChange={handleInputChange} className="w-full px-3 py-2 rounded bg-[var(--card)] text-[var(--foreground)] border border-[var(--sidebar)] focus:border-[var(--accent)] focus:outline-none" />
+                </div>
+                <div>
+                  <label className="block text-[var(--foreground)] mb-1">City</label>
+                  <input name="city" value={deliveryDetails.city} onChange={handleInputChange} className="w-full px-3 py-2 rounded bg-[var(--card)] text-[var(--foreground)] border border-[var(--sidebar)] focus:border-[var(--accent)] focus:outline-none" />
+                </div>
+              </div>
+            </div>
+            {/* Shipping Method Section */}
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold text-[var(--accent)] mb-2">Shipping method</h2>
+              <RadioGroup value={shippingMethod} onValueChange={setShippingMethod} className="space-y-2">
+                {shippingOptions.map(option => (
+                  <label key={option.value} className="flex items-center cursor-pointer text-[var(--foreground)]">
+                    <RadioGroupItem value={option.value} id={`shipping-${option.value}`} />
+                    <span className="ml-2">{option.label} ({option.time}) — ₱{option.price.toFixed(2)}</span>
+                  </label>
                 ))}
-              </select>
+              </RadioGroup>
             </div>
-          )}
-
-          {/* Delivery Section */}
-          <div className="mb-8 pb-4 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-[#001F3F] mb-4">Delivery</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-              <div>
-                <label htmlFor="firstName" className="block text-sm font-medium text-[#001F3F]">First name</label>
-                <input
-                  type="text"
-                  id="firstName"
-                  name="firstName"
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-[#001F3F]"
-                  value={deliveryDetails.firstName}
-                  onChange={handleInputChange}
-                  required
-                  autoComplete="off"
-                />
-              </div>
-              <div>
-                <label htmlFor="lastName" className="block text-sm font-medium text-[#001F3F]">Last name</label>
-                <input
-                  type="text"
-                  id="lastName"
-                  name="lastName"
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-[#001F3F]"
-                  value={deliveryDetails.lastName}
-                  onChange={handleInputChange}
-                  required
-                  autoComplete="off"
-                />
-              </div>
-            </div>
-            <div className="mb-4">
-              <label htmlFor="address1" className="block text-sm font-medium text-[#001F3F]">Address (Please do not forget to include your Barangay)</label>
-              <input
-                type="text"
-                id="address1"
-                name="address1"
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-[#001F3F]"
-                value={deliveryDetails.address1}
-                onChange={handleInputChange}
-                required
-                autoComplete="off"
-              />
-            </div>
-            <div className="mb-4">
-              <label htmlFor="address2" className="block text-sm font-medium text-[#001F3F]">Apartment, suite, etc. (optional)</label>
-              <input
-                type="text"
-                id="address2"
-                name="address2"
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-[#001F3F]"
-                value={deliveryDetails.address2}
-                onChange={handleInputChange}
-                autoComplete="off"
-              />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-              <div>
-                <label htmlFor="postalCode" className="block text-sm font-medium text-[#001F3F]">Postal code</label>
-                <input
-                  type="text"
-                  id="postalCode"
-                  name="postalCode"
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-[#001F3F]"
-                  value={deliveryDetails.postalCode}
-                  onChange={handleInputChange}
-                  required
-                  autoComplete="off"
-                />
-              </div>
-              <div>
-                <label htmlFor="city" className="block text-sm font-medium text-[#001F3F]">City</label>
-                <input
-                  type="text"
-                  id="city"
-                  name="city"
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-[#001F3F]"
-                  value={deliveryDetails.city}
-                  onChange={handleInputChange}
-                  required
-                  autoComplete="off"
-                />
-              </div>
-            </div>
-            <div className="mb-4">
-              <label htmlFor="region" className="block text-sm font-medium text-[#001F3F]">Region</label>
-              <Select value={deliveryDetails.region} onValueChange={value => setDeliveryDetails(prev => ({ ...prev, region: value }))}>
-                <SelectTrigger className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 h-12 flex items-center justify-between text-base focus:outline-none focus:ring-2 focus:ring-[#A75D43] focus:border-[#A75D43]">
-                  <SelectValue placeholder="Select region" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Cebu">Cebu</SelectItem>
-                  {/* Add more regions as needed */}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="mb-4">
-              <label htmlFor="phone" className="block text-sm font-medium text-[#001F3F]">Phone</label>
-              <input
-                type="text"
-                id="phone"
-                name="phone"
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-[#001F3F]"
-                value={deliveryDetails.phone}
-                onChange={handleInputChange}
-                required
-                autoComplete="off"
-              />
-            </div>
-          </div>
-
-          {/* Shipping Method Section */}
-          <div className="mb-8 pb-4 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-[#001F3F] mb-4">Shipping method</h2>
-            <RadioGroup value={shippingMethod} onValueChange={setShippingMethod} className="space-y-2">
-              {shippingOptions.map(option => (
-                <label key={option.value} className="flex items-center cursor-pointer">
-                  <RadioGroupItem value={option.value} id={`shipping-${option.value}`} />
-                  <span className="ml-2">{option.label} ({option.time}) — ₱{option.price.toFixed(2)}</span>
+            {/* Payment Section */}
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold text-[var(--accent)] mb-2">Payment</h2>
+              <p className="text-[var(--foreground)] mb-2">All transactions are secure and encrypted.</p>
+              <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="space-y-2">
+                <label className="flex items-center cursor-pointer text-[var(--foreground)]">
+                  <RadioGroupItem value="gcash" id="payment-gcash" />
+                  <span className="ml-2 flex items-center">
+                    GCash
+                    <img
+                      src="/GCash_Logo.png"
+                      alt="GCash Logo"
+                      className="ml-2 h-6 w-6 object-contain"
+                    />
+                  </span>
                 </label>
-              ))}
-            </RadioGroup>
-          </div>
-
-          {/* Payment Section */}
-          <div className="mb-8 pb-4 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-[#001F3F] mb-4">Payment</h2>
-            <p className="text-[#001F3F] mb-2">All transactions are secure and encrypted.</p>
-            <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="space-y-2">
-              <label className="flex items-center cursor-pointer">
-                <RadioGroupItem value="gcash" id="payment-gcash" />
-                <span className="ml-2 flex items-center">
-                  GCash
-                  <img
-                    src="https://ltfzekatcjpltiighukw.supabase.co/storage/v1/object/public/product-images/GCash_Logo.jpg"
-                    alt="GCash Logo"
-                    className="ml-2 h-6 w-6 object-contain"
-                  />
-                </span>
-              </label>
-              <label className="flex items-center cursor-pointer">
-                <RadioGroupItem value="cod" id="payment-cod" />
-                <span className="ml-2">Cash on delivery (COD)</span>
-              </label>
-            </RadioGroup>
-          </div>
-
-          {/* Billing Address */}
-          <h2 className="text-xl font-semibold text-[#001F3F] mb-4">Billing address</h2>
-          <RadioGroup value={sameAsShipping ? "same" : "different"} onValueChange={v => setSameAsShipping(v === "same")} className="space-y-2">
-            <label className="flex items-center cursor-pointer">
-              <RadioGroupItem value="same" id="billing-same" />
-              <span className="ml-3 block text-sm font-medium text-[#001F3F]">Same as shipping address</span>
-            </label>
-            <label className="flex items-center cursor-pointer">
-              <RadioGroupItem value="different" id="billing-different" />
-              <span className="ml-3 block text-sm font-medium text-[#001F3F]">Use a different billing address</span>
-            </label>
-          </RadioGroup>
-          {!sameAsShipping && (
-            <div className="mt-4 p-4 border border-gray-200 rounded-md bg-gray-50">
-              <div className="mb-4">
-                <label htmlFor="savedAddresses" className="block text-sm font-medium text-[#001F3F]">Saved addresses</label>
-                <Select value={selectedAddressId || undefined} onValueChange={value => {
-                  setSelectedAddressId(value);
-                  const addr = savedAddresses.find(a => a.id === value);
-                  if (addr) {
-                    setBillingDetails(addr);
-                  }
-                }}>
-                  <SelectTrigger className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 h-12 flex items-center justify-between text-base focus:outline-none focus:ring-2 focus:ring-[#A75D43] focus:border-[#A75D43]">
-                    <SelectValue placeholder="Select a saved address" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {savedAddresses.map(addr => (
-                      <SelectItem key={addr.id} value={addr.id}>{addr.address}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="mb-4">
-                <label htmlFor="countryBilling" className="block text-sm font-medium text-[#001F3F]">Country/Region</label>
-                <Select value={billingDetails.country} onValueChange={value => setBillingDetails(prev => ({ ...prev, country: value }))}>
-                  <SelectTrigger className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 h-12 flex items-center justify-between text-base focus:outline-none focus:ring-2 focus:ring-[#A75D43] focus:border-[#A75D43]">
-                    <SelectValue placeholder="Select country" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Philippines">Philippines</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label htmlFor="firstNameBilling" className="block text-sm font-medium text-[#001F3F]">First name (optional)</label>
-                  <input
-                    type="text"
-                    id="firstNameBilling"
-                    name="firstName"
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-[#001F3F]"
-                    value={billingDetails.firstName}
-                    onChange={handleBillingInputChange}
-                    autoComplete="off"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="lastNameBilling" className="block text-sm font-medium text-[#001F3F]">Last name</label>
-                  <input
-                    type="text"
-                    id="lastNameBilling"
-                    name="lastName"
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-[#001F3F]"
-                    value={billingDetails.lastName}
-                    onChange={handleBillingInputChange}
-                    required
-                    autoComplete="off"
-                  />
-                </div>
-              </div>
-              <div className="mb-4">
-                <label htmlFor="address1Billing" className="block text-sm font-medium text-[#001F3F]">Address</label>
-                <input
-                  type="text"
-                  id="address1Billing"
-                  name="address1"
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-[#001F3F]"
-                  value={billingDetails.address1}
-                  onChange={handleBillingInputChange}
-                  required
-                  autoComplete="off"
-                />
-              </div>
-              <div className="mb-4">
-                <label htmlFor="address2Billing" className="block text-sm font-medium text-[#001F3F]">Apartment, suite, etc. (optional)</label>
-                <input
-                  type="text"
-                  id="address2Billing"
-                  name="address2"
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-[#001F3F]"
-                  value={billingDetails.address2}
-                  onChange={handleBillingInputChange}
-                  autoComplete="off"
-                />
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-                <div>
-                  <label htmlFor="postalCodeBilling" className="block text-sm font-medium text-[#001F3F]">Postal code</label>
-                  <input
-                    type="text"
-                    id="postalCodeBilling"
-                    name="postalCode"
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-[#001F3F]"
-                    value={billingDetails.postalCode}
-                    onChange={handleBillingInputChange}
-                    required
-                    autoComplete="off"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="cityBilling" className="block text-sm font-medium text-[#001F3F]">City</label>
-                  <input
-                    type="text"
-                    id="cityBilling"
-                    name="city"
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-[#001F3F]"
-                    value={billingDetails.city}
-                    onChange={handleBillingInputChange}
-                    required
-                    autoComplete="off"
-                  />
-                </div>
-              </div>
-              <div className="mb-4">
-                <label htmlFor="regionBilling" className="block text-sm font-medium text-[#001F3F]">Region</label>
-                <Select value={billingDetails.region} onValueChange={value => setBillingDetails(prev => ({ ...prev, region: value }))}>
-                  <SelectTrigger className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 h-12 flex items-center justify-between text-base focus:outline-none focus:ring-2 focus:ring-[#A75D43] focus:border-[#A75D43]">
-                    <SelectValue placeholder="Select region" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Cebu">Cebu</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="mb-4">
-                <label htmlFor="phoneBilling" className="block text-sm font-medium text-[#001F3F]">Phone</label>
-                <input
-                  type="text"
-                  id="phoneBilling"
-                  name="phone"
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-[#001F3F]"
-                  value={billingDetails.phone}
-                  onChange={handleBillingInputChange}
-                  required
-                  autoComplete="off"
-                />
-              </div>
+                <label className="flex items-center cursor-pointer text-[var(--foreground)]">
+                  <RadioGroupItem value="cod" id="payment-cod" />
+                  <span className="ml-2">Cash on delivery (COD)</span>
+                </label>
+              </RadioGroup>
             </div>
-          )}
-
-          {/* Pay Now Button */}
-          <Button
-            className="w-full bg-[#A75D43] text-[#001F3F] py-3 rounded-md hover:bg-[#c98a6a] transition-colors"
-            onClick={handleProceedToPayment}
-            disabled={isProcessing}
-          >
-            {isProcessing ? "Processing..." : "Checkout"}
-          </Button>
-        </div>
-
-        {/* Right Column: Order Summary */}
-        <div className="bg-black p-8 rounded-lg shadow-md sticky top-8 h-fit">
-          <h2 className="text-xl font-bold text-[#001F3F] mb-4">Your order</h2>
-          {cartItems.length === 0 ? (
-            <p className="text-[#001F3F]">Your cart is empty.</p>
-          ) : (
-            <>
-              <div className="space-y-4 mb-6">
-                {cartItems.map((item) => (
-                  <div key={`${item.id}-${item.selectedSize}`} className="flex items-center space-x-4">
-                    <div className="relative w-24 h-24 flex-shrink-0 rounded-md overflow-hidden border border-gray-200">
-                      <Image src={item.image} alt={item.name} width={96} height={96} className="object-contain" />
-                      <span className="absolute -top-2 -right-2 bg-black text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
-                        {item.quantity}
-                      </span>
+            {/* Billing Address */}
+            <div className="mb-8">
+              <h2 className="text-xl font-semibold text-[var(--accent)] mb-2">Billing address</h2>
+              <RadioGroup value={sameAsShipping ? "same" : "different"} onValueChange={v => setSameAsShipping(v === "same")} className="space-y-2">
+                <label className="flex items-center cursor-pointer text-[var(--foreground)]">
+                  <RadioGroupItem value="same" id="billing-same" />
+                  <span className="ml-3 block text-sm font-medium">Same as shipping address</span>
+                </label>
+                <label className="flex items-center cursor-pointer text-[var(--foreground)]">
+                  <RadioGroupItem value="different" id="billing-different" />
+                  <span className="ml-3 block text-sm font-medium">Use a different billing address</span>
+                </label>
+              </RadioGroup>
+              {!sameAsShipping && (
+                <div className="mt-4 p-4 border border-[var(--sidebar)] rounded-md bg-[var(--card)]">
+                  <div className="mb-4">
+                    <label className="block text-[var(--foreground)] mb-1">Saved addresses</label>
+                    <select
+                      className="w-full px-3 py-2 rounded bg-[var(--card)] text-[var(--foreground)] border border-[var(--sidebar)] focus:border-[var(--accent)] focus:outline-none"
+                      value={selectedAddressId || undefined}
+                      onChange={e => {
+                        setSelectedAddressId(e.target.value);
+                        const addr = savedAddresses.find(a => a.id === e.target.value);
+                        if (addr) {
+                          setBillingDetails(addr);
+                        }
+                      }}
+                    >
+                      {savedAddresses.map(addr => (
+                        <option key={addr.id} value={addr.id} className="bg-[var(--card)] text-[var(--foreground)]">{addr.address}</option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-[var(--foreground)] mb-1">Country/Region</label>
+                    <select
+                      className="w-full px-3 py-2 rounded bg-[var(--card)] text-[var(--foreground)] border border-[var(--sidebar)] focus:border-[var(--accent)] focus:outline-none"
+                      value={billingDetails.country}
+                      onChange={e => setBillingDetails(prev => ({ ...prev, country: e.target.value }))}
+                    >
+                      <option value="Philippines" className="bg-[var(--card)] text-[var(--foreground)]">Philippines</option>
+                    </select>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[var(--foreground)] mb-1">First name (optional)</label>
+                      <input name="firstName" value={billingDetails.firstName} onChange={handleBillingInputChange} className="w-full px-3 py-2 rounded bg-[var(--card)] text-[var(--foreground)] border border-[var(--sidebar)] focus:border-[var(--accent)] focus:outline-none" />
                     </div>
-                    <div className="flex-grow">
-                      <h3 className="text-lg font-semibold text-[#001F3F]">{item.name}</h3>
+                    <div>
+                      <label className="block text-[var(--foreground)] mb-1">Last name</label>
+                      <input name="lastName" value={billingDetails.lastName} onChange={handleBillingInputChange} className="w-full px-3 py-2 rounded bg-[var(--card)] text-[var(--foreground)] border border-[var(--sidebar)] focus:border-[var(--accent)] focus:outline-none" />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-[var(--foreground)] mb-1">Address</label>
+                      <input name="address1" value={billingDetails.address1} onChange={handleBillingInputChange} className="w-full px-3 py-2 rounded bg-[var(--card)] text-[var(--foreground)] border border-[var(--sidebar)] focus:border-[var(--accent)] focus:outline-none" />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-[var(--foreground)] mb-1">Apartment, suite, etc. (optional)</label>
+                      <input name="address2" value={billingDetails.address2} onChange={handleBillingInputChange} className="w-full px-3 py-2 rounded bg-[var(--card)] text-[var(--foreground)] border border-[var(--sidebar)] focus:border-[var(--accent)] focus:outline-none" />
+                    </div>
+                    <div>
+                      <label className="block text-[var(--foreground)] mb-1">Postal code</label>
+                      <input name="postalCode" value={billingDetails.postalCode} onChange={handleBillingInputChange} className="w-full px-3 py-2 rounded bg-[var(--card)] text-[var(--foreground)] border border-[var(--sidebar)] focus:border-[var(--accent)] focus:outline-none" />
+                    </div>
+                    <div>
+                      <label className="block text-[var(--foreground)] mb-1">City</label>
+                      <input name="city" value={billingDetails.city} onChange={handleBillingInputChange} className="w-full px-3 py-2 rounded bg-[var(--card)] text-[var(--foreground)] border border-[var(--sidebar)] focus:border-[var(--accent)] focus:outline-none" />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            {/* Place Order Button */}
+            <Button
+              className="w-full bg-[var(--accent)] text-white py-3 rounded-md hover:bg-[var(--foreground)] hover:text-[var(--background)] transition-colors mt-6 font-semibold"
+              onClick={handleProceedToPayment}
+              disabled={isProcessing}
+            >
+              {isProcessing ? "Processing..." : "Place Order"}
+            </Button>
+          </div>
+          {/* Order Summary */}
+          <div className="md:col-span-1 bg-[var(--card)] p-6 rounded-lg shadow-sm h-fit sticky top-20 border border-[var(--sidebar)]">
+            <h2 className="text-xl font-bold text-[var(--accent)] mb-4">Your order</h2>
+            {cartItems.length === 0 ? (
+              <div className="text-[var(--foreground)]">No items in cart.</div>
+            ) : (
+              <div className="space-y-4">
+                {cartItems.map((item) => (
+                  <div key={item.id} className="flex items-center gap-4 border-b border-[var(--sidebar)] pb-4">
+                    <div className="relative w-20 h-20 rounded-md overflow-hidden border border-[var(--sidebar)] bg-[var(--sidebar)]">
+                      <Image src={item.image ? item.image : "/images/placeholder.jpg"} alt={item.name} fill className="object-cover" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-semibold text-[var(--foreground)]">{item.name}</div>
                       {item.selectedSize && (
-                        <p className="text-sm text-[#001F3F]">
-                          Size: {typeof item.selectedSize === 'object' && item.selectedSize !== null && 'size' in item.selectedSize
-                            ? (item.selectedSize as any).size
-                            : item.selectedSize}
-                        </p>
+                        <div className="text-sm text-[var(--foreground)]">Size: {item.selectedSize}</div>
                       )}
                     </div>
-                    <p className="text-md font-medium text-[#001F3F]">
-                      ₱{
-                        ((typeof item.price === "string"
-                          ? parseFloat(item.price.replace(/[^\d.]/g, ''))
-                          : item.price) * item.quantity
-                        ).toFixed(2)
-                      }
-                    </p>
+                    <div className="font-bold text-[var(--accent)]">₱{item.price}</div>
                   </div>
                 ))}
-              </div>
-
-              <div className="space-y-2 text-[#001F3F] pt-4 border-t border-gray-200">
-                <div className="flex justify-between">
+                <div className="flex justify-between text-[var(--foreground)] mt-4">
                   <span>Subtotal</span>
                   <span>₱{calculateTotal()}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between text-[var(--foreground)]">
                   <span>Shipping</span>
                   <span>₱{getShippingPrice().toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between font-bold text-lg border-t pt-2 mt-2 border-gray-200">
+                <div className="flex justify-between font-bold text-lg border-t pt-2 mt-2 border-[var(--sidebar)] text-[var(--accent)]">
                   <span>Total</span>
-                  <span>PHP ₱{totalAmount}</span>
+                  <span>₱{totalAmount}</span>
                 </div>
               </div>
-            </> 
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>

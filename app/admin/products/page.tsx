@@ -91,53 +91,53 @@ export default function AdminProductsPage() {
   if (loading) return <div className="p-8 text-[#8ec0ff]">Loading products...</div>;
 
   return (
-    <div className="w-full h-screen flex bg-black">
-      <div className="w-full h-full bg-[#161e2e] px-8 py-10 flex flex-col">
-        <h1 className="text-3xl font-bold mb-8 text-[#3390ff]">Manage Products</h1>
+    <div className="w-full h-screen flex bg-[var(--background)]">
+      <div className="w-full h-full bg-[var(--card)] px-8 py-10 flex flex-col">
+        <h1 className="text-3xl font-bold mb-8 text-[var(--accent)]">Manage Products</h1>
         <div className="overflow-x-auto">
-          <table className="min-w-full bg-[#161e2e] border border-[#22304a] rounded-lg text-white">
+          <table className="min-w-full bg-[var(--card)] border border-[var(--sidebar)] rounded-lg text-[var(--foreground)]">
             <thead>
-              <tr className="bg-[#22304a] text-[#8ec0ff]">
-                <th className="p-3 border-b border-[#22304a] text-center">Image</th>
-                <th className="p-3 border-b border-[#22304a] text-left">Name</th>
-                <th className="p-3 border-b border-[#22304a] text-left">Brand</th>
-                <th className="p-3 border-b border-[#22304a] text-left">Price</th>
-                <th className="p-3 border-b border-[#22304a] text-left">Stock</th>
-                <th className="p-3 border-b border-[#22304a] text-center">Actions</th>
+              <tr className="bg-[var(--sidebar)] text-[var(--accent)]">
+                <th className="p-3 border-b border-[var(--sidebar)] text-center">Image</th>
+                <th className="p-3 border-b border-[var(--sidebar)] text-left">Name</th>
+                <th className="p-3 border-b border-[var(--sidebar)] text-left">Brand</th>
+                <th className="p-3 border-b border-[var(--sidebar)] text-left">Price</th>
+                <th className="p-3 border-b border-[var(--sidebar)] text-left">Stock</th>
+                <th className="p-3 border-b border-[var(--sidebar)] text-center">Actions</th>
               </tr>
             </thead>
             <tbody>
               {products.map((product) => (
-                <tr key={product.id} className="border-b border-[#22304a] hover:bg-[#1e293b] transition-colors">
+                <tr key={product.id} className="border-b border-[var(--sidebar)] hover:bg-[var(--sidebar)] transition-colors">
                   <td className="px-4 py-2 text-center">
                     <img
                       src={Array.isArray(product.imageUrls) && product.imageUrls.length > 0 ? product.imageUrls[0] : '/images/placeholder.jpg'}
                       alt={product.name}
-                      className="w-12 h-12 object-contain rounded bg-[#22304a]"
+                      className="w-12 h-12 object-contain rounded bg-[var(--sidebar)]"
                     />
                   </td>
                   <td className="p-3">
                     {editingId === product.id ? (
                       <input
-                        className="bg-[#22304a] border border-[#22304a] px-2 py-1 rounded w-32 text-white"
+                        className="bg-[var(--sidebar)] border border-[var(--sidebar)] px-2 py-1 rounded w-32 text-[var(--foreground)]"
                         value={editValues.name || ""}
                         onChange={e => setEditValues(v => ({ ...v, name: e.target.value }))}
                       />
                     ) : (
-                      <span className="font-semibold text-white">{product.name}</span>
+                      <span className="font-semibold text-[var(--foreground)]">{product.name}</span>
                     )}
                   </td>
-                  <td className="p-3 text-[#8ec0ff]">{product.brand || "-"}</td>
+                  <td className="p-3 text-[var(--accent)]">{product.brand || "-"}</td>
                   <td className="p-3">
                     {editingId === product.id ? (
                       <input
                         type="number"
-                        className="bg-[#22304a] border border-[#22304a] px-2 py-1 rounded w-20 text-white"
+                        className="bg-[var(--sidebar)] border border-[var(--sidebar)] px-2 py-1 rounded w-20 text-[var(--foreground)]"
                         value={editValues.price ?? ""}
                         onChange={e => setEditValues(v => ({ ...v, price: Number(e.target.value) }))}
                       />
                     ) : (
-                      <span className="font-semibold text-[#3390ff]">₱{product.price}</span>
+                      <span className="font-semibold text-[var(--accent)]">₱{product.price}</span>
                     )}
                   </td>
                   <td className="p-3">
@@ -148,7 +148,7 @@ export default function AdminProductsPage() {
                             <div key={i} className="flex items-center gap-2">
                               <input
                                 type="text"
-                                className="bg-[#22304a] border border-[#22304a] px-2 py-1 rounded w-12 text-xs font-semibold text-center text-white"
+                                className="bg-[var(--sidebar)] border border-[var(--sidebar)] px-2 py-1 rounded w-12 text-xs font-semibold text-center text-[var(--foreground)]"
                                 value={s.size}
                                 placeholder="Size"
                                 onChange={e => {
@@ -159,7 +159,7 @@ export default function AdminProductsPage() {
                               />
                               <input
                                 type="number"
-                                className="bg-[#22304a] border border-[#22304a] px-2 py-1 rounded w-16 text-white"
+                                className="bg-[var(--sidebar)] border border-[var(--sidebar)] px-2 py-1 rounded w-16 text-[var(--foreground)]"
                                 value={s.stock}
                                 min={0}
                                 placeholder="Stock"
@@ -194,7 +194,7 @@ export default function AdminProductsPage() {
                       ) : (
                         <input
                           type="number"
-                          className="bg-[#22304a] border border-[#22304a] px-2 py-1 rounded w-16 text-white"
+                          className="bg-[var(--sidebar)] border border-[var(--sidebar)] px-2 py-1 rounded w-16 text-[var(--foreground)]"
                           value={editValues.stock ?? ""}
                           onChange={e => setEditValues(v => ({ ...v, stock: Number(e.target.value) }))}
                         />
@@ -203,11 +203,11 @@ export default function AdminProductsPage() {
                       product.sizes && product.sizes.length > 0 ? (
                         <div className="flex flex-wrap gap-1">
                           {product.sizes.map((s, i) => (
-                            <span key={i} className="text-xs bg-[#22304a] text-[#8ec0ff] rounded px-2 py-1 inline-block font-semibold">{s.size}: {s.stock}</span>
+                            <span key={i} className="text-xs bg-[var(--sidebar)] text-[var(--accent)] rounded px-2 py-1 inline-block font-semibold">{s.size}: {s.stock}</span>
                           ))}
                         </div>
                       ) : (
-                        <span className="text-white">{product.stock}</span>
+                        <span className="text-[var(--foreground)]">{product.stock}</span>
                       )
                     )}
                   </td>
@@ -223,7 +223,7 @@ export default function AdminProductsPage() {
                         </Button>
                         <Button
                           variant="outline"
-                          className="border border-[#22304a] text-[#8ec0ff] hover:bg-[#22304a]"
+                          className="border border-[var(--sidebar)] text-[var(--accent)] hover:bg-[var(--sidebar)]"
                           onClick={cancelEdit}
                           disabled={saving}
                         >

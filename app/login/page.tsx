@@ -127,7 +127,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative min-h-screen w-full flex items-center justify-center">
+    <div className="relative min-h-screen w-full flex items-center justify-center bg-[#101726]">
       {/* Blurred homepage background */}
       <div className="fixed inset-0 -z-10">
         <div className="absolute inset-0">
@@ -139,21 +139,23 @@ export default function LoginPage() {
         </div>
       </div>
       {/* Overlay for dimming */}
-      <div className="fixed inset-0 bg-black/30 -z-10" />
+      <div className="fixed inset-0 bg-black/40 -z-10" />
       {/* Login form container (centered) */}
-      <div className="w-full max-w-md p-10 space-y-6 bg-white rounded-2xl shadow-2xl border border-[#f5c16c] relative">
-        <button onClick={() => router.push('/')} className="absolute top-4 right-4 text-[#001F3F] hover:text-[#003366] text-2xl font-bold">&times;</button>
+      <div className="w-full max-w-md p-10 space-y-6 bg-[#1a2233] rounded-2xl shadow-2xl border border-[#232c43] relative">
+        <button onClick={() => router.push('/')} className="absolute top-4 right-4 text-white hover:text-[var(--accent)] text-2xl font-bold">&times;</button>
         <div className="flex justify-center mb-2">
-          <Image src="/images/footer-logo.png" alt="Brand Logo" width={90} height={90} className="rounded-full shadow-lg" />
+          <div className="w-[100px] h-[100px] rounded-full bg-white flex items-center justify-center mb-2">
+            <Image src="/images/footer-logo.png" alt="Brand Logo" width={70} height={70} className="object-contain" />
+          </div>
         </div>
-        <h2 className="text-3xl font-extrabold mb-2 text-center text-[#001F3F] tracking-tight">{isRegistering ? "Sign Up" : "Sign In"}</h2>
-        <p className="text-center text-[#001F3F] mb-6 text-base">{isRegistering ? "Create your account to get started." : "Log in to your account."}</p>
+        <h2 className="text-3xl font-extrabold mb-2 text-center text-black tracking-tight">Sign In</h2>
+        <p className="text-center text-gray-400 mb-6 text-base">Log in to your account.</p>
         <form onSubmit={handleAuth} className="space-y-4">
           <input
             id="email"
             type="email"
             required
-            className="w-full px-4 py-3 border-2 border-[#A75D43] rounded-lg focus:ring-2 focus:ring-[#A75D43] focus:border-[#F5C16C] bg-[#FAF9F6] text-[#001F3F] placeholder-[#001F3F]"
+            className="w-full px-4 py-3 border-2 border-white rounded-lg focus:ring-2 focus:ring-[var(--accent)] focus:border-[var(--accent)] bg-[#232c43] text-white placeholder-gray-400"
             placeholder="Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -163,7 +165,7 @@ export default function LoginPage() {
             id="password"
             type="password"
             required
-            className="w-full px-4 py-3 border-2 border-[#A75D43] rounded-lg focus:ring-2 focus:ring-[#A75D43] focus:border-[#F5C16C] bg-[#FAF9F6] text-[#001F3F] placeholder-[#001F3F]"
+            className="w-full px-4 py-3 border-2 border-white rounded-lg focus:ring-2 focus:ring-[var(--accent)] focus:border-[var(--accent)] bg-[#232c43] text-white placeholder-gray-400"
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -174,7 +176,7 @@ export default function LoginPage() {
               id="confirm-password"
               type="password"
               required
-              className="w-full px-4 py-3 border-2 border-[#A75D43] rounded-lg focus:ring-2 focus:ring-[#A75D43] focus:border-[#F5C16C] bg-[#FAF9F6] text-[#001F3F] placeholder-[#001F3F]"
+              className="w-full px-4 py-3 border-2 border-white rounded-lg focus:ring-2 focus:ring-[var(--accent)] focus:border-[var(--accent)] bg-[#232c43] text-white placeholder-gray-400"
               placeholder="Confirm Password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
@@ -182,27 +184,23 @@ export default function LoginPage() {
             />
           )}
           {error && (
-            <div className="text-red-600 text-sm text-center p-2 bg-red-50 rounded-md">
+            <div className="text-red-400 text-sm text-center p-2 bg-red-900/20 rounded-md">
               {error}
             </div>
           )}
           <button
             type="submit"
-            className={`w-full bg-[#A75D43] text-[#001F3F] py-3 px-4 rounded-lg font-bold border-2 border-[#F5C16C] shadow-md hover:bg-[#c98a6a] hover:border-[#A75D43] focus:outline-none focus:ring-2 focus:ring-[#F5C16C] focus:ring-offset-2 transition-colors duration-200 ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+            className={`w-full bg-transparent text-white py-3 px-4 rounded-lg font-bold border-2 border-white shadow-md hover:bg-[var(--accent)] hover:text-white hover:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-2 transition-colors duration-200 ${isLoading ? "opacity-50 cursor-not-allowed" : ""}`}
             disabled={isLoading}
           >
-            {isLoading ? (isRegistering ? "Registering..." : "Logging In...") : (isRegistering ? "Sign Up" : "Sign In")}
+            Sign In
           </button>
         </form>
-        <div className="text-center text-sm mt-4">
-          {isRegistering ? (
-            <>Already have an account? <button onClick={() => { setIsRegistering(false); }} className="text-[#001F3F] font-semibold hover:underline">Sign In</button></>
-          ) : (
-            <>Don't have an account? <button onClick={() => { setIsRegistering(true); }} className="text-[#001F3F] font-semibold hover:underline">Sign Up</button></>
-          )}
+        <div className="text-center text-sm mt-4 text-white">
+          Don't have an account? <button onClick={() => { setIsRegistering(true); }} className="font-semibold hover:underline text-[var(--accent)]">Sign Up</button>
         </div>
-        <div className="text-xs text-[#001F3F] text-center mt-4">
-          By continuing, you agree to our <span className="text-[#001F3F] font-semibold">Terms of Service</span>
+        <div className="text-center text-xs mt-2 text-gray-500">
+          By continuing, you agree to our <span className="underline cursor-pointer">Terms of Service</span>
         </div>
       </div>
     </div>

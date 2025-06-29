@@ -78,47 +78,49 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-[#A75D43] border-b border-[#c98a6a] py-4">
+    <header className="bg-[var(--sidebar)] border-b border-[var(--card)] py-4 font-sans">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row md:items-center md:justify-between">
         {/* Left: Logo and Navigation */}
         <div className="flex items-center gap-8 w-full md:w-auto md:flex-1">
           <Link href="/" className="flex items-center mr-4">
-            <Image
-              src="/images/logo.png"
-              alt="Sisig Lovers Logo"
-              width={60}
-              height={60}
-              className="h-auto"
-              priority
-            />
+            <div className="bg-white rounded-full shadow-lg flex items-center justify-center" style={{ width: 60, height: 60 }}>
+              <Image
+                src="/images/logo.png"
+                alt="Sisig Lovers Logo"
+                width={40}
+                height={40}
+                className="object-contain"
+                priority
+              />
+            </div>
           </Link>
-          <nav className="flex items-center gap-6 text-sm font-medium text-[#001F3F]">
+          <nav className="flex items-center gap-6 text-sm font-medium text-[var(--foreground)]">
             {/* Shop by Brand Dropdown */}
             {!isAdminPage && (
               <div className="relative">
                 <button
                   onClick={() => setIsBrandDropdownOpen(!isBrandDropdownOpen)}
-                  className="flex items-center space-x-1 hover:text-[#fff9f3] focus:outline-none"
+                  className="flex items-center space-x-1 hover:text-[var(--accent)] focus:outline-none transition-colors"
                 >
                   <span>Shop by Brand</span>
                   <ChevronDown
-                    className={`h-4 w-4 transform transition-transform duration-200 ${isBrandDropdownOpen ? 'rotate-180' : ''}`}
+                    className={`h-4 w-4 transform transition-transform duration-200 ${isBrandDropdownOpen ? 'rotate-180' : ''} text-[var(--accent)]`}
                   />
                 </button>
-                <div className={`absolute ${isBrandDropdownOpen ? 'block' : 'hidden'} bg-[#001F3F] shadow-lg rounded-md py-1 mt-2 w-40 z-20`}>
-                  <button type="button" className="block w-full text-left px-4 py-2 text-white hover:bg-[#003366] hover:text-white" onClick={() => { router.push('/search?brand=MN%2BLA'); setIsBrandDropdownOpen(false); }}>MN+LA</button>
-                  <button type="button" className="block w-full text-left px-4 py-2 text-white hover:bg-[#003366] hover:text-white" onClick={() => { router.push('/search?brand=Charlotte%20Folk'); setIsBrandDropdownOpen(false); }}>Charlotte Folk</button>
-                  <button type="button" className="block w-full text-left px-4 py-2 text-white hover:bg-[#003366] hover:text-white" onClick={() => { router.push('/search?brand=Strap'); setIsBrandDropdownOpen(false); }}>Strap</button>
-                  <button type="button" className="block w-full text-left px-4 py-2 text-white hover:bg-[#003366] hover:text-white" onClick={() => { router.push('/search?brand=Richboyz'); setIsBrandDropdownOpen(false); }}>Richboyz</button>
+                <div className={`absolute ${isBrandDropdownOpen ? 'block' : 'hidden'} bg-[var(--card)] shadow-lg rounded-md py-1 mt-2 w-40 z-20`}>
+                  <button type="button" className="block w-full text-left px-4 py-2 text-[var(--foreground)] hover:bg-[var(--accent)] hover:text-white transition-colors" onClick={() => { router.push('/search?brand=MN%2BLA'); setIsBrandDropdownOpen(false); }}>MN+LA</button>
+                  <button type="button" className="block w-full text-left px-4 py-2 text-[var(--foreground)] hover:bg-[var(--accent)] hover:text-white transition-colors" onClick={() => { router.push('/search?brand=Charlotte%20Folk'); setIsBrandDropdownOpen(false); }}>Charlotte Folk</button>
+                  <button type="button" className="block w-full text-left px-4 py-2 text-[var(--foreground)] hover:bg-[var(--accent)] hover:text-white transition-colors" onClick={() => { router.push('/search?brand=Strap'); setIsBrandDropdownOpen(false); }}>Strap</button>
+                  <button type="button" className="block w-full text-left px-4 py-2 text-[var(--foreground)] hover:bg-[var(--accent)] hover:text-white transition-colors" onClick={() => { router.push('/search?brand=Richboyz'); setIsBrandDropdownOpen(false); }}>Richboyz</button>
                 </div>
               </div>
             )}
             {user && !isAdminPage && !isAdmin && (
-              <Link href="/orders" className="hover:text-[#fff9f3]">Orders</Link>
+              <Link href="/orders" className="hover:text-[var(--accent)] transition-colors">Orders</Link>
             )}
             {!isAdminPage && (
               (!user || user.email === "sisiglovers@gmail.com") && (
-                <Link href="/admin" className="hover:text-[#fff9f3] text-[#001F3F] font-semibold">Admin Dashboard</Link>
+                <Link href="/admin" className="hover:text-[var(--accent)] text-[var(--accent)] font-semibold transition-colors">Admin Dashboard</Link>
               )
             )}
           </nav>
@@ -133,20 +135,20 @@ export default function Header() {
               onChange={handleInputChange}
               onFocus={() => setShowSuggestions(true)}
               onBlur={() => setTimeout(() => setShowSuggestions(false), 100)}
-              className="w-full px-5 py-2.5 pl-12 pr-5 border-2 border-[#c98a6a] rounded-full bg-[#f5f2ef] text-[#001F3F] placeholder-[#001F3F] focus:outline-none focus:ring-3 focus:ring-[#A75D43] focus:border-[#A75D43] transition-all duration-300 ease-in-out shadow-md text-base"
+              className="w-full px-5 py-2.5 pl-12 pr-5 border-2 border-[var(--accent)] rounded-full bg-[var(--card)] text-[var(--foreground)] placeholder-[var(--foreground)]/70 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-[var(--accent)] transition-all duration-300 ease-in-out shadow-md text-base"
             />
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#001F3F]" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[var(--accent)]" />
             <button
               type="submit"
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#001F3F] hover:text-[#fff9f3] transition-colors"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[var(--accent)] hover:text-white transition-colors"
             >
               <Search className="h-5 w-5" />
             </button>
 
             {/* Search Suggestions Dropdown (Desktop) */}
             {showSuggestions && searchQuery.length > 0 && searchResults.length > 0 && (
-              <div className="absolute z-10 w-full bg-[#001F3F] border border-gray-200 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
-                <p className="px-4 py-2 text-xs text-white uppercase font-bold">Products</p>
+              <div className="absolute z-10 w-full bg-[var(--card)] border border-[var(--sidebar)] rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
+                <p className="px-4 py-2 text-xs text-[var(--accent)] uppercase font-bold">Products</p>
                 {searchResults.map((product) => {
                   let productImg = '/images/placeholder.jpg';
                   if (Array.isArray(product.imageUrls) && product.imageUrls.length > 0) {
@@ -157,7 +159,7 @@ export default function Header() {
                     productImg = product.imageUrl;
                   }
                   return (
-                    <Link href={`/products/${product.id}`} key={product.id} className="flex items-center px-4 py-2 hover:bg-[#003366] cursor-pointer">
+                    <Link href={`/products/${product.id}`} key={product.id} className="flex items-center px-4 py-2 hover:bg-[var(--accent)] cursor-pointer transition-colors">
                       <Image
                         src={productImg}
                         alt={product.name || 'Product'}
@@ -165,11 +167,11 @@ export default function Header() {
                         height={40}
                         className="mr-3 rounded"
                       />
-                      <span className="text-sm font-medium text-white">{product.name}</span>
+                      <span className="text-sm font-medium text-[var(--foreground)]">{product.name}</span>
                     </Link>
                   );
                 })}
-                <Link href={`/search?q=${encodeURIComponent(searchQuery)}`} className="block px-4 py-3 bg-[#003366] text-white hover:bg-[#001F3F] text-sm font-medium text-center border-t border-gray-200">
+                <Link href={`/search?q=${encodeURIComponent(searchQuery)}`} className="block px-4 py-3 bg-[var(--accent)] text-white hover:bg-[var(--card)] hover:text-[var(--accent)] text-sm font-medium text-center border-t border-[var(--sidebar)] transition-colors">
                   Search for "{searchQuery}"
                 </Link>
               </div>
@@ -181,9 +183,9 @@ export default function Header() {
           <div className="flex items-center space-x-4">
             <UserProfile />
             <Link href="/cart" className="relative flex items-center justify-center">
-              <ShoppingCart className="h-6 w-6 text-[#001F3F] hover:text-[#003366] transition-colors" />
+              <ShoppingCart className="h-6 w-6 text-[var(--accent)] hover:text-white transition-colors" />
               {cartItems.length > 0 && (
-                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center shadow-lg">
                   {cartItems.length}
                 </span>
               )}
@@ -194,7 +196,7 @@ export default function Header() {
 
       {/* Mobile Search Bar (hidden on /profile, /cart, /settings, and /admin) */}
       {isSearchOpen && !(pathname === '/profile' || pathname === '/cart' || pathname === '/settings' || pathname === '/checkout' || isAdminPage) && (
-        <div className="md:hidden px-4 py-3 border-t border-gray-200">
+        <div className="md:hidden px-4 py-3 border-t border-[var(--card)] bg-[var(--sidebar)]">
           <form onSubmit={handleSearch} className="relative">
             <input
               type="text"
@@ -203,21 +205,21 @@ export default function Header() {
               onChange={handleInputChange}
               onFocus={() => setShowSuggestions(true)}
               onBlur={() => setTimeout(() => setShowSuggestions(false), 100)}
-              className="w-full px-5 py-2.5 pl-12 pr-5 border-2 border-gray-300 rounded-full bg-gray-100 text-[#001F3F] placeholder-gray-500 focus:outline-none focus:ring-3 focus:ring-[#001F3F] focus:border-[#001F3F] transition-all duration-300 ease-in-out shadow-md"
+              className="w-full px-5 py-2.5 pl-12 pr-5 border-2 border-[var(--accent)] rounded-full bg-[var(--card)] text-[var(--foreground)] placeholder-[var(--foreground)]/70 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:border-[var(--accent)] transition-all duration-300 ease-in-out shadow-md"
               autoFocus
             />
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#001F3F]" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[var(--accent)]" />
             <button
               type="submit"
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#001F3F] hover:text-[#003366] transition-colors"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[var(--accent)] hover:text-white transition-colors"
             >
               <Search className="h-5 w-5" />
             </button>
 
             {/* Search Suggestions Dropdown (Mobile) */}
             {showSuggestions && searchQuery.length > 0 && searchResults.length > 0 && (
-              <div className="absolute z-10 w-full bg-[#001F3F] border border-gray-200 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
-                <p className="px-4 py-2 text-xs text-white uppercase font-bold">Products</p>
+              <div className="absolute z-10 w-full bg-[var(--card)] border border-[var(--sidebar)] rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
+                <p className="px-4 py-2 text-xs text-[var(--accent)] uppercase font-bold">Products</p>
                 {searchResults.map((product) => {
                   let productImg = '/images/placeholder.jpg';
                   if (Array.isArray(product.imageUrls) && product.imageUrls.length > 0) {
@@ -228,7 +230,7 @@ export default function Header() {
                     productImg = product.imageUrl;
                   }
                   return (
-                    <Link href={`/products/${product.id}`} key={product.id} className="flex items-center px-4 py-2 hover:bg-[#003366] cursor-pointer">
+                    <Link href={`/products/${product.id}`} key={product.id} className="flex items-center px-4 py-2 hover:bg-[var(--accent)] cursor-pointer transition-colors">
                       <Image
                         src={productImg}
                         alt={product.name || 'Product'}
@@ -236,11 +238,11 @@ export default function Header() {
                         height={40}
                         className="mr-3 rounded"
                       />
-                      <span className="text-sm font-medium text-white">{product.name}</span>
+                      <span className="text-sm font-medium text-[var(--foreground)]">{product.name}</span>
                     </Link>
                   );
                 })}
-                <Link href={`/search?q=${encodeURIComponent(searchQuery)}`} className="block px-4 py-3 bg-[#003366] text-white hover:bg-[#001F3F] text-sm font-medium text-center border-t border-gray-200">
+                <Link href={`/search?q=${encodeURIComponent(searchQuery)}`} className="block px-4 py-3 bg-[var(--accent)] text-white hover:bg-[var(--card)] hover:text-[var(--accent)] text-sm font-medium text-center border-t border-[var(--sidebar)] transition-colors">
                   Search for "{searchQuery}"
                 </Link>
               </div>

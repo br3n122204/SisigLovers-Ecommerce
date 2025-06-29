@@ -46,20 +46,25 @@ export default function CartPage() {
     }, 300);
   };
 
+  // Add shipping fee logic
+  const shippingFee = 149; // You can adjust this value as needed
+  const subtotal = Number(calculateTotal());
+  const total = subtotal + shippingFee;
+
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-[var(--background)]">
       {/* Main Content */}
       <div className="max-w-4xl mx-auto py-16 px-4 sm:px-6 lg:px-8">
         {cartItems.length === 0 && removingItemIds.length === 0 && !isCartSyncing ? (
           <div className="text-center space-y-8">
-            <h1 className="text-4xl font-bold text-[#001F3F]">Your cart is empty</h1>
-            <Link href="/" className="text-lg text-blue-600 hover:underline">Continue shopping</Link>
+            <h1 className="text-4xl font-bold text-[var(--accent)]">Your cart is empty</h1>
+            <Link href="/" className="text-lg text-[var(--accent)] hover:underline">Continue shopping</Link>
             
             {!user && (
-              <div className="border-t border-gray-200 pt-8 mt-8 space-y-4">
-                <h2 className="text-xl font-bold text-[#001F3F]">Have an account?</h2>
-                <p className="text-[#001F3F]">
-                  <Link href="/login" className="text-blue-600 hover:underline">Log in</Link> to check out faster.
+              <div className="border-t border-[var(--sidebar)] pt-8 mt-8 space-y-4">
+                <h2 className="text-xl font-bold text-[var(--accent)]">Have an account?</h2>
+                <p className="text-[var(--foreground)]">
+                  <Link href="/login" className="text-[var(--accent)] hover:underline">Log in</Link> to check out faster.
                 </p>
               </div>
             )}
@@ -68,75 +73,78 @@ export default function CartPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Cart Items List */}
             <div className="md:col-span-2 space-y-6">
-              {cartItems.map((item) => (
-                <div
-                  key={`${item.id}-${item.selectedSize}`}
-                  className={`flex items-center space-x-4 border-b border-gray-200 pb-4 transition-opacity duration-300 ${removingItemIds.includes(item.id) ? 'opacity-30 pointer-events-none' : ''}`}
-                >
-                  <div className="relative w-24 h-24 flex-shrink-0 rounded-md overflow-hidden border border-gray-200">
-                    <Image src={item.image} alt={item.name} fill className="object-cover" />
-                  </div>
-                  <div className="flex-grow">
-                    <h2 className="text-lg font-semibold text-[#001F3F]">{item.name}</h2>
-                    {item.selectedSize && (
-                      <p className="text-sm text-[#001F3F]">
-                        Size: {typeof item.selectedSize === 'object' ? ((item.selectedSize as any).size ?? JSON.stringify(item.selectedSize)) : item.selectedSize}
-                      </p>
-                    )}
-                    <p className="text-md font-medium text-[#001F3F]">{item.price}</p>
-                    <div className="flex items-center mt-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
-                        className="border-gray-300 text-[#001F3F] hover:bg-gray-50"
-                        disabled={removingItemIds.includes(item.id)}
-                      >
-                        -
-                      </Button>
-                      <span className="mx-2 px-3 py-1 border border-gray-300 rounded-md text-sm">{isNaN(item.quantity) ? 0 : item.quantity}</span>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
-                        className="border-gray-300 text-[#001F3F] hover:bg-gray-50"
-                        disabled={removingItemIds.includes(item.id)}
-                      >
-                        +
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemoveFromCart(item.id)}
-                        className="ml-4 text-red-600 hover:bg-red-50"
-                        disabled={removingItemIds.includes(item.id)}
-                      >
-                        Remove
-                      </Button>
+              {cartItems.map((item) => {
+                console.log('Cart item image:', item.image);
+                return (
+                  <div
+                    key={`${item.id}-${item.selectedSize}`}
+                    className={`flex items-center space-x-4 border-b border-[var(--sidebar)] pb-4 transition-opacity duration-300 ${removingItemIds.includes(item.id) ? 'opacity-30 pointer-events-none' : ''}`}
+                  >
+                    <div className="relative w-24 h-24 flex-shrink-0 rounded-md overflow-hidden border border-[var(--sidebar)] bg-[var(--card)]">
+                      <Image src={item.image ? item.image : "/images/placeholder.jpg"} alt={item.name} fill className="object-cover" />
+                    </div>
+                    <div className="flex-grow">
+                      <h2 className="text-lg font-semibold text-[var(--foreground)]">{item.name}</h2>
+                      {item.selectedSize && (
+                        <p className="text-sm text-[var(--foreground)]">
+                          Size: {typeof item.selectedSize === 'object' ? ((item.selectedSize as any).size ?? JSON.stringify(item.selectedSize)) : item.selectedSize}
+                        </p>
+                      )}
+                      <p className="text-md font-medium text-[var(--accent)]">{item.price}</p>
+                      <div className="flex items-center mt-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
+                          className="border-[var(--sidebar)] text-[var(--foreground)] hover:bg-[var(--sidebar)]"
+                          disabled={removingItemIds.includes(item.id)}
+                        >
+                          -
+                        </Button>
+                        <span className="mx-2 px-3 py-1 border border-[var(--sidebar)] rounded-md text-sm text-[var(--foreground)] bg-[var(--card)]">{isNaN(item.quantity) ? 0 : item.quantity}</span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
+                          className="border-[var(--sidebar)] text-[var(--foreground)] hover:bg-[var(--sidebar)]"
+                          disabled={removingItemIds.includes(item.id)}
+                        >
+                          +
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveFromCart(item.id)}
+                          className="ml-4 text-red-400 hover:bg-red-900/20"
+                          disabled={removingItemIds.includes(item.id)}
+                        >
+                          Remove
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Cart Summary */}
-            <div className="md:col-span-1 bg-black p-6 rounded-lg shadow-sm h-fit sticky top-20">
-              <h2 className="text-xl font-bold text-[#001F3F] mb-4">Order Summary</h2>
-              <div className="space-y-2 text-[#001F3F]">
+            <div className="md:col-span-1 bg-[var(--card)] p-6 rounded-lg shadow-sm h-fit sticky top-20 border border-[var(--sidebar)]">
+              <h2 className="text-xl font-bold text-[var(--accent)] mb-4">Order Summary</h2>
+              <div className="space-y-2 text-[var(--foreground)]">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span>₱{calculateTotal()}</span>
+                  <span>₱{subtotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Shipping</span>
-                  <span>₱0.00</span> {/* For now, assuming free shipping */}
+                  <span>₱{shippingFee.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between font-bold text-lg border-t pt-2 mt-2 border-gray-200">
+                <div className="flex justify-between font-bold text-lg border-t pt-2 mt-2 border-[var(--sidebar)]">
                   <span>Total</span>
-                  <span>₱{calculateTotal()}</span>
+                  <span>₱{total.toFixed(2)}</span>
                 </div>
               </div>
-              <Button onClick={handleProceedToCheckout} className="w-full bg-[#A75D43] text-[#001F3F] py-3 rounded-md hover:bg-[#c98a6a] transition-colors mt-6">
+              <Button onClick={handleProceedToCheckout} className="w-full bg-[var(--accent)] text-white py-3 rounded-md hover:bg-[var(--foreground)] hover:text-[var(--background)] transition-colors mt-6 font-semibold">
                 Proceed to Checkout
               </Button>
             </div>

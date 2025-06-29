@@ -23,8 +23,8 @@ const config: Config = {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
+        background: "#0A101E",
+        foreground: "#B8C7F9",
         primary: {
           DEFAULT: "#EE4D2D", // DPT ONE Orange - Keep original
           foreground: "hsl(var(--primary-foreground))",
@@ -41,18 +41,13 @@ const config: Config = {
           DEFAULT: "hsl(var(--muted))",
           foreground: "hsl(var(--muted-foreground))",
         },
-        accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
-        },
+        accent: "#1976D2", // blue highlight
         popover: {
           DEFAULT: "hsl(var(--popover))",
           foreground: "hsl(var(--popover-foreground))",
         },
-        card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
-        },
+        card: "#11182A",
+        sidebar: "#151B2B",
         // DPT ONE-specific colors
         dptone: {
           orange: "#EE4D2D",
@@ -67,6 +62,18 @@ const config: Config = {
           accent: '#F5C16C',
           border: '#E5E5E5',
           button: '#222222', // Keep original
+        },
+        badge: {
+          pending: '#FFF9C4', // yellow
+          processing: '#BBDEFB', // blue
+          shipped: '#F8BBD0', // pink
+          delivered: '#C8E6C9', // green
+        },
+        badgeText: {
+          pending: '#7B7300',
+          processing: '#0D47A1',
+          shipped: '#AD1457',
+          delivered: '#1B5E20',
         },
       },
       borderRadius: {
@@ -89,7 +96,7 @@ const config: Config = {
         "accordion-up": "accordion-up 0.2s ease-out",
       },
       fontFamily: {
-        sans: ['Inter', 'Segoe UI', 'system-ui', 'sans-serif'],
+        sans: ['Montserrat', 'Inter', 'Segoe UI', 'system-ui', 'sans-serif'],
       },
     },
   },

@@ -13,16 +13,16 @@ const phrases = [
 
 export default function AnnouncementBar() {
   return (
-    <div className="w-full bg-black text-[#001F3F] overflow-hidden whitespace-nowrap border-b border-gray-800">
+    <div className="w-full bg-[var(--sidebar)] text-[var(--accent)] overflow-hidden whitespace-nowrap border-b border-[var(--card)]">
       <div className="animate-marquee flex items-center" style={{ minWidth: '100%' }}>
         {phrases.map((phrase, idx) => (
-          <span key={idx} className="mx-8 text-sm font-medium tracking-wide text-[#001F3F]">
+          <span key={idx} className="mx-8 text-sm font-medium tracking-wide text-[var(--accent)]">
             {phrase}
           </span>
         ))}
         {/* Repeat for seamless loop */}
         {phrases.map((phrase, idx) => (
-          <span key={phrases.length + idx} className="mx-8 text-sm font-medium tracking-wide text-[#001F3F]">
+          <span key={phrases.length + idx} className="mx-8 text-sm font-medium tracking-wide text-[var(--accent)]">
             {phrase}
           </span>
         ))}
