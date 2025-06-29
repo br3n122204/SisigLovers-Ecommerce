@@ -1,4 +1,4 @@
-import { Plus, ShoppingCart, List, Activity, BarChart2, Home } from "lucide-react";
+import { Plus, ShoppingCart, List, Activity, BarChart2, Home, LogOut } from "lucide-react";
 
 const navItems = [
   { label: "Add Product", icon: <Plus className="w-4 h-4 mr-2" />, section: "add-product" },
@@ -8,9 +8,10 @@ const navItems = [
   { label: "View Analytics", icon: <BarChart2 className="w-4 h-4 mr-2" />, section: "view-analytics" },
 ];
 
-export default function AdminSidebar({ activeSection, onSectionChange }: {
+export default function AdminSidebar({ activeSection, onSectionChange, onLogout }: {
   activeSection: string;
   onSectionChange: (section: string) => void;
+  onLogout: () => void;
 }) {
   return (
     <aside className="bg-[#101726] text-[#8ec0ff] w-60 min-h-screen flex flex-col py-6 px-3">
@@ -22,7 +23,7 @@ export default function AdminSidebar({ activeSection, onSectionChange }: {
         />
         <span className="text-lg font-bold text-[#8ec0ff] tracking-wide">DPT ONE</span>
       </div>
-      <nav className="flex flex-col gap-2">
+      <nav className="flex flex-col gap-2 flex-1">
         {navItems.map((item) => (
           <button
             key={item.label}
@@ -43,6 +44,17 @@ export default function AdminSidebar({ activeSection, onSectionChange }: {
           Return to Homepage
         </a>
       </nav>
+      
+      {/* Logout Button */}
+      <div className="mt-auto pt-4 border-t border-[#22304a]">
+        <button
+          onClick={onLogout}
+          className="flex items-center px-4 py-2 rounded-md transition-colors font-medium text-base w-full text-left hover:bg-[#1e293b] text-[#8ec0ff] hover:text-[#3390ff]"
+        >
+          <LogOut className="w-4 h-4 mr-2" />
+          Logout
+        </button>
+      </div>
     </aside>
   );
 } 
