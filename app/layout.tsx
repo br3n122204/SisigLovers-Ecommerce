@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import { CartProvider } from '@/context/CartContext'
 import { AuthProvider } from "@/context/AuthContext"
 import ConditionalHeader from "@/components/ConditionalHeader"
+import ClientLayout from "./ClientLayout"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -20,7 +21,9 @@ export default function RootLayout({
           <AuthProvider>
             <CartProvider>
               <ConditionalHeader />
-              {children}
+              <ClientLayout>
+                {children}
+              </ClientLayout>
             </CartProvider>
           </AuthProvider>
         </ThemeProvider>
