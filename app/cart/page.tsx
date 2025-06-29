@@ -70,7 +70,7 @@ export default function CartPage() {
             <div className="md:col-span-2 space-y-6">
               {cartItems.map((item) => (
                 <div
-                  key={`${item.id}-${item.selectedSize}`}
+                  key={`${item.id}-${typeof item.selectedSize === 'object' && item.selectedSize !== null ? JSON.stringify(item.selectedSize) : item.selectedSize}`}
                   className={`flex items-center space-x-4 border-b border-[#60A5FA] pb-4 transition-opacity duration-300 ${removingItemIds.includes(item.id) ? 'opacity-30 pointer-events-none' : ''}`}
                 >
                   <div className="relative w-24 h-24 flex-shrink-0 rounded-md overflow-hidden border border-gray-200">

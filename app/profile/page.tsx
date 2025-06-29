@@ -378,7 +378,7 @@ export default function ProfilePage() {
                   <label htmlFor="country" className="block text-sm font-medium text-[#001F3F]">Country/region</label>
                   <select
                     id="country"
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]"
                     value={newAddress.country}
                     onChange={(e) => setNewAddress({ ...newAddress, country: e.target.value })}
                   >
@@ -463,7 +463,7 @@ export default function ProfilePage() {
                   <label htmlFor="region" className="block text-sm font-medium text-[#001F3F]">Region</label>
                   <select
                     id="region"
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                    className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]"
                     value={newAddress.region}
                     onChange={(e) => setNewAddress({ ...newAddress, region: e.target.value })}
                   >
@@ -491,7 +491,7 @@ export default function ProfilePage() {
                   <div className="mt-1 flex rounded-md shadow-sm">
                     <select
                       id="phoneCode"
-                      className="block w-28 border border-gray-300 rounded-l-md bg-gray-50 text-[#001F3F] p-2 focus:ring-[#001F3F] focus:border-[#001F3F] sm:text-sm"
+                      className="block w-28 border border-[#60A5FA] rounded-l-md bg-[#101828] text-[#60A5FA] p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm"
                       value={newAddress.phoneCode}
                       onChange={e => setNewAddress({ ...newAddress, phoneCode: e.target.value })}
                     >
