@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, query, orderBy, getDocs, doc, updateDoc, getDoc } from "firebase/firestore";
+import { collection, query, orderBy, getDocs, doc, updateDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,7 +10,7 @@ import { Calendar, Download, Search, Filter, ChevronDown, ChevronUp } from "luci
 interface Order {
   id: string;
   orderNumber: string;
-  createdAt: number;
+  dateOrdered: number;
   status: string;
   total: number;
   subtotal: number;
@@ -27,6 +27,7 @@ interface Order {
   trackingNumber: string;
   estimatedDelivery: Date | null;
   userId?: string;
+  deliveredAt?: number;
 }
 
 interface OrderItem {
@@ -71,17 +72,27 @@ export default function AdminOrdersPage() {
     const fetchOrders = async () => {
       try {
         const ordersRef = collection(db, "productsOrder");
-        const q = query(ordersRef, orderBy("createdAt", "desc"));
+        const q = query(ordersRef, orderBy("dateOrdered", "desc"));
         const querySnapshot = await getDocs(q);
         const fetchedOrders: Order[] = [];
-        querySnapshot.forEach((doc) => {
-          const data = doc.data();
+        querySnapshot.forEach((docSnap) => {
+          const data = docSnap.data();
+          let dateOrderedValue;
+          if (data.dateOrdered && typeof data.dateOrdered.toDate === "function") {
+            dateOrderedValue = data.dateOrdered.toDate();
+          } else if (data.dateOrdered) {
+            dateOrderedValue = new Date(data.dateOrdered);
+          }
+          let deliveredAtValue;
+          if (data.deliveredAt && typeof data.deliveredAt.toDate === "function") {
+            deliveredAtValue = data.deliveredAt.toDate();
+          } else if (data.deliveredAt) {
+            deliveredAtValue = new Date(data.deliveredAt);
+          }
           fetchedOrders.push({
-            id: doc.id,
+            id: docSnap.id,
             orderNumber: data.orderNumber,
-            createdAt: data.createdAt && typeof data.createdAt.toDate === "function"
-              ? data.createdAt.toDate().getTime()
-              : new Date(data.createdAt || Date.now()).getTime(),
+            dateOrdered: dateOrderedValue,
             status: data.status,
             total: data.total,
             subtotal: data.subtotal,
@@ -99,7 +110,8 @@ export default function AdminOrdersPage() {
             estimatedDelivery: data.estimatedDelivery && typeof data.estimatedDelivery.toDate === "function"
               ? data.estimatedDelivery.toDate()
               : (data.estimatedDelivery ? new Date(data.estimatedDelivery) : undefined),
-            userId: data.userId
+            userId: data.userId,
+            deliveredAt: deliveredAtValue
           });
         });
         setOrders(fetchedOrders);
@@ -126,9 +138,9 @@ export default function AdminOrdersPage() {
       filtered = filtered.filter(order => order.status === statusFilter);
     }
     if (sortBy === "date-desc") {
-      filtered.sort((a, b) => b.createdAt - a.createdAt);
+      filtered.sort((a, b) => b.dateOrdered - a.dateOrdered);
     } else if (sortBy === "date-asc") {
-      filtered.sort((a, b) => a.createdAt - b.createdAt);
+      filtered.sort((a, b) => a.dateOrdered - b.dateOrdered);
     } else if (sortBy === "total-desc") {
       filtered.sort((a, b) => (b.total || 0) - (a.total || 0));
     } else if (sortBy === "total-asc") {
@@ -144,7 +156,7 @@ export default function AdminOrdersPage() {
     const rows = filteredOrders.map(order => [
       order.orderNumber,
       order.status,
-      formatDate(new Date(order.createdAt), true),
+      formatDate(new Date(order.dateOrdered), true),
       order.userName,
       order.userEmail,
       order.userPhone,
@@ -188,6 +200,23 @@ export default function AdminOrdersPage() {
     }).format(d);
   };
 
+  const formatDateLong = (date: Date | string | undefined | null) => {
+    if (!date) return "N/A";
+    if (date === 'pending') return "Pending...";
+    let d: Date;
+    if (typeof date === "string") {
+      d = new Date(date);
+    } else {
+      d = date as Date;
+    }
+    if (isNaN(d.getTime())) return "N/A";
+    return new Intl.DateTimeFormat('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    }).format(d);
+  };
+
   const formatAddress = (addr?: Address) => {
     if (!addr) return "N/A";
     return `${addr.firstName} ${addr.lastName}, ${addr.address1}${addr.address2 ? ', ' + addr.address2 : ''}, ${addr.city}, ${addr.region} ${addr.postalCode}, ${addr.phone}`;
@@ -227,17 +256,21 @@ export default function AdminOrdersPage() {
     orderId,
     newStatus,
     userId,
-    setOrders
+    setOrders,
+    deliveredAtUpdate = {},
+    optimisticDeliveredAt
   }: {
     orderId: string,
     newStatus: string,
     userId: string,
-    setOrders: React.Dispatch<React.SetStateAction<Order[]>>
+    setOrders: React.Dispatch<React.SetStateAction<Order[]>>,
+    deliveredAtUpdate?: any,
+    optimisticDeliveredAt?: Date | null
   }) {
     try {
       // 1. Update global order
       const globalOrderRef = doc(db, "productsOrder", orderId);
-      await updateDoc(globalOrderRef, { status: newStatus });
+      await updateDoc(globalOrderRef, { status: newStatus, ...deliveredAtUpdate });
       // 2. Find and update user order
       if (userId) {
         const userOrdersCol = collection(db, "users", userId, "orders");
@@ -250,15 +283,32 @@ export default function AdminOrdersPage() {
         });
         if (userOrderDocId) {
           const userOrderRef = doc(db, "users", userId, "orders", userOrderDocId);
-          await updateDoc(userOrderRef, { status: newStatus });
+          await updateDoc(userOrderRef, { status: newStatus, ...deliveredAtUpdate });
         }
       }
       // 3. Optimistically update local state
-      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+      setOrders(prev => prev.map(o =>
+        o.id === orderId
+          ? { ...o, status: newStatus, ...deliveredAtUpdate, deliveredAt: optimisticDeliveredAt !== undefined ? optimisticDeliveredAt : o.deliveredAt }
+          : o
+      ));
     } catch (err) {
       alert("Failed to update order status: " + (err instanceof Error ? err.message : String(err)));
     }
   }
+
+  // Helper to get a valid date from order (robust for Firestore Timestamp, string, number, or serverTimestamp placeholder)
+  const getOrderDate = (order: any) => {
+    const d = order.dateOrdered;
+    if (!d) return undefined;
+    if (typeof d.toDate === 'function') return d.toDate(); // Firestore Timestamp
+    if (typeof d === 'object' && d._methodName === 'serverTimestamp') return 'pending'; // Pending server timestamp
+    if (typeof d === 'string' || typeof d === 'number') {
+      const dateObj = new Date(d);
+      if (!isNaN(dateObj.getTime())) return dateObj;
+    }
+    return undefined;
+  };
 
   if (loading) {
     return (
@@ -325,129 +375,161 @@ export default function AdminOrdersPage() {
           </div>
         ) : (
           <div className="space-y-6 overflow-x-auto w-full">
-            {filteredOrders.map((order) => (
-              <Card key={order.id} className="overflow-hidden bg-[#161e2e] text-white border border-[#22304a] w-full max-w-full box-border">
-                <CardHeader className="bg-[#22304a]">
-                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                      <span className="text-2xl">{getStatusIcon(order.status)}</span>
-                      <Badge className={
-                        order.status === 'pending' ? 'bg-yellow-300 text-black' :
-                        order.status === 'processing' ? 'bg-blue-400 text-white' :
-                        order.status === 'shipped' ? 'bg-purple-400 text-white' :
-                        order.status === 'delivered' ? 'bg-green-400 text-white' :
-                        order.status === 'cancelled' ? 'bg-red-400 text-white' :
-                        'bg-[#8ec0ff] text-black'
-                      }>
-                        <select
-                          value={order.status}
-                          onChange={async (e) => {
-                            const newStatus = e.target.value;
-                            await updateOrderStatus({
-                              orderId: order.id,
-                              newStatus,
-                              userId: order.userId || "",
-                              setOrders
-                            });
-                          }}
-                          className="bg-transparent border-none text-inherit font-semibold focus:outline-none focus:ring-2 focus:ring-[#3390ff] rounded"
-                        >
-                          {ORDER_STATUSES.map(status => (
-                            <option key={status} value={status} className="text-black">
-                              {status.charAt(0).toUpperCase() + status.slice(1)}
-                            </option>
+            {filteredOrders.map((order) => {
+              // Debug log for dateOrdered
+              console.log('orderNumber:', order.orderNumber, 'dateOrdered:', order.dateOrdered, 'getOrderDate:', getOrderDate(order));
+              return (
+                <Card key={order.id} className="overflow-hidden bg-[#161e2e] text-white border border-[#22304a] w-full max-w-full box-border">
+                  <CardHeader className="bg-[#22304a]">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                      <div className="flex items-center gap-4">
+                        <span className="text-2xl">{getStatusIcon(order.status)}</span>
+                        <Badge className={
+                          order.status === 'pending' ? 'bg-yellow-300 text-black' :
+                          order.status === 'processing' ? 'bg-blue-400 text-white' :
+                          order.status === 'shipped' ? 'bg-purple-400 text-white' :
+                          order.status === 'delivered' ? 'bg-green-400 text-white' :
+                          order.status === 'cancelled' ? 'bg-red-400 text-white' :
+                          'bg-[#8ec0ff] text-black'
+                        }>
+                          <select
+                            value={order.status}
+                            onChange={async (e) => {
+                              const newStatus = e.target.value;
+                              let deliveredAtUpdate = {};
+                              let optimisticDeliveredAt = undefined;
+                              if (newStatus === 'delivered' && !order.deliveredAt) {
+                                deliveredAtUpdate = { deliveredAt: serverTimestamp() };
+                                optimisticDeliveredAt = new Date();
+                              } else if (order.status === 'delivered' && newStatus !== 'delivered') {
+                                deliveredAtUpdate = { deliveredAt: null };
+                                optimisticDeliveredAt = null;
+                              }
+                              await updateOrderStatus({
+                                orderId: order.id,
+                                newStatus,
+                                userId: order.userId || "",
+                                setOrders,
+                                deliveredAtUpdate,
+                                optimisticDeliveredAt
+                              });
+                            }}
+                            className="bg-transparent border-none text-inherit font-semibold focus:outline-none focus:ring-2 focus:ring-[#3390ff] rounded"
+                          >
+                            {ORDER_STATUSES.map(status => (
+                              <option key={status} value={status} className="text-black">
+                                {status.charAt(0).toUpperCase() + status.slice(1)}
+                              </option>
+                            ))}
+                          </select>
+                        </Badge>
+                        <div>
+                          <p className="font-medium text-white">{order.orderNumber}</p>
+                          <p className="text-xs text-[#8ec0ff]">Date Ordered: {formatDateLong(getOrderDate(order))}</p>
+                          {order.userEmail && (
+                            <p className="text-xs text-[#8ec0ff]">{order.userEmail}</p>
+                          )}
+                          {order.userPhone && (
+                            <p className="text-xs text-[#8ec0ff]">{order.userPhone}</p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-right flex flex-col items-end">
+                        <span className="block text-xs text-[#8ec0ff] font-semibold">Payment: {order.paymentMethod?.toUpperCase() || 'N/A'}</span>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className="block text-xs text-[#8ec0ff]">Status: {order.status.charAt(0).toUpperCase() + order.status.slice(1)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-6 bg-[#161e2e] text-white">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                      {/* Order Items */}
+                      <div className="lg:col-span-2">
+                        <h4 className="font-medium text-[#8ec0ff] mb-3">Items Ordered</h4>
+                        <div className="space-y-3">
+                          {order.items.map((item) => (
+                            <div key={item.id} className="flex items-center gap-3">
+                              <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-[#22304a]">
+                                <img
+                                  src={item.image}
+                                  alt={item.name}
+                                  className="object-cover w-full h-full"
+                                />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-white truncate">{item.name}</p>
+                                <p className="text-sm text-[#8ec0ff]">
+                                  Qty: {item.quantity}
+                                  {Array.isArray(item.size)
+                                    ? (item.size as any[]).map((s, idx) => (
+                                        <span key={idx}> • {s.size}: {s.stock}</span>
+                                      ))
+                                    : item.size && typeof item.size === 'object'
+                                      ? ` • ${(item.size as any).size}: ${(item.size as any).stock}`
+                                      : item.size
+                                        ? ` • ${item.size}`
+                                        : null}
+                                  {item.color && <> • {item.color}</>}
+                                </p>
+                                <p className="text-sm font-medium text-[#3390ff]">
+                                  {formatCurrency(item.price)}
+                                </p>
+                              </div>
+                            </div>
                           ))}
-                        </select>
-                      </Badge>
-                      <div>
-                        <p className="font-medium text-white">{order.orderNumber}</p>
-                        <p className="text-sm text-[#8ec0ff]">
-                          <Calendar className="inline h-3 w-3 mr-1" />
-                          {formatDate(new Date(order.createdAt), true)}
-                        </p>
-                        {order.userEmail && (
-                          <p className="text-xs text-[#8ec0ff]">{order.userEmail}</p>
-                        )}
-                        {order.userPhone && (
-                          <p className="text-xs text-[#8ec0ff]">{order.userPhone}</p>
-                        )}
+                        </div>
+                      </div>
+                      {/* Order Summary */}
+                      <div className="bg-[#22304a] rounded-lg p-4">
+                        <h4 className="font-medium text-[#8ec0ff] mb-3">Order Summary</h4>
+                        <div className="flex flex-col gap-1 text-sm">
+                          <span>Subtotal: <span className="text-[#3390ff]">{formatCurrency(order.subtotal)}</span></span>
+                          <span>Shipping: <span className="text-[#3390ff]">{formatCurrency(order.shipping)}</span></span>
+                          <span>Tax: <span className="text-[#3390ff]">{formatCurrency(order.tax)}</span></span>
+                          <span className="font-semibold">Total: <span className="text-[#3390ff]">{formatCurrency(order.total)}</span></span>
+                        </div>
+                        <div className="mt-4">
+                          {order.dateOrdered && (() => {
+                            let dateOrderedObj: any = order.dateOrdered;
+                            if (typeof dateOrderedObj === 'number' || typeof dateOrderedObj === 'string') dateOrderedObj = new Date(dateOrderedObj);
+                            if ((dateOrderedObj as any) instanceof Date && !isNaN(dateOrderedObj.getTime())) {
+                              return <span className="block text-xs text-[#8ec0ff]">Date Ordered: {formatDateLong(dateOrderedObj)}</span>;
+                            }
+                            return null;
+                          })()}
+                          {(() => {
+                            let deliveredDateObj: any = order.deliveredAt;
+                            if (typeof deliveredDateObj === 'number' || typeof deliveredDateObj === 'string') deliveredDateObj = new Date(deliveredDateObj);
+                            if ((deliveredDateObj as any) instanceof Date && !isNaN(deliveredDateObj.getTime()) && order.status === 'delivered') {
+                              return (
+                                <span className="block text-xs text-[#8ec0ff]">
+                                  Status: Delivered {formatDateLong(deliveredDateObj)}
+                                </span>
+                              );
+                            }
+                            return (
+                              <span className="block text-xs text-[#8ec0ff]">Status: {order.status.charAt(0).toUpperCase() + order.status.slice(1)}</span>
+                            );
+                          })()}
+                        </div>
                       </div>
                     </div>
-                    <div className="text-right flex flex-col items-end">
-                      <span className="block text-xs text-[#8ec0ff] font-semibold">Payment: {order.paymentMethod?.toUpperCase() || 'N/A'}</span>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="block text-xs text-[#8ec0ff]">Status: {order.status.charAt(0).toUpperCase() + order.status.slice(1)}</span>
+                    {/* Addresses */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                      <div className="bg-[#22304a] rounded-lg p-4">
+                        <h4 className="font-medium text-[#8ec0ff] mb-2">Shipping Address</h4>
+                        <p className="text-sm text-white">{formatAddress(order.shippingAddress)}</p>
+                      </div>
+                      <div className="bg-[#22304a] rounded-lg p-4">
+                        <h4 className="font-medium text-[#8ec0ff] mb-2">Billing Address</h4>
+                        <p className="text-sm text-white">{formatAddress(order.billingAddress)}</p>
                       </div>
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-6 bg-[#161e2e] text-white">
-                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    {/* Order Items */}
-                    <div className="lg:col-span-2">
-                      <h4 className="font-medium text-[#8ec0ff] mb-3">Items Ordered</h4>
-                      <div className="space-y-3">
-                        {order.items.map((item) => (
-                          <div key={item.id} className="flex items-center gap-3">
-                            <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-[#22304a]">
-                              <img
-                                src={item.image}
-                                alt={item.name}
-                                className="object-cover w-full h-full"
-                              />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium text-white truncate">{item.name}</p>
-                              <p className="text-sm text-[#8ec0ff]">
-                                Qty: {item.quantity}
-                                {Array.isArray(item.size)
-                                  ? (item.size as any[]).map((s, idx) => (
-                                      <span key={idx}> • {s.size}: {s.stock}</span>
-                                    ))
-                                  : item.size && typeof item.size === 'object'
-                                    ? ` • ${(item.size as any).size}: ${(item.size as any).stock}`
-                                    : item.size
-                                      ? ` • ${item.size}`
-                                      : null}
-                                {item.color && <> • {item.color}</>}
-                              </p>
-                              <p className="text-sm font-medium text-[#3390ff]">
-                                {formatCurrency(item.price)}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    {/* Order Summary */}
-                    <div className="bg-[#22304a] rounded-lg p-4">
-                      <h4 className="font-medium text-[#8ec0ff] mb-3">Order Summary</h4>
-                      <div className="flex flex-col gap-1 text-sm">
-                        <span>Subtotal: <span className="text-[#3390ff]">{formatCurrency(order.subtotal)}</span></span>
-                        <span>Shipping: <span className="text-[#3390ff]">{formatCurrency(order.shipping)}</span></span>
-                        <span>Tax: <span className="text-[#3390ff]">{formatCurrency(order.tax)}</span></span>
-                        <span className="font-semibold">Total: <span className="text-[#3390ff]">{formatCurrency(order.total)}</span></span>
-                      </div>
-                      <div className="mt-4">
-                        <span className="block text-xs text-[#8ec0ff]">Tracking #: {order.trackingNumber || 'N/A'}</span>
-                        <span className="block text-xs text-[#8ec0ff]">Est. Delivery: {order.estimatedDelivery ? formatDate(order.estimatedDelivery, true) : 'N/A'}</span>
-                      </div>
-                    </div>
-                  </div>
-                  {/* Addresses */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                    <div className="bg-[#22304a] rounded-lg p-4">
-                      <h4 className="font-medium text-[#8ec0ff] mb-2">Shipping Address</h4>
-                      <p className="text-sm text-white">{formatAddress(order.shippingAddress)}</p>
-                    </div>
-                    <div className="bg-[#22304a] rounded-lg p-4">
-                      <h4 className="font-medium text-[#8ec0ff] mb-2">Billing Address</h4>
-                      <p className="text-sm text-white">{formatAddress(order.billingAddress)}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
       </div>

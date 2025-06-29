@@ -201,7 +201,7 @@ export default function OrderDetailsPage() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold text-[#001F3F]">Order {order.orderNumber}</h1>
-              <p className="text-[#001F3F] mt-1">Placed on {formatDate(order.orderDate)}</p>
+              <p className="text-[#001F3F] mt-1 font-medium">Date Ordered: {formatDate(order.orderDate)}</p>
             </div>
           </div>
         </div>

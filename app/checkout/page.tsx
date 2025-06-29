@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
@@ -28,9 +28,15 @@ function deepCleanUndefined(obj: any): any {
 
 export default function CheckoutPage() {
   const { user } = useAuth();
-  const { cartItems, calculateTotal, clearCart } = useCart();
+  const { cartItems, calculateTotal, clearCart, removeFromCartByIds } = useCart();
   const router = useRouter();
   const { toast } = useToast();
+  const searchParams = useSearchParams();
+
+  // Get selected item IDs from query string (treat as strings)
+  const selectedIdsParam = searchParams.get('selected');
+  const selectedIds = selectedIdsParam ? selectedIdsParam.split(',') : cartItems.map(item => String(item.id));
+  const selectedCartItems = cartItems.filter(item => selectedIds.includes(String(item.id)));
 
   const [addresses, setAddresses] = useState<any[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
@@ -174,17 +180,21 @@ export default function CheckoutPage() {
     }
 
     try {
+      const subtotal = selectedCartItems.reduce((total, item) => {
+        let price = typeof item.price === 'string' ? parseFloat(item.price.replace(/[^\d.]/g, '')) : Number(item.price);
+        return total + (price * item.quantity);
+      }, 0);
       const orderData = {
         userId: user.uid,
         userEmail: user.email,
         orderNumber: `ORD-${Date.now()}`,
-        orderDate: serverTimestamp(),
+        dateOrdered: serverTimestamp(),
         status: 'pending',
-        total: parseFloat(calculateTotal()) + getShippingPrice(),
-        subtotal: parseFloat(calculateTotal()),
+        total: subtotal + getShippingPrice(),
+        subtotal,
         shipping: getShippingPrice(),
         tax: 0,
-        items: cartItems.map(item => ({
+        items: selectedCartItems.map(item => ({
           id: item.id,
           name: item.name,
           price: typeof item.price === "string"
@@ -200,9 +210,7 @@ export default function CheckoutPage() {
         paymentMethod: paymentMethod,
         paymentStatus: paymentMethod === 'cod' ? 'pending' : 'pending',
         shippingMethod: shippingMethod,
-        notes: '',
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
+        notes: ''
       };
 
       // Clean undefined values deeply
@@ -212,16 +220,20 @@ export default function CheckoutPage() {
 
       // Save to global productsOrder collection (for admin/global view)
       const productsOrderRef = collection(db, 'productsOrder');
-      // Always include userId in the global order
+      // Always include userId and dateOrdered in the global order
       const globalOrderDoc = await addDoc(productsOrderRef, {
         ...cleanOrderData,
         userId: user.uid, // <-- ensure userId is always present
+        dateOrdered: serverTimestamp(), // <-- always set dateOrdered for admin
       });
       console.log("Order saved to productsOrder with ID:", globalOrderDoc.id);
 
       // Save each cart item as a document in the orderDetails subcollection
       for (const item of cleanOrderData.items) {
-        await addDoc(collection(db, 'productsOrder', globalOrderDoc.id, 'orderDetails'), item);
+        await addDoc(collection(db, 'productsOrder', globalOrderDoc.id, 'orderDetails'), {
+          ...item,
+          dateOrdered: cleanOrderData.dateOrdered || serverTimestamp(),
+        });
       }
 
       // Save to per-user users/{userId}/orders/{orderId} (append order to subcollection, do not create new user doc)
@@ -230,6 +242,7 @@ export default function CheckoutPage() {
       const userOrderDoc = await addDoc(userOrdersRef, {
         ...cleanOrderData,
         globalOrderId: globalOrderDoc.id, // <-- ensure globalOrderId is always present
+        dateOrdered: cleanOrderData.dateOrdered || serverTimestamp(),
       });
       console.log("Order saved to users/{userId}/orders with ID:", userOrderDoc.id);
 
@@ -269,7 +282,7 @@ export default function CheckoutPage() {
       return;
     }
 
-    if (cartItems.length === 0) {
+    if (selectedCartItems.length === 0) {
       toast({
         title: "Error",
         description: "Your cart is empty",
@@ -299,8 +312,8 @@ export default function CheckoutPage() {
           toast({
             title: "Checkout successful",
           });
-          // Clear cart
-          clearCart();
+          // Remove only checked-out items from cart
+          removeFromCartByIds(selectedCartItems.map(item => item.id));
           // Navigate to orders page
           router.push('/orders');
         } else {
@@ -328,7 +341,14 @@ export default function CheckoutPage() {
     }
   };
 
-  const totalAmount = (parseFloat(calculateTotal()) + getShippingPrice()).toFixed(2);
+  // Calculate total for only selectedCartItems
+  const calculateSelectedTotal = () => {
+    return selectedCartItems.reduce((total, item) => {
+      let price = typeof item.price === 'string' ? parseFloat(item.price.replace(/[^\d.]/g, '')) : Number(item.price);
+      return total + (price * item.quantity);
+    }, 0).toFixed(2);
+  };
+  const totalAmount = (parseFloat(calculateSelectedTotal()) + getShippingPrice()).toFixed(2);
 
   return (
     <div className="min-h-screen bg-[#101828] text-[#60A5FA] py-8 px-4 sm:px-6 lg:px-8">
@@ -691,13 +711,14 @@ export default function CheckoutPage() {
         {/* Right Column: Order Summary */}
         <div className="bg-[#19223a] p-8 rounded-lg shadow-md sticky top-8 h-fit">
           <h2 className="text-xl font-bold text-[#60A5FA] mb-4">Your order</h2>
-          {cartItems.length === 0 ? (
+          {selectedCartItems.length === 0 ? (
             <p className="text-[#60A5FA]">Your cart is empty.</p>
           ) : (
             <>
               <div className="space-y-4 mb-6">
-                {cartItems.map((item) => (
-                  <div key={`${item.id}-${typeof item.selectedSize === 'object' && item.selectedSize !== null ? JSON.stringify(item.selectedSize) : item.selectedSize}`} className="flex items-center space-x-4">
+                
+                {selectedCartItems.map((item) => (
+                  <div key={`${item.id}-${item.selectedSize}`} className="flex items-center space-x-4">
                     <div className="relative w-24 h-24 flex-shrink-0 rounded-md overflow-hidden border border-gray-200">
                       {item.image ? (
                         <Image src={item.image} alt={item.name} width={96} height={96} className="object-contain" />
@@ -729,11 +750,10 @@ export default function CheckoutPage() {
                   </div>
                 ))}
               </div>
-
               <div className="space-y-2 text-[#60A5FA] pt-4 border-t border-gray-200">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span>₱{calculateTotal()}</span>
+                  <span>₱{calculateSelectedTotal()}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Shipping</span>
@@ -744,10 +764,10 @@ export default function CheckoutPage() {
                   <span>PHP ₱{totalAmount}</span>
                 </div>
               </div>
-            </> 
+            </>
           )}
         </div>
       </div>
     </div>
   );
-} 
+}

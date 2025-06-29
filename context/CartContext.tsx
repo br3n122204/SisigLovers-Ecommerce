@@ -25,6 +25,7 @@ interface CartContextType {
   calculateTotal: () => string;
   clearCart: () => void;
   isCartSyncing: boolean;
+  removeFromCartByIds: (ids: (number | string)[]) => void;
 }
 
 // Create the context with a default undefined value
@@ -129,8 +130,24 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const removeFromCartByIds = (ids: (number | string)[]) => {
+    setCartItems((prevItems) => {
+      const newItems = prevItems.filter(item => !ids.includes(item.id));
+      if (user) {
+        const cartRef = collection(db, 'cartProducts', user.uid, 'items');
+        prevItems.forEach(item => {
+          if (ids.includes(item.id)) {
+            const docRef = doc(cartRef, `${item.id}-${item.selectedSize || 'default'}`);
+            deleteDoc(docRef);
+          }
+        });
+      }
+      return newItems;
+    });
+  };
+
   return (
-    <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, updateQuantity, calculateTotal, clearCart, isCartSyncing }}>
+    <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, updateQuantity, calculateTotal, clearCart, isCartSyncing, removeFromCartByIds }}>
       {children}
     </CartContext.Provider>
   );
