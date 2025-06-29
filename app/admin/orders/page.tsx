@@ -10,7 +10,7 @@ import { Calendar, Download, Search, Filter, ChevronDown, ChevronUp } from "luci
 interface Order {
   id: string;
   orderNumber: string;
-  orderDate: Date;
+  createdAt: number;
   status: string;
   total: number;
   subtotal: number;
@@ -26,6 +26,7 @@ interface Order {
   userPhone: string;
   trackingNumber: string;
   estimatedDelivery: Date | null;
+  userId?: string;
 }
 
 interface OrderItem {
@@ -70,7 +71,7 @@ export default function AdminOrdersPage() {
     const fetchOrders = async () => {
       try {
         const ordersRef = collection(db, "productsOrder");
-        const q = query(ordersRef, orderBy("orderDate", "desc"));
+        const q = query(ordersRef, orderBy("createdAt", "desc"));
         const querySnapshot = await getDocs(q);
         const fetchedOrders: Order[] = [];
         querySnapshot.forEach((doc) => {
@@ -78,9 +79,9 @@ export default function AdminOrdersPage() {
           fetchedOrders.push({
             id: doc.id,
             orderNumber: data.orderNumber,
-            orderDate: data.orderDate && typeof data.orderDate.toDate === "function"
-              ? data.orderDate.toDate()
-              : new Date(data.orderDate || Date.now()),
+            createdAt: data.createdAt && typeof data.createdAt.toDate === "function"
+              ? data.createdAt.toDate().getTime()
+              : new Date(data.createdAt || Date.now()).getTime(),
             status: data.status,
             total: data.total,
             subtotal: data.subtotal,
@@ -97,7 +98,8 @@ export default function AdminOrdersPage() {
             trackingNumber: data.trackingNumber,
             estimatedDelivery: data.estimatedDelivery && typeof data.estimatedDelivery.toDate === "function"
               ? data.estimatedDelivery.toDate()
-              : (data.estimatedDelivery ? new Date(data.estimatedDelivery) : undefined)
+              : (data.estimatedDelivery ? new Date(data.estimatedDelivery) : undefined),
+            userId: data.userId
           });
         });
         setOrders(fetchedOrders);
@@ -124,9 +126,9 @@ export default function AdminOrdersPage() {
       filtered = filtered.filter(order => order.status === statusFilter);
     }
     if (sortBy === "date-desc") {
-      filtered.sort((a, b) => (b.orderDate as any) - (a.orderDate as any));
+      filtered.sort((a, b) => b.createdAt - a.createdAt);
     } else if (sortBy === "date-asc") {
-      filtered.sort((a, b) => (a.orderDate as any) - (b.orderDate as any));
+      filtered.sort((a, b) => a.createdAt - b.createdAt);
     } else if (sortBy === "total-desc") {
       filtered.sort((a, b) => (b.total || 0) - (a.total || 0));
     } else if (sortBy === "total-asc") {
@@ -142,7 +144,7 @@ export default function AdminOrdersPage() {
     const rows = filteredOrders.map(order => [
       order.orderNumber,
       order.status,
-      formatDate(order.orderDate, true),
+      formatDate(new Date(order.createdAt), true),
       order.userName,
       order.userEmail,
       order.userPhone,
@@ -301,8 +303,6 @@ export default function AdminOrdersPage() {
               onChange={e => setSortBy(e.target.value)}
               className="border border-[#22304a] rounded-md px-3 py-2 text-white bg-[#22304a] focus:outline-none focus:ring-2 focus:ring-[#3390ff]"
             >
-              <option value="date-desc">Newest First</option>
-              <option value="date-asc">Oldest First</option>
               <option value="total-desc">Total: High to Low</option>
               <option value="total-asc">Total: Low to High</option>
             </select>
@@ -346,7 +346,7 @@ export default function AdminOrdersPage() {
                             await updateOrderStatus({
                               orderId: order.id,
                               newStatus,
-                              userId: "",
+                              userId: order.userId || "",
                               setOrders
                             });
                           }}
@@ -363,7 +363,7 @@ export default function AdminOrdersPage() {
                         <p className="font-medium text-white">{order.orderNumber}</p>
                         <p className="text-sm text-[#8ec0ff]">
                           <Calendar className="inline h-3 w-3 mr-1" />
-                          {formatDate(order.orderDate, true)}
+                          {formatDate(new Date(order.createdAt), true)}
                         </p>
                         {order.userEmail && (
                           <p className="text-xs text-[#8ec0ff]">{order.userEmail}</p>
@@ -373,9 +373,11 @@ export default function AdminOrdersPage() {
                         )}
                       </div>
                     </div>
-                    <div className="text-right">
+                    <div className="text-right flex flex-col items-end">
                       <span className="block text-xs text-[#8ec0ff] font-semibold">Payment: {order.paymentMethod?.toUpperCase() || 'N/A'}</span>
-                      <span className="block text-xs text-[#8ec0ff]">Status: {order.paymentStatus?.charAt(0).toUpperCase() + order.paymentStatus?.slice(1) || 'N/A'}</span>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className="block text-xs text-[#8ec0ff]">Status: {order.status.charAt(0).toUpperCase() + order.status.slice(1)}</span>
+                      </div>
                     </div>
                   </div>
                 </CardHeader>
