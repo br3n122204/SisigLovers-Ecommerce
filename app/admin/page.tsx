@@ -73,7 +73,6 @@ function LoginForm({ onLogin }: { onLogin: (email: string, password: string) => 
 
   return (
     <div className="flex min-h-screen w-full bg-black">
-      <AdminSidebar />
       <main className="flex-1 flex items-center justify-center">
         <div className="w-full max-w-md p-8 space-y-6 bg-[#161e2e] rounded-2xl shadow-2xl border border-[#22304a]">
           <div className="text-center">
@@ -395,7 +394,7 @@ export default function AdminDashboardSinglePage() {
   const isAdmin = user && user.uid === ADMIN_UID;
   return isAdmin ? (
     <div className="flex min-h-screen w-full bg-black">
-      <AdminSidebar activeSection={activeSection} onSectionChange={setActiveSection} />
+      <AdminSidebar activeSection={activeSection} onSectionChange={setActiveSection} onLogout={handleLogout} />
       <main className="flex-1 w-full h-screen bg-[#161e2e] px-8 py-10 flex flex-col">
         {content}
       </main>
