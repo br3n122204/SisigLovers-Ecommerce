@@ -74,7 +74,11 @@ export default function CartPage() {
                   className={`flex items-center space-x-4 border-b border-[#60A5FA] pb-4 transition-opacity duration-300 ${removingItemIds.includes(item.id) ? 'opacity-30 pointer-events-none' : ''}`}
                 >
                   <div className="relative w-24 h-24 flex-shrink-0 rounded-md overflow-hidden border border-gray-200">
-                    <Image src={item.image} alt={item.name} fill className="object-cover" />
+                    {item.image ? (
+                      <Image src={item.image} alt={item.name} fill className="object-cover" />
+                    ) : (
+                      <div className="w-24 h-24 flex items-center justify-center bg-[#19223a] text-[#60A5FA] text-xs">No Image</div>
+                    )}
                   </div>
                   <div className="flex-grow">
                     <h2 className="text-lg font-semibold text-[#60A5FA]">{item.name}</h2>

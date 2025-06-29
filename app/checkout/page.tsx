@@ -331,26 +331,26 @@ export default function CheckoutPage() {
   const totalAmount = (parseFloat(calculateTotal()) + getShippingPrice()).toFixed(2);
 
   return (
-    <div className="min-h-screen bg-black py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[#101828] text-[#60A5FA] py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Left Column: Delivery and Payment */}
-        <div className="bg-black p-8 rounded-lg shadow-md">
-          <h1 className="text-2xl font-bold mb-6 text-[#001F3F]">Checkout</h1>
+        <div className="bg-[#19223a] p-8 rounded-lg shadow-md">
+          <h1 className="text-2xl font-bold mb-6 text-[#60A5FA]">Checkout</h1>
 
           {/* Account Section */}
           <div className="mb-8 pb-4 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-[#001F3F] mb-4">Account</h2>
+            <h2 className="text-xl font-semibold text-[#60A5FA] mb-4">Account</h2>
             <div className="flex items-center space-x-2 mb-4">
-              <span className="font-medium">{deliveryDetails.email}</span>
+              <span className="font-medium text-[#60A5FA]">{deliveryDetails.email}</span>
             </div>
           </div>
 
           {/* Address Selector */}
           {addresses.length > 0 && (
             <div className="mb-4">
-              <label className="block text-sm font-medium text-[#001F3F]">Select Address</label>
+              <label className="block text-sm font-medium text-[#60A5FA]">Select Address</label>
               <select
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-[#001F3F]"
+                className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]"
                 value={selectedAddressId || ""}
                 onChange={e => {
                   setSelectedAddressId(e.target.value);
@@ -382,15 +382,15 @@ export default function CheckoutPage() {
 
           {/* Delivery Section */}
           <div className="mb-8 pb-4 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-[#001F3F] mb-4">Delivery</h2>
+            <h2 className="text-xl font-semibold text-[#60A5FA] mb-4">Delivery</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
               <div>
-                <label htmlFor="firstName" className="block text-sm font-medium text-[#001F3F]">First name</label>
+                <label htmlFor="firstName" className="block text-sm font-medium text-[#60A5FA]">First name</label>
                 <input
                   type="text"
                   id="firstName"
                   name="firstName"
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-[#001F3F]"
+                  className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]"
                   value={deliveryDetails.firstName}
                   onChange={handleInputChange}
                   required
@@ -398,12 +398,12 @@ export default function CheckoutPage() {
                 />
               </div>
               <div>
-                <label htmlFor="lastName" className="block text-sm font-medium text-[#001F3F]">Last name</label>
+                <label htmlFor="lastName" className="block text-sm font-medium text-[#60A5FA]">Last name</label>
                 <input
                   type="text"
                   id="lastName"
                   name="lastName"
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-[#001F3F]"
+                  className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]"
                   value={deliveryDetails.lastName}
                   onChange={handleInputChange}
                   required
@@ -412,12 +412,12 @@ export default function CheckoutPage() {
               </div>
             </div>
             <div className="mb-4">
-              <label htmlFor="address1" className="block text-sm font-medium text-[#001F3F]">Address (Please do not forget to include your Barangay)</label>
+              <label htmlFor="address1" className="block text-sm font-medium text-[#60A5FA]">Address (Please do not forget to include your Barangay)</label>
               <input
                 type="text"
                 id="address1"
                 name="address1"
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-[#001F3F]"
+                className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]"
                 value={deliveryDetails.address1}
                 onChange={handleInputChange}
                 required
@@ -425,12 +425,12 @@ export default function CheckoutPage() {
               />
             </div>
             <div className="mb-4">
-              <label htmlFor="address2" className="block text-sm font-medium text-[#001F3F]">Apartment, suite, etc. (optional)</label>
+              <label htmlFor="address2" className="block text-sm font-medium text-[#60A5FA]">Apartment, suite, etc. (optional)</label>
               <input
                 type="text"
                 id="address2"
                 name="address2"
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-[#001F3F]"
+                className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]"
                 value={deliveryDetails.address2}
                 onChange={handleInputChange}
                 autoComplete="off"
@@ -438,12 +438,12 @@ export default function CheckoutPage() {
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
               <div>
-                <label htmlFor="postalCode" className="block text-sm font-medium text-[#001F3F]">Postal code</label>
+                <label htmlFor="postalCode" className="block text-sm font-medium text-[#60A5FA]">Postal code</label>
                 <input
                   type="text"
                   id="postalCode"
                   name="postalCode"
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-[#001F3F]"
+                  className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]"
                   value={deliveryDetails.postalCode}
                   onChange={handleInputChange}
                   required
@@ -451,12 +451,12 @@ export default function CheckoutPage() {
                 />
               </div>
               <div>
-                <label htmlFor="city" className="block text-sm font-medium text-[#001F3F]">City</label>
+                <label htmlFor="city" className="block text-sm font-medium text-[#60A5FA]">City</label>
                 <input
                   type="text"
                   id="city"
                   name="city"
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-[#001F3F]"
+                  className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]"
                   value={deliveryDetails.city}
                   onChange={handleInputChange}
                   required
@@ -465,9 +465,9 @@ export default function CheckoutPage() {
               </div>
             </div>
             <div className="mb-4">
-              <label htmlFor="region" className="block text-sm font-medium text-[#001F3F]">Region</label>
+              <label htmlFor="region" className="block text-sm font-medium text-[#60A5FA]">Region</label>
               <Select value={deliveryDetails.region} onValueChange={value => setDeliveryDetails(prev => ({ ...prev, region: value }))}>
-                <SelectTrigger className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 h-12 flex items-center justify-between text-base focus:outline-none focus:ring-2 focus:ring-[#A75D43] focus:border-[#A75D43]">
+                <SelectTrigger className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm px-4 py-2 h-12 flex items-center justify-between text-base focus:outline-none focus:ring-2 focus:ring-[#A75D43] focus:border-[#A75D43]">
                   <SelectValue placeholder="Select region" />
                 </SelectTrigger>
                 <SelectContent>
@@ -477,12 +477,12 @@ export default function CheckoutPage() {
               </Select>
             </div>
             <div className="mb-4">
-              <label htmlFor="phone" className="block text-sm font-medium text-[#001F3F]">Phone</label>
+              <label htmlFor="phone" className="block text-sm font-medium text-[#60A5FA]">Phone</label>
               <input
                 type="text"
                 id="phone"
                 name="phone"
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-[#001F3F]"
+                className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]"
                 value={deliveryDetails.phone}
                 onChange={handleInputChange}
                 required
@@ -493,11 +493,11 @@ export default function CheckoutPage() {
 
           {/* Shipping Method Section */}
           <div className="mb-8 pb-4 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-[#001F3F] mb-4">Shipping method</h2>
+            <h2 className="text-xl font-semibold text-[#60A5FA] mb-4">Shipping method</h2>
             <RadioGroup value={shippingMethod} onValueChange={setShippingMethod} className="space-y-2">
               {shippingOptions.map(option => (
                 <label key={option.value} className="flex items-center cursor-pointer">
-                  <RadioGroupItem value={option.value} id={`shipping-${option.value}`} />
+                  <RadioGroupItem value={option.value} id={`shipping-${option.value}`} className="accent-[#60A5FA] focus:ring-[#60A5FA] border-[#60A5FA]" />
                   <span className="ml-2">{option.label} ({option.time}) — ₱{option.price.toFixed(2)}</span>
                 </label>
               ))}
@@ -506,11 +506,11 @@ export default function CheckoutPage() {
 
           {/* Payment Section */}
           <div className="mb-8 pb-4 border-b border-gray-200">
-            <h2 className="text-xl font-semibold text-[#001F3F] mb-4">Payment</h2>
-            <p className="text-[#001F3F] mb-2">All transactions are secure and encrypted.</p>
+            <h2 className="text-xl font-semibold text-[#60A5FA] mb-4">Payment</h2>
+            <p className="text-[#60A5FA] mb-2">All transactions are secure and encrypted.</p>
             <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="space-y-2">
               <label className="flex items-center cursor-pointer">
-                <RadioGroupItem value="gcash" id="payment-gcash" />
+                <RadioGroupItem value="gcash" id="payment-gcash" className="accent-[#60A5FA] focus:ring-[#60A5FA] border-[#60A5FA]" />
                 <span className="ml-2 flex items-center">
                   GCash
                   <img
@@ -521,28 +521,28 @@ export default function CheckoutPage() {
                 </span>
               </label>
               <label className="flex items-center cursor-pointer">
-                <RadioGroupItem value="cod" id="payment-cod" />
+                <RadioGroupItem value="cod" id="payment-cod" className="accent-[#60A5FA] focus:ring-[#60A5FA] border-[#60A5FA]" />
                 <span className="ml-2">Cash on delivery (COD)</span>
               </label>
             </RadioGroup>
           </div>
 
           {/* Billing Address */}
-          <h2 className="text-xl font-semibold text-[#001F3F] mb-4">Billing address</h2>
+          <h2 className="text-xl font-semibold text-[#60A5FA] mb-4">Billing address</h2>
           <RadioGroup value={sameAsShipping ? "same" : "different"} onValueChange={v => setSameAsShipping(v === "same")} className="space-y-2">
             <label className="flex items-center cursor-pointer">
-              <RadioGroupItem value="same" id="billing-same" />
-              <span className="ml-3 block text-sm font-medium text-[#001F3F]">Same as shipping address</span>
+              <RadioGroupItem value="same" id="billing-same" className="accent-[#60A5FA] focus:ring-[#60A5FA] border-[#60A5FA]" />
+              <span className="ml-3 block text-sm font-medium text-[#60A5FA]">Same as shipping address</span>
             </label>
             <label className="flex items-center cursor-pointer">
-              <RadioGroupItem value="different" id="billing-different" />
-              <span className="ml-3 block text-sm font-medium text-[#001F3F]">Use a different billing address</span>
+              <RadioGroupItem value="different" id="billing-different" className="accent-[#60A5FA] focus:ring-[#60A5FA] border-[#60A5FA]" />
+              <span className="ml-3 block text-sm font-medium text-[#60A5FA]">Use a different billing address</span>
             </label>
           </RadioGroup>
           {!sameAsShipping && (
-            <div className="mt-4 p-4 border border-gray-200 rounded-md bg-gray-50">
+            <div className="mt-4 p-4 border border-[#60A5FA] rounded-md bg-[#101828]">
               <div className="mb-4">
-                <label htmlFor="savedAddresses" className="block text-sm font-medium text-[#001F3F]">Saved addresses</label>
+                <label htmlFor="savedAddresses" className="block text-sm font-medium text-[#60A5FA]">Saved addresses</label>
                 <Select value={selectedAddressId || undefined} onValueChange={value => {
                   setSelectedAddressId(value);
                   const addr = savedAddresses.find(a => a.id === value);
@@ -550,7 +550,7 @@ export default function CheckoutPage() {
                     setBillingDetails(addr);
                   }
                 }}>
-                  <SelectTrigger className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 h-12 flex items-center justify-between text-base focus:outline-none focus:ring-2 focus:ring-[#A75D43] focus:border-[#A75D43]">
+                  <SelectTrigger className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm px-4 py-2 h-12 flex items-center justify-between text-base focus:outline-none focus:ring-2 focus:ring-[#A75D43] focus:border-[#A75D43]">
                     <SelectValue placeholder="Select a saved address" />
                   </SelectTrigger>
                   <SelectContent>
@@ -561,9 +561,9 @@ export default function CheckoutPage() {
                 </Select>
               </div>
               <div className="mb-4">
-                <label htmlFor="countryBilling" className="block text-sm font-medium text-[#001F3F]">Country/Region</label>
+                <label htmlFor="countryBilling" className="block text-sm font-medium text-[#60A5FA]">Country/Region</label>
                 <Select value={billingDetails.country} onValueChange={value => setBillingDetails(prev => ({ ...prev, country: value }))}>
-                  <SelectTrigger className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 h-12 flex items-center justify-between text-base focus:outline-none focus:ring-2 focus:ring-[#A75D43] focus:border-[#A75D43]">
+                  <SelectTrigger className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm px-4 py-2 h-12 flex items-center justify-between text-base focus:outline-none focus:ring-2 focus:ring-[#A75D43] focus:border-[#A75D43]">
                     <SelectValue placeholder="Select country" />
                   </SelectTrigger>
                   <SelectContent>
@@ -573,24 +573,24 @@ export default function CheckoutPage() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <div>
-                  <label htmlFor="firstNameBilling" className="block text-sm font-medium text-[#001F3F]">First name (optional)</label>
+                  <label htmlFor="firstNameBilling" className="block text-sm font-medium text-[#60A5FA]">First name (optional)</label>
                   <input
                     type="text"
                     id="firstNameBilling"
                     name="firstName"
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-[#001F3F]"
+                    className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]"
                     value={billingDetails.firstName}
                     onChange={handleBillingInputChange}
                     autoComplete="off"
                   />
                 </div>
                 <div>
-                  <label htmlFor="lastNameBilling" className="block text-sm font-medium text-[#001F3F]">Last name</label>
+                  <label htmlFor="lastNameBilling" className="block text-sm font-medium text-[#60A5FA]">Last name</label>
                   <input
                     type="text"
                     id="lastNameBilling"
                     name="lastName"
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-[#001F3F]"
+                    className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]"
                     value={billingDetails.lastName}
                     onChange={handleBillingInputChange}
                     required
@@ -599,12 +599,12 @@ export default function CheckoutPage() {
                 </div>
               </div>
               <div className="mb-4">
-                <label htmlFor="address1Billing" className="block text-sm font-medium text-[#001F3F]">Address</label>
+                <label htmlFor="address1Billing" className="block text-sm font-medium text-[#60A5FA]">Address</label>
                 <input
                   type="text"
                   id="address1Billing"
                   name="address1"
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-[#001F3F]"
+                  className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]"
                   value={billingDetails.address1}
                   onChange={handleBillingInputChange}
                   required
@@ -612,12 +612,12 @@ export default function CheckoutPage() {
                 />
               </div>
               <div className="mb-4">
-                <label htmlFor="address2Billing" className="block text-sm font-medium text-[#001F3F]">Apartment, suite, etc. (optional)</label>
+                <label htmlFor="address2Billing" className="block text-sm font-medium text-[#60A5FA]">Apartment, suite, etc. (optional)</label>
                 <input
                   type="text"
                   id="address2Billing"
                   name="address2"
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-[#001F3F]"
+                  className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]"
                   value={billingDetails.address2}
                   onChange={handleBillingInputChange}
                   autoComplete="off"
@@ -625,12 +625,12 @@ export default function CheckoutPage() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <div>
-                  <label htmlFor="postalCodeBilling" className="block text-sm font-medium text-[#001F3F]">Postal code</label>
+                  <label htmlFor="postalCodeBilling" className="block text-sm font-medium text-[#60A5FA]">Postal code</label>
                   <input
                     type="text"
                     id="postalCodeBilling"
                     name="postalCode"
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-[#001F3F]"
+                    className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]"
                     value={billingDetails.postalCode}
                     onChange={handleBillingInputChange}
                     required
@@ -638,12 +638,12 @@ export default function CheckoutPage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="cityBilling" className="block text-sm font-medium text-[#001F3F]">City</label>
+                  <label htmlFor="cityBilling" className="block text-sm font-medium text-[#60A5FA]">City</label>
                   <input
                     type="text"
                     id="cityBilling"
                     name="city"
-                    className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-[#001F3F]"
+                    className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]"
                     value={billingDetails.city}
                     onChange={handleBillingInputChange}
                     required
@@ -652,9 +652,9 @@ export default function CheckoutPage() {
                 </div>
               </div>
               <div className="mb-4">
-                <label htmlFor="regionBilling" className="block text-sm font-medium text-[#001F3F]">Region</label>
+                <label htmlFor="regionBilling" className="block text-sm font-medium text-[#60A5FA]">Region</label>
                 <Select value={billingDetails.region} onValueChange={value => setBillingDetails(prev => ({ ...prev, region: value }))}>
-                  <SelectTrigger className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm px-4 py-2 h-12 flex items-center justify-between text-base focus:outline-none focus:ring-2 focus:ring-[#A75D43] focus:border-[#A75D43]">
+                  <SelectTrigger className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm px-4 py-2 h-12 flex items-center justify-between text-base focus:outline-none focus:ring-2 focus:ring-[#A75D43] focus:border-[#A75D43]">
                     <SelectValue placeholder="Select region" />
                   </SelectTrigger>
                   <SelectContent>
@@ -663,12 +663,12 @@ export default function CheckoutPage() {
                 </Select>
               </div>
               <div className="mb-4">
-                <label htmlFor="phoneBilling" className="block text-sm font-medium text-[#001F3F]">Phone</label>
+                <label htmlFor="phoneBilling" className="block text-sm font-medium text-[#60A5FA]">Phone</label>
                 <input
                   type="text"
                   id="phoneBilling"
                   name="phone"
-                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm bg-white text-[#001F3F]"
+                  className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]"
                   value={billingDetails.phone}
                   onChange={handleBillingInputChange}
                   required
@@ -680,7 +680,7 @@ export default function CheckoutPage() {
 
           {/* Pay Now Button */}
           <Button
-            className="w-full bg-[#A75D43] text-[#001F3F] py-3 rounded-md hover:bg-[#c98a6a] transition-colors"
+            className="w-full bg-[#60A5FA] text-[#101828] py-3 rounded-md hover:bg-[#3380c0] transition-colors"
             onClick={handleProceedToPayment}
             disabled={isProcessing}
           >
@@ -689,32 +689,36 @@ export default function CheckoutPage() {
         </div>
 
         {/* Right Column: Order Summary */}
-        <div className="bg-black p-8 rounded-lg shadow-md sticky top-8 h-fit">
-          <h2 className="text-xl font-bold text-[#001F3F] mb-4">Your order</h2>
+        <div className="bg-[#19223a] p-8 rounded-lg shadow-md sticky top-8 h-fit">
+          <h2 className="text-xl font-bold text-[#60A5FA] mb-4">Your order</h2>
           {cartItems.length === 0 ? (
-            <p className="text-[#001F3F]">Your cart is empty.</p>
+            <p className="text-[#60A5FA]">Your cart is empty.</p>
           ) : (
             <>
               <div className="space-y-4 mb-6">
                 {cartItems.map((item) => (
                   <div key={`${item.id}-${item.selectedSize}`} className="flex items-center space-x-4">
                     <div className="relative w-24 h-24 flex-shrink-0 rounded-md overflow-hidden border border-gray-200">
-                      <Image src={item.image} alt={item.name} width={96} height={96} className="object-contain" />
+                      {item.image ? (
+                        <Image src={item.image} alt={item.name} width={96} height={96} className="object-contain" />
+                      ) : (
+                        <div className="w-24 h-24 flex items-center justify-center bg-[#19223a] text-[#60A5FA] text-xs">No Image</div>
+                      )}
                       <span className="absolute -top-2 -right-2 bg-black text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                         {item.quantity}
                       </span>
                     </div>
                     <div className="flex-grow">
-                      <h3 className="text-lg font-semibold text-[#001F3F]">{item.name}</h3>
+                      <h3 className="text-lg font-semibold text-[#60A5FA]">{item.name}</h3>
                       {item.selectedSize && (
-                        <p className="text-sm text-[#001F3F]">
+                        <p className="text-sm text-[#60A5FA]">
                           Size: {typeof item.selectedSize === 'object' && item.selectedSize !== null && 'size' in item.selectedSize
                             ? (item.selectedSize as any).size
                             : item.selectedSize}
                         </p>
                       )}
                     </div>
-                    <p className="text-md font-medium text-[#001F3F]">
+                    <p className="text-md font-medium text-[#60A5FA]">
                       ₱{
                         ((typeof item.price === "string"
                           ? parseFloat(item.price.replace(/[^\d.]/g, ''))
@@ -726,7 +730,7 @@ export default function CheckoutPage() {
                 ))}
               </div>
 
-              <div className="space-y-2 text-[#001F3F] pt-4 border-t border-gray-200">
+              <div className="space-y-2 text-[#60A5FA] pt-4 border-t border-gray-200">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
                   <span>₱{calculateTotal()}</span>
