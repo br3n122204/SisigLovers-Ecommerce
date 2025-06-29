@@ -34,14 +34,14 @@ export default function UserProfile() {
       <div className="flex items-center space-x-4">
         <Link href="/login">
           <button
-            className="px-4 py-2 rounded-md border-2 border-[#A75D43] text-[#001F3F] bg-white font-semibold hover:bg-[#f5f2ef] hover:border-[#c98a6a] transition-all"
+            className="px-4 py-2 rounded-md border-2 border-[#60A5FA] text-[#60A5FA] bg-[#101828] font-semibold hover:bg-[#19223a] hover:border-[#60A5FA] hover:text-white transition-all"
           >
             Log In
           </button>
         </Link>
         <Link href="/login?signup=true">
           <button
-            className="px-4 py-2 rounded-md border-2 border-[#A75D43] text-[#001F3F] bg-white font-semibold hover:bg-[#f5f2ef] hover:border-[#c98a6a] transition-all"
+            className="px-4 py-2 rounded-md border-2 border-[#60A5FA] text-[#60A5FA] bg-[#101828] font-semibold hover:bg-[#19223a] hover:border-[#60A5FA] hover:text-white transition-all"
           >
             Sign Up
           </button>
