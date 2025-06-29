@@ -106,10 +106,10 @@ export default function Header() {
                   />
                 </button>
                 <div className={`absolute ${isBrandDropdownOpen ? 'block' : 'hidden'} bg-[#001F3F] shadow-lg rounded-md py-1 mt-2 w-40 z-20`}>
-                  <button type="button" className="block w-full text-left px-4 py-2 text-white hover:bg-[#003366] hover:text-white" onClick={() => { router.push('/search?brand=MN%2BLA'); setIsBrandDropdownOpen(false); }}>MN+LA</button>
-                  <button type="button" className="block w-full text-left px-4 py-2 text-white hover:bg-[#003366] hover:text-white" onClick={() => { router.push('/search?brand=Charlotte%20Folk'); setIsBrandDropdownOpen(false); }}>Charlotte Folk</button>
-                  <button type="button" className="block w-full text-left px-4 py-2 text-white hover:bg-[#003366] hover:text-white" onClick={() => { router.push('/search?brand=Strap'); setIsBrandDropdownOpen(false); }}>Strap</button>
-                  <button type="button" className="block w-full text-left px-4 py-2 text-white hover:bg-[#003366] hover:text-white" onClick={() => { router.push('/search?brand=Richboyz'); setIsBrandDropdownOpen(false); }}>Richboyz</button>
+                  <Link href="/brands/MN%2BLA" className="block w-full text-left px-4 py-2 text-white hover:bg-[#003366] hover:text-white" onClick={() => setIsBrandDropdownOpen(false)}>MN+LA</Link>
+                  <Link href="/brands/Charlotte%20Folk" className="block w-full text-left px-4 py-2 text-white hover:bg-[#003366] hover:text-white" onClick={() => setIsBrandDropdownOpen(false)}>Charlotte Folk</Link>
+                  <Link href="/brands/Strap" className="block w-full text-left px-4 py-2 text-white hover:bg-[#003366] hover:text-white" onClick={() => setIsBrandDropdownOpen(false)}>Strap</Link>
+                  <Link href="/brands/Richboyz" className="block w-full text-left px-4 py-2 text-white hover:bg-[#003366] hover:text-white" onClick={() => setIsBrandDropdownOpen(false)}>Richboyz</Link>
                 </div>
               </div>
             )}
