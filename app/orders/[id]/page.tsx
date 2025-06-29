@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/context/AuthContext";
 import { ArrowLeft, Package, Truck, CheckCircle, Clock, MapPin, Phone, Mail, CreditCard, Download, Share2 } from "lucide-react";
-import { doc, getDoc, collection, getDocs } from "firebase/firestore";
+import { doc, getDoc, collection, getDocs, onSnapshot } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useParams } from 'next/navigation';
 import React from 'react';
@@ -74,51 +74,48 @@ export default function OrderDetailsPage() {
 
   useEffect(() => {
     if (user) {
-      const fetchOrderDetails = async () => {
-        try {
-          const orderRef = doc(db, 'users', user.uid, 'orders', orderId);
-          const orderSnap = await getDoc(orderRef);
-          if (orderSnap.exists()) {
-            const data = orderSnap.data();
-            const fetchedOrder: Order = {
-              id: orderSnap.id,
-              orderNumber: data.orderNumber,
-              orderDate: (() => {
-                const d = data.orderDate;
-                if (d && typeof d.toDate === 'function') return d.toDate();
-                if (typeof d === 'string' || typeof d === 'number') return new Date(d);
-                return new Date();
-              })(),
-              status: data.status,
-              total: data.total,
-              subtotal: data.subtotal,
-              shipping: data.shipping,
-              tax: data.tax,
-              items: data.items || [],
-              shippingAddress: data.shippingAddress,
-              billingAddress: data.billingAddress,
-              paymentMethod: data.paymentMethod,
-              paymentStatus: data.paymentStatus,
-              trackingNumber: data.trackingNumber,
-              estimatedDelivery: data.estimatedDelivery?.toDate(),
-              actualDelivery: data.actualDelivery?.toDate(),
-              notes: data.notes
-            };
-            setOrder(fetchedOrder);
-            setOrderItems(data.items || []);
-          } else {
-            setOrder(null);
-            setOrderItems([]);
-          }
-        } catch (error) {
-          console.error("Error fetching order details:", error);
+      const orderRef = doc(db, 'users', user.uid, 'orders', orderId);
+      const unsubscribe = onSnapshot(orderRef, (orderSnap) => {
+        if (orderSnap.exists()) {
+          const data = orderSnap.data();
+          const fetchedOrder: Order = {
+            id: orderSnap.id,
+            orderNumber: data.orderNumber,
+            orderDate: (() => {
+              const d = data.orderDate;
+              if (d && typeof d.toDate === 'function') return d.toDate();
+              if (typeof d === 'string' || typeof d === 'number') return new Date(d);
+              return new Date();
+            })(),
+            status: data.status,
+            total: data.total,
+            subtotal: data.subtotal,
+            shipping: data.shipping,
+            tax: data.tax,
+            items: data.items || [],
+            shippingAddress: data.shippingAddress,
+            billingAddress: data.billingAddress,
+            paymentMethod: data.paymentMethod,
+            paymentStatus: data.paymentStatus,
+            trackingNumber: data.trackingNumber,
+            estimatedDelivery: data.estimatedDelivery?.toDate(),
+            actualDelivery: data.actualDelivery?.toDate(),
+            notes: data.notes
+          };
+          setOrder(fetchedOrder);
+          setOrderItems(data.items || []);
+        } else {
           setOrder(null);
           setOrderItems([]);
-        } finally {
-          setLoading(false);
         }
-      };
-      fetchOrderDetails();
+        setLoading(false);
+      }, (error) => {
+        console.error("Error fetching order details:", error);
+        setOrder(null);
+        setOrderItems([]);
+        setLoading(false);
+      });
+      return () => unsubscribe();
     } else {
       setLoading(false);
       setOrderItems([]);
