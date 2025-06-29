@@ -78,7 +78,7 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-[#A75D43] border-b border-[#c98a6a] py-4">
+    <header className="bg-[#101828] border-b border-[#222f43] py-4">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row md:items-center md:justify-between">
         {/* Left: Logo and Navigation */}
         <div className="flex items-center gap-8 w-full md:w-auto md:flex-1">
@@ -92,7 +92,7 @@ export default function Header() {
               priority
             />
           </Link>
-          <nav className="flex items-center gap-6 text-sm font-medium text-[#001F3F]">
+          <nav className="flex items-center gap-6 text-sm font-medium text-[#60A5FA]">
             {/* Shop by Brand Dropdown */}
             {!isAdminPage && (
               <div className="relative">
@@ -133,7 +133,7 @@ export default function Header() {
               onChange={handleInputChange}
               onFocus={() => setShowSuggestions(true)}
               onBlur={() => setTimeout(() => setShowSuggestions(false), 100)}
-              className="w-full px-5 py-2.5 pl-12 pr-5 border-2 border-[#c98a6a] rounded-full bg-[#f5f2ef] text-[#001F3F] placeholder-[#001F3F] focus:outline-none focus:ring-3 focus:ring-[#A75D43] focus:border-[#A75D43] transition-all duration-300 ease-in-out shadow-md text-base"
+              className="w-full px-5 py-2.5 pl-12 pr-5 border-2 border-[#60A5FA] rounded-full bg-[#f5f2ef] text-[#001F3F] placeholder-[#001F3F] focus:outline-none focus:ring-3 focus:ring-[#60A5FA] focus:border-[#60A5FA] transition-all duration-300 ease-in-out shadow-md text-base"
             />
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#001F3F]" />
             <button
@@ -181,7 +181,7 @@ export default function Header() {
           <div className="flex items-center space-x-4">
             <UserProfile />
             <Link href="/cart" className="relative flex items-center justify-center">
-              <ShoppingCart className="h-6 w-6 text-[#001F3F] hover:text-[#003366] transition-colors" />
+              <ShoppingCart className="h-6 w-6 text-white hover:text-[#60A5FA] transition-colors" />
               {cartItems.length > 0 && (
                 <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
                   {cartItems.length}
@@ -203,7 +203,7 @@ export default function Header() {
               onChange={handleInputChange}
               onFocus={() => setShowSuggestions(true)}
               onBlur={() => setTimeout(() => setShowSuggestions(false), 100)}
-              className="w-full px-5 py-2.5 pl-12 pr-5 border-2 border-gray-300 rounded-full bg-gray-100 text-[#001F3F] placeholder-gray-500 focus:outline-none focus:ring-3 focus:ring-[#001F3F] focus:border-[#001F3F] transition-all duration-300 ease-in-out shadow-md"
+              className="w-full px-5 py-2.5 pl-12 pr-5 border-2 border-[#60A5FA] rounded-full bg-[#f5f2ef] text-[#001F3F] placeholder-[#001F3F] focus:outline-none focus:ring-3 focus:ring-[#60A5FA] focus:border-[#60A5FA] transition-all duration-300 ease-in-out shadow-md text-base"
               autoFocus
             />
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#001F3F]" />

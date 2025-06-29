@@ -55,7 +55,7 @@ function ImageSlider() {
   const goToNext = () => setCurrentSlide((prev) => (prev + 1) % sliderImages.length)
 
   return (
-    <div className="relative w-full h-[70vh] min-h-[500px] bg-neutral-100 overflow-hidden flex items-center justify-center">
+    <div className="relative w-full h-[70vh] min-h-[500px] bg-[#101828] overflow-hidden flex items-center justify-center">
       {/* Slider Images */}
       <div
         className="flex transition-transform duration-700 ease-in-out h-full w-full"
@@ -157,38 +157,38 @@ export default function DPTOneFashion() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[#101828] text-[#60A5FA]">
       {/* Main Content Container */}
       <div className="w-full">
         {/* Hero / Slider Section */}
         <ImageSlider />
         {/* Featured Products Section */}
-        <section className="py-20 bg-neutral-50">
+        <section className="py-20 bg-[#101828]">
           <div className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-12">
-            <h2 className="text-4xl font-extrabold text-center mb-12 tracking-tight text-neutral-900">
+            <h2 className="text-4xl font-extrabold text-center mb-12 tracking-tight text-[#60A5FA]">
               Featured Products
             </h2>
             {error ? (
-              <div className="flex justify-center items-center py-20 text-red-600 font-semibold">
+              <div className="flex justify-center items-center py-20 text-red-400 font-semibold">
                 {error}
               </div>
             ) : loading ? (
               <div className="flex justify-center items-center py-20">
-                <svg className="animate-spin h-10 w-10 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <svg className="animate-spin h-10 w-10 text-[#60A5FA]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"></path>
                 </svg>
-                <span className="ml-4 text-lg text-gray-700">Loading products...</span>
+                <span className="ml-4 text-lg text-[#60A5FA]">Loading products...</span>
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
                 {products.length === 0 ? (
-                  <div className="col-span-4 text-center text-gray-500">No products found.</div>
+                  <div className="col-span-4 text-center text-[#60A5FA]">No products found.</div>
                 ) : (
                   products.map((product) => (
                     <Link key={product.id} href={`/products/${product.id}`} className="w-full">
                       <div
-                        className="bg-white rounded-2xl shadow-lg p-4 flex flex-col items-center cursor-pointer hover:shadow-xl transition"
+                        className="bg-[#19223a] rounded-2xl shadow-lg p-4 flex flex-col items-center cursor-pointer hover:shadow-xl transition text-[#60A5FA]"
                         onMouseEnter={() => setHoveredProduct(product.id)}
                         onMouseLeave={() => setHoveredProduct(null)}
                       >
@@ -204,7 +204,7 @@ export default function DPTOneFashion() {
                           className="w-48 h-48 object-contain mb-4"
                         />
                         <h3 className="font-bold text-lg text-center mb-1">{product.name}</h3>
-                        <p className="text-gray-700 font-semibold mb-4">₱{product.price}</p>
+                        <p className="text-[#60A5FA] font-semibold mb-4">₱{product.price}</p>
                       </div>
                     </Link>
                   ))
