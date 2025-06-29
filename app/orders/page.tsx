@@ -183,34 +183,34 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-[#101828] text-[#60A5FA] py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-[#001F3F] mb-2">My Orders</h1>
-          <p className="text-[#001F3F]">Track and manage your orders</p>
+          <h1 className="text-3xl font-bold text-[#60A5FA] mb-2">My Orders</h1>
+          <p className="text-[#60A5FA]">Track and manage your orders</p>
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
+        <div className="bg-[#19223a] rounded-lg shadow-sm p-6 mb-6">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#001F3F] h-4 w-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#60A5FA] h-4 w-4" />
                 <Input
                   placeholder="Search orders or products..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="pl-10 border-[#60A5FA] text-[#60A5FA] bg-[#101828] placeholder-[#60A5FA]"
                 />
               </div>
             </div>
             <div className="sm:w-48">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
+                <SelectTrigger className="border-[#60A5FA] text-[#60A5FA] bg-[#101828]">
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-[#19223a] text-[#60A5FA]">
                   <SelectItem value="all">All Orders</SelectItem>
                   <SelectItem value="pending">Pending</SelectItem>
                   <SelectItem value="processing">Processing</SelectItem>
@@ -226,9 +226,9 @@ export default function OrdersPage() {
         {/* Orders List */}
         {filteredOrders.length === 0 ? (
           <div className="text-center py-12">
-            <Package className="mx-auto h-12 w-12 text-[#001F3F]" />
-            <h3 className="mt-2 text-sm font-medium text-[#001F3F]">No orders found</h3>
-            <p className="mt-1 text-sm text-[#001F3F]">
+            <Package className="mx-auto h-12 w-12 text-[#60A5FA]" />
+            <h3 className="mt-2 text-sm font-medium text-[#60A5FA]">No orders found</h3>
+            <p className="mt-1 text-sm text-[#60A5FA]">
               {searchTerm || statusFilter !== "all" 
                 ? "Try adjusting your search or filter criteria."
                 : "Get started by placing your first order."
@@ -237,7 +237,7 @@ export default function OrdersPage() {
             {!searchTerm && statusFilter === "all" && (
               <div className="mt-6">
                 <Link href="/products">
-                  <Button>Browse Products</Button>
+                  <Button className="bg-[#60A5FA] text-[#101828] hover:bg-[#3380c0]">Browse Products</Button>
                 </Link>
               </div>
             )}
@@ -246,19 +246,19 @@ export default function OrdersPage() {
           <div className="space-y-6">
             {filteredOrders.map((order) => (
               <Link key={order.id} href={`/orders/${order.id}`} className="block">
-                <Card className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow">
-                  <CardHeader className="bg-white">
+                <Card className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow bg-[#19223a] border-[#60A5FA] text-[#60A5FA]">
+                  <CardHeader className="bg-[#19223a] border-b border-[#60A5FA]">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                       <div className="flex items-center gap-4">
                         <div className="flex items-center gap-2">
                           <span className="text-2xl">{getStatusIcon(order.status)}</span>
-                          <Badge className={getStatusColor(order.status)}>
+                          <Badge className="bg-[#60A5FA] text-[#101828]">
                             {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                           </Badge>
                         </div>
                         <div>
-                          <p className="font-medium text-[#001F3F]">{order.orderNumber}</p>
-                          <p className="text-sm text-[#001F3F]">
+                          <p className="font-medium text-[#60A5FA]">{order.orderNumber}</p>
+                          <p className="text-sm text-[#60A5FA]">
                             <Calendar className="inline h-3 w-3 mr-1" />
                             {formatDate(order.orderDate)}
                           </p>
@@ -266,25 +266,24 @@ export default function OrdersPage() {
                       </div>
                     </div>
                   </CardHeader>
-                  <CardContent className="p-6 bg-white text-[#001F3F]">
+                  <CardContent className="p-6 bg-[#19223a] text-[#60A5FA]">
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                       {/* Order Items */}
                       <div className="lg:col-span-2">
-                        <h4 className="font-medium text-[#001F3F] mb-3">Items</h4>
+                        <h4 className="font-medium text-[#60A5FA] mb-3">Items</h4>
                         <div className="space-y-3">
                           {order.items.map((item) => (
                             <div key={item.id} className="flex items-center gap-3">
                               <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100">
-                                <Image
-                                  src={item.image}
-                                  alt={item.name}
-                                  fill
-                                  className="object-cover"
-                                />
+                                {item.image ? (
+                                  <Image src={item.image} alt={item.name} fill className="object-cover" />
+                                ) : (
+                                  <div className="w-16 h-16 flex items-center justify-center bg-[#101828] text-[#60A5FA] text-xs">No Image</div>
+                                )}
                               </div>
                               <div className="flex-1 min-w-0">
-                                <p className="font-medium text-[#001F3F] truncate">{item.name}</p>
-                                <p className="text-sm text-[#001F3F]">
+                                <p className="font-medium text-[#60A5FA] truncate">{item.name}</p>
+                                <p className="text-sm text-[#60A5FA]">
                                   Qty: {item.quantity}
                                   {item.size && (
                                     <>
@@ -301,7 +300,7 @@ export default function OrdersPage() {
                                     </>
                                   )}
                                 </p>
-                                <p className="text-sm font-medium text-[#001F3F]">
+                                <p className="text-sm font-medium text-[#60A5FA]">
                                   {formatCurrency(item.price)}
                                 </p>
                               </div>
@@ -313,7 +312,7 @@ export default function OrdersPage() {
                       {/* Order Summary */}
                       <div className="space-y-4">
                         <div>
-                          <h4 className="font-medium text-[#001F3F] mb-2">Order Summary</h4>
+                          <h4 className="font-medium text-[#60A5FA] mb-2">Order Summary</h4>
                           <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
                               <span>Subtotal:</span>
@@ -331,8 +330,8 @@ export default function OrdersPage() {
                         </div>
 
                         <div>
-                          <h4 className="font-medium text-[#001F3F] mb-2">Shipping Address</h4>
-                          <p className="text-sm text-[#001F3F]">
+                          <h4 className="font-medium text-[#60A5FA] mb-2">Shipping Address</h4>
+                          <p className="text-sm text-[#60A5FA]">
                             {order.shippingAddress.firstName} {order.shippingAddress.lastName}<br />
                             {order.shippingAddress.address1}<br />
                             {order.shippingAddress.city}, {order.shippingAddress.region} {order.shippingAddress.postalCode}<br />
@@ -342,8 +341,8 @@ export default function OrdersPage() {
 
                         {order.trackingNumber && (
                           <div>
-                            <h4 className="font-medium text-[#001F3F] mb-2">Tracking</h4>
-                            <p className="text-sm text-[#001F3F]">
+                            <h4 className="font-medium text-[#60A5FA] mb-2">Tracking</h4>
+                            <p className="text-sm text-[#60A5FA]">
                               Number: {order.trackingNumber}<br />
                               {order.estimatedDelivery && (
                                 <>Estimated Delivery: {formatDate(order.estimatedDelivery)}</>
