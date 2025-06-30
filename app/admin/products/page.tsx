@@ -13,6 +13,7 @@ interface Product {
   imageUrls?: string[];
   brand?: string;
   sizes?: { size: string; stock: number }[];
+  totalStock?: number;
 }
 
 export default function AdminProductsPage() {
@@ -38,6 +39,7 @@ export default function AdminProductsPage() {
           imageUrls: data.imageUrls,
           brand: data.brand,
           sizes: data.sizes,
+          totalStock: data.totalStock,
         });
       });
       setProducts(items);
@@ -61,7 +63,19 @@ export default function AdminProductsPage() {
     setEditValues({});
   };
 
+  const isEditValid = () => {
+    if (!editValues.sizes || editValues.sizes.length === 0) return false;
+    for (const s of editValues.sizes) {
+      if (!s.size || Number(s.stock) <= 0 || isNaN(Number(s.stock))) return false;
+    }
+    return true;
+  };
+
   const saveEdit = async (id: string) => {
+    if (!isEditValid()) {
+      alert('Please select a size and enter stock for all sizes.');
+      return;
+    }
     setSaving(true);
     const updateData: any = {
       name: editValues.name,
@@ -70,11 +84,12 @@ export default function AdminProductsPage() {
     };
     if (editValues.sizes) {
       updateData.sizes = editValues.sizes.map(s => ({ size: s.size, stock: Number(s.stock) }));
+      updateData.totalStock = editValues.sizes.reduce((sum, s) => sum + Number(s.stock), 0);
     }
     await updateDoc(doc(db, "adminProducts", id), updateData);
     setProducts((prev) =>
       prev.map((p) =>
-        p.id === id ? { ...p, ...editValues, price: Number(editValues.price), stock: Number(editValues.stock), sizes: editValues.sizes ? editValues.sizes.map(s => ({ ...s, stock: Number(s.stock) })) : undefined } : p
+        p.id === id ? { ...p, ...editValues, price: Number(editValues.price), stock: Number(editValues.stock), sizes: editValues.sizes ? editValues.sizes.map(s => ({ ...s, stock: Number(s.stock) })) : undefined, totalStock: editValues.sizes ? editValues.sizes.reduce((sum, s) => sum + Number(s.stock), 0) : undefined } : p
       )
     );
     setEditingId(null);
@@ -144,45 +159,56 @@ export default function AdminProductsPage() {
                     {editingId === product.id ? (
                       editValues.sizes && editValues.sizes.length > 0 ? (
                         <div className="flex flex-col gap-1">
-                          {(editValues.sizes || []).map((s, i) => (
-                            <div key={i} className="flex items-center gap-2">
-                              <input
-                                type="text"
-                                className="bg-[#22304a] border border-[#22304a] px-2 py-1 rounded w-12 text-xs font-semibold text-center text-white"
-                                value={s.size}
-                                placeholder="Size"
-                                onChange={e => {
-                                  const newSizes = [...(editValues.sizes || [])];
-                                  newSizes[i].size = e.target.value.toUpperCase();
-                                  setEditValues(v => ({ ...v, sizes: newSizes }));
-                                }}
-                              />
-                              <input
-                                type="number"
-                                className="bg-[#22304a] border border-[#22304a] px-2 py-1 rounded w-16 text-white"
-                                value={s.stock}
-                                min={0}
-                                placeholder="Stock"
-                                onChange={e => {
-                                  const newSizes = [...(editValues.sizes || [])];
-                                  newSizes[i].stock = Number(e.target.value);
-                                  setEditValues(v => ({ ...v, sizes: newSizes }));
-                                }}
-                              />
-                              <button
-                                type="button"
-                                className="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-xs"
-                                onClick={() => {
-                                  const newSizes = [...(editValues.sizes || [])];
-                                  newSizes.splice(i, 1);
-                                  setEditValues(v => ({ ...v, sizes: newSizes }));
-                                }}
-                                disabled={(editValues.sizes || []).length === 1}
-                              >
-                                ×
-                              </button>
-                            </div>
-                          ))}
+                          {(editValues.sizes || []).map((s, i) => {
+                            const selectedSizes = (editValues.sizes || []).map((sz, idx) => idx !== i ? sz.size : null).filter(Boolean);
+                            return (
+                              <div key={i} className="flex items-center gap-2">
+                                <select
+                                  className="bg-[#22304a] border border-[#22304a] px-2 py-1 rounded w-24 text-xs font-semibold text-center text-white"
+                                  value={s.size}
+                                  onChange={e => {
+                                    const newSizes = [...(editValues.sizes || [])];
+                                    newSizes[i].size = e.target.value;
+                                    setEditValues(v => ({ ...v, sizes: newSizes }));
+                                  }}
+                                  required
+                                >
+                                  <option value="">Select size</option>
+                                  {['S', 'M', 'L', 'XL', '2XL'].map(opt => (
+                                    selectedSizes.includes(opt)
+                                      ? <option key={opt} value={opt} disabled>{opt}</option>
+                                      : <option key={opt} value={opt}>{opt}</option>
+                                  ))}
+                                </select>
+                                <input
+                                  type="number"
+                                  className="bg-[#22304a] border border-[#22304a] px-2 py-1 rounded w-24 text-xs text-white"
+                                  value={s.stock === 0 ? '' : s.stock}
+                                  min={0}
+                                  placeholder="Stock"
+                                  onChange={e => {
+                                    let val = e.target.value.replace(/^0+(?!$)/, '');
+                                    if (val === '') val = '0';
+                                    const newSizes = [...(editValues.sizes || [])];
+                                    newSizes[i].stock = Number(val);
+                                    setEditValues(v => ({ ...v, sizes: newSizes }));
+                                  }}
+                                />
+                                <button
+                                  type="button"
+                                  className="px-2 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-xs"
+                                  onClick={() => {
+                                    const newSizes = [...(editValues.sizes || [])];
+                                    newSizes.splice(i, 1);
+                                    setEditValues(v => ({ ...v, sizes: newSizes }));
+                                  }}
+                                  disabled={(editValues.sizes || []).length === 1}
+                                >
+                                  ×
+                                </button>
+                              </div>
+                            );
+                          })}
                           <button
                             type="button"
                             className="mt-2 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-xs w-fit"
@@ -217,7 +243,7 @@ export default function AdminProductsPage() {
                         <Button
                           className="mr-2 bg-green-600 hover:bg-green-700 text-white"
                           onClick={() => saveEdit(product.id)}
-                          disabled={saving}
+                          disabled={saving || !isEditValid()}
                         >
                           Save
                         </Button>

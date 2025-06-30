@@ -75,23 +75,34 @@ export default function AddProductPage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
+      const filteredSizes = sizes.filter(s => s.size && s.stock !== '').map(s => ({ size: s.size, stock: Number(s.stock) }));
+      const totalStock = filteredSizes.reduce((sum, s) => sum + Number(s.stock), 0);
       const productData: any = {
         name,
         description,
         price: Number(price),
-        stock: Number(stock),
         imageUrls: selectedImages.filter(Boolean),
         brand: brand || null,
         isFeatured,
         createdAt: new Date(),
-        sizes: sizes.filter(s => s.size && s.stock !== '').map(s => ({ size: s.size, stock: Number(s.stock) })),
+        sizes: filteredSizes,
+        totalStock,
       };
       Object.keys(productData).forEach(
         (key) => productData[key] === undefined && delete productData[key]
       );
       await addDoc(collection(db, "adminProducts"), productData);
       alert("Product added successfully!");
-      router.push("/admin/products");
+      // Clear all form fields
+      setName("");
+      setDescription("");
+      setPrice("");
+      setStock("");
+      setSelectedImages([]);
+      setBrand("");
+      setIsFeatured(false);
+      setSizes([{ size: '', stock: '' }]);
+      router.push("/admin");
     } catch (error) {
       alert("Failed to add product. Please try again.");
       console.error(error);
@@ -141,33 +152,47 @@ export default function AddProductPage() {
   const handleImageClick = (url: string, idx: number) => {
     setCropImage(url);
     setCroppingIdx(idx);
-    setCropConfig({ unit: '%', x: 0, y: 0, width: 100, height: 100 });
-    setCompletedCrop(null);
+    const fullCrop: Crop = { unit: '%', x: 0, y: 0, width: 100, height: 100 };
+    setCropConfig(fullCrop);
+    setCompletedCrop(fullCrop);
     setCropModalOpen(true);
   };
 
   const handleCropComplete = async () => {
     if (cropImageRef && completedCrop && croppingIdx !== null && brand) {
-      const croppedUrl = await getCroppedImg(cropImageRef, completedCrop);
-      if (croppedUrl) {
-        // Convert the croppedUrl (object URL) to a Blob
-        const response = await fetch(croppedUrl);
-        const blob = await response.blob();
-        // Generate a unique filename
-        const fileName = typeof crypto !== 'undefined' && crypto.randomUUID
-          ? `cropped_${crypto.randomUUID()}.jpg`
-          : `cropped_${Date.now()}_${Math.floor(Math.random()*10000)}.jpg`;
-        // Use the new folder structure
-        const folder = `DEPLOYED IMAGES/${brandFolderMap[brand] || brand}`;
-        const filePath = `${folder}/${fileName}`;
-        // Upload to Supabase Storage
-        const { data, error } = await supabase.storage.from('product-images').upload(filePath, blob, { contentType: 'image/jpeg' });
-        if (!error) {
-          const publicUrl = supabase.storage.from('product-images').getPublicUrl(filePath).data.publicUrl;
-          setSelectedImages((prev) => [...prev, publicUrl]);
-          setCroppedImageUrl(publicUrl);
-        } else {
-          alert('Image upload failed. ' + (error.message || JSON.stringify(error) || 'Please try again.'));
+      // Check if crop region is the full image (no cropping needed)
+      const isFullImage =
+        completedCrop.x === 0 &&
+        completedCrop.y === 0 &&
+        Math.round(completedCrop.width) === 100 &&
+        Math.round(completedCrop.height) === 100 &&
+        completedCrop.unit === '%';
+      if (isFullImage) {
+        // Just use the original image as selected
+        setSelectedImages((prev) => [...prev, cropImage!]);
+        setCroppedImageUrl(cropImage!);
+      } else {
+        const croppedUrl = await getCroppedImg(cropImageRef, completedCrop);
+        if (croppedUrl) {
+          // Convert the croppedUrl (object URL) to a Blob
+          const response = await fetch(croppedUrl);
+          const blob = await response.blob();
+          // Generate a unique filename
+          const fileName = typeof crypto !== 'undefined' && crypto.randomUUID
+            ? `cropped_${crypto.randomUUID()}.jpg`
+            : `cropped_${Date.now()}_${Math.floor(Math.random()*10000)}.jpg`;
+          // Use the new folder structure
+          const folder = `DEPLOYED IMAGES/${brandFolderMap[brand] || brand}`;
+          const filePath = `${folder}/${fileName}`;
+          // Upload to Supabase Storage
+          const { data, error } = await supabase.storage.from('product-images').upload(filePath, blob, { contentType: 'image/jpeg' });
+          if (!error) {
+            const publicUrl = supabase.storage.from('product-images').getPublicUrl(filePath).data.publicUrl;
+            setSelectedImages((prev) => [...prev, publicUrl]);
+            setCroppedImageUrl(publicUrl);
+          } else {
+            alert('Image upload failed. ' + (error.message || JSON.stringify(error) || 'Please try again.'));
+          }
         }
       }
     }
@@ -178,8 +203,8 @@ export default function AddProductPage() {
   };
 
   return (
-    <div className="w-full h-screen flex bg-black">
-      <div className="w-full h-full bg-[#161e2e] px-8 py-10 flex flex-col">
+    <div className="h-screen bg-darkBlue overflow-y-auto">
+      <div className="w-full bg-[#161e2e] px-8 py-10 flex flex-col">
         <h2 className="text-2xl font-bold mb-6 text-center text-[#3390ff]">Add New Product</h2>
         <form onSubmit={handleSubmit} className="w-full space-y-4">
           <div>
@@ -224,7 +249,7 @@ export default function AddProductPage() {
                   }}
                   required
                 >
-                  <option value="">Size</option>
+                  <option value="">Select size</option>
                   <option value="S">S</option>
                   <option value="M">M</option>
                   <option value="L">L</option>

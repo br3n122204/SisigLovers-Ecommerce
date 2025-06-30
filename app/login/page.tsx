@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -11,6 +11,7 @@ import { createClient } from '@supabase/supabase-js';
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
 import DPTOneFashion from '../page';
+import { useCart, CartItem } from '@/context/CartContext';
 
 const supabaseUrl = 'https://YOUR_PROJECT_ID.supabase.co';
 const supabaseKey = 'YOUR_ANON_KEY';
@@ -27,15 +28,40 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [isRegistering, setIsRegistering] = useState(false);
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
+  const { addToCart, cartItems, cartLoading } = useCart();
+  const [processingCart, setProcessingCart] = useState(false);
+  const [pendingCartItem, setPendingCartItem] = useState<CartItem | null>(null);
+  const retryCount = useRef(0);
+  const [pendingAdded, setPendingAdded] = useState(false);
 
   useEffect(() => {
+    console.log('[Login Effect] user:', user, 'loading:', loading, 'cartItems:', cartItems, 'cartLoading:', cartLoading, 'pendingAdded:', pendingAdded);
+    if (loading) return; // Wait for loading to finish
+
     if (user) {
+      // Only run this block when user is set
+      const pending = localStorage.getItem('pendingCartItem');
+      console.log('[Login Effect] pendingCartItem:', pending);
+      if (pending) {
+        try {
+          const cartItem = JSON.parse(pending);
+          if (cartItem && cartItem.id && cartItem.selectedSize) {
+            console.log('[Login Effect] Adding to cart:', cartItem);
+            addToCart(cartItem);
+            localStorage.removeItem('pendingCartItem');
+            setPendingAdded(true);
+            router.push('/cart');
+            return;
+          }
+        } catch (e) { console.error('[Login Effect] Error parsing pendingCartItem:', e); }
+        localStorage.removeItem('pendingCartItem');
+      }
       router.push("/");
     }
     const signupParam = searchParams.get('signup');
     setIsRegistering(signupParam === 'true');
-  }, [searchParams, router, user]);
+  }, [searchParams, router, user, loading, cartItems, cartLoading, addToCart, pendingAdded]);
 
   useEffect(() => {
     if (showModal) {
@@ -45,6 +71,23 @@ export default function LoginPage() {
       return () => clearTimeout(timer);
     }
   }, [showModal, router]);
+
+  useEffect(() => {
+    if (pendingCartItem) {
+      console.log('[Redirect Effect] pendingCartItem:', pendingCartItem, 'cartItems:', cartItems);
+      const found = cartItems.find(item => {
+        console.log('[Redirect Effect] comparing:', item, pendingCartItem);
+        return (
+          String(item.id).trim() === String(pendingCartItem.id).trim() &&
+          String(item.selectedSize).trim() === String(pendingCartItem.selectedSize).trim()
+        );
+      });
+      if (found) {
+        setPendingCartItem(null);
+        router.push('/cart');
+      }
+    }
+  }, [pendingCartItem, cartItems, router]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();

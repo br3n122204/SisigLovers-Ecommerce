@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { useToast } from "@/hooks/use-toast";
-import { collection, getDocs, query, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, getDocs, query, addDoc, serverTimestamp, doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -245,6 +245,32 @@ export default function CheckoutPage() {
         dateOrdered: cleanOrderData.dateOrdered || serverTimestamp(),
       });
       console.log("Order saved to users/{userId}/orders with ID:", userOrderDoc.id);
+
+      // Update product stock (totalStock and sizes) for each item
+      for (const item of cleanOrderData.items) {
+        const productRef = doc(db, 'adminProducts', item.id);
+        const productSnap = await getDoc(productRef);
+        if (productSnap.exists()) {
+          const productData = productSnap.data();
+          let updatedSizes = Array.isArray(productData.sizes) ? [...productData.sizes] : [];
+          let updatedTotalStock = typeof productData.totalStock === 'number' ? productData.totalStock : null;
+          // Update the size stock
+          if (item.size) {
+            updatedSizes = updatedSizes.map((size: any) => {
+              if (size.size === item.size) {
+                return { ...size, stock: Math.max(0, Number(size.stock) - Number(item.quantity)) };
+              }
+              return size;
+            });
+            // Recalculate totalStock
+            updatedTotalStock = updatedSizes.reduce((sum: number, s: any) => sum + Number(s.stock), 0);
+          }
+          await updateDoc(productRef, {
+            sizes: updatedSizes,
+            totalStock: updatedTotalStock,
+          });
+        }
+      }
 
       // Log a 'purchase' activity to Firestore
       await addDoc(collection(db, "activities"), {
@@ -761,7 +787,7 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex justify-between font-bold text-lg border-t pt-2 mt-2 border-gray-200">
                   <span>Total</span>
-                  <span>PHP ₱{totalAmount}</span>
+                  <span>₱{totalAmount}</span>
                 </div>
               </div>
             </>

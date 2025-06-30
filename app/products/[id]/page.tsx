@@ -1,6 +1,6 @@
 "use client"
 
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -9,6 +9,7 @@ import { useCart } from '@/context/CartContext';
 import { db } from '@/lib/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 import '../../../styles/slide-animations.css';
+import { useAuth } from '@/context/AuthContext';
 
 // Black and white style for navigation buttons
 const navBtnStyles = `
@@ -25,6 +26,7 @@ const navBtnStyles = `
 
 export default function ProductDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const productId = String(params.id);
   const [product, setProduct] = useState<any>(null);
   const [selectedSize, setSelectedSize] = useState<string | undefined>(undefined);
@@ -37,6 +39,7 @@ export default function ProductDetailPage() {
   const imageContainerRef = useRef<HTMLDivElement>(null);
 
   const { addToCart } = useCart();
+  const { user } = useAuth();
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -45,7 +48,7 @@ export default function ProductDetailPage() {
       if (docSnap.exists()) {
         const data = docSnap.data();
         setProduct(data);
-        setSelectedSize(data.sizes ? data.sizes[0] : undefined);
+        setSelectedSize(undefined);
         if (data.imageUrls && data.imageUrls.length > 0) {
           setMainImage(data.imageUrls[0]);
           setMainImageIdx(0);
@@ -61,18 +64,37 @@ export default function ProductDetailPage() {
   }, [productId]);
 
   const handleAddToCart = () => {
+    if (!user) {
+      if (!selectedSize) {
+        alert('Please select a size.');
+        return;
+      }
+      // Store intended cart action
+      localStorage.setItem('pendingCartItem', JSON.stringify({
+        id: productId,
+        name: product?.name,
+        image: mainImage,
+        price: String(product?.price),
+        quantity: Number(quantity),
+        selectedSize: String(selectedSize),
+      }));
+      router.push('/login');
+      return;
+    }
+    if (product && !selectedSize) {
+      alert('Please select a size.');
+      return;
+    }
     if (product && selectedSize) {
       addToCart({
         id: productId,
         name: product.name,
         image: mainImage,
-        price: typeof product.price === 'number' ? product.price : Number(product.price),
+        price: String(product.price),
         quantity: Number(quantity),
-        selectedSize: selectedSize,
+        selectedSize: String(selectedSize),
       });
       alert(`${quantity} ${product.name} (${selectedSize}) added to cart!`);
-    } else {
-      alert('Please select a size.');
     }
   };
 
@@ -108,6 +130,12 @@ export default function ProductDetailPage() {
     }
   };
 
+  // Calculate if product is sold out
+  const isSoldOut = product && (
+    (typeof product.totalStock === 'number' && product.totalStock === 0) ||
+    (Array.isArray(product.sizes) && product.sizes.reduce((sum: number, s: { stock: number }) => sum + (s.stock || 0), 0) === 0)
+  );
+
   if (!product) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#101828]">
@@ -118,35 +146,45 @@ export default function ProductDetailPage() {
 
   return (
     <div className="min-h-screen bg-[#101828] text-[#60A5FA]">
-      {/* Black Side Panels */}
-      <div className="fixed left-0 top-0 w-16 h-full bg-black z-10"></div>
-      <div className="fixed right-0 top-0 w-16 h-full bg-black z-10"></div>
-
       {/* Main Content Container */}
-      <div className="mx-16 pt-8 pb-16">
-        {/* Back to Home Button */}
-        <Link href="/" passHref>
-          <Button variant="outline" className="mb-8 border-[#60A5FA] text-[#60A5FA] hover:bg-[#19223a]">
-            ← Back to Home
-          </Button>
-        </Link>
+      <div className="px-4 pt-8 pb-16 w-full">
+        {/* Back Button: Go to previous page */}
+        <button
+          onClick={() => router.back()}
+          className="mb-8 px-4 py-1 text-sm rounded-full border border-[#60A5FA] text-[#60A5FA] bg-[#101828] hover:bg-[#22304a] transition-all shadow-sm"
+          style={{ minWidth: 'unset', width: 'auto', fontWeight: 500 }}
+        >
+          ← Back
+        </button>
 
-        <div className="max-w-7xl mx-auto px-4 py-12 flex flex-col md:flex-row gap-12">
+        <div className="w-full max-w-[1400px] mx-auto py-12 flex flex-col md:flex-row gap-12">
           {/* Image Gallery */}
-          <div className="md:w-1/2 flex flex-col items-center">
-            <div ref={imageContainerRef} className="relative w-full max-w-lg mb-4 flex items-center justify-center">
+          <div className="md:w-1/2 flex flex-col items-center min-w-[350px]">
+            <div className="relative w-full max-w-xl mb-4 flex items-center justify-center">
+              {/* Navigation buttons outside the image area */}
               {product.imageUrls && product.imageUrls.length > 1 && (
-                <button
-                  onClick={handlePrevImage}
-                  className={navBtnStyles + " left-0"}
-                  style={{ left: '8px', top: '50%', transform: 'translateY(-50%)' }}
-                  aria-label="Previous image"
-                >
-                  <span className="drop-shadow-lg">&#8592;</span>
-                </button>
+                <>
+                  <button
+                    onClick={handlePrevImage}
+                    className={navBtnStyles + ""}
+                    style={{ position: 'absolute', left: '-56px', top: '50%', transform: 'translateY(-50%)' }}
+                    aria-label="Previous image"
+                  >
+                    <span className="drop-shadow-lg">&#8592;</span>
+                  </button>
+                  <button
+                    onClick={handleNextImage}
+                    className={navBtnStyles + ""}
+                    style={{ position: 'absolute', right: '-56px', top: '50%', transform: 'translateY(-50%)' }}
+                    aria-label="Next image"
+                  >
+                    <span className="drop-shadow-lg">&#8594;</span>
+                  </button>
+                </>
               )}
               <div
-                className="w-full max-w-lg h-auto rounded-lg border border-[#60A5FA] overflow-hidden relative bg-[#19223a]"
+                ref={imageContainerRef}
+                className="w-full max-w-xl h-auto rounded-lg border border-[#60A5FA] overflow-hidden relative bg-[#19223a]"
                 style={{ minHeight: 400 }}
               >
                 {/* Current image always visible */}
@@ -154,8 +192,8 @@ export default function ProductDetailPage() {
                   <img
                     src={mainImage}
                     alt={product.name}
-                    className={`w-full h-full object-cover transition-opacity duration-400 ${isFading ? 'opacity-0' : 'opacity-100'}`}
-                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+                    className={`w-full h-full object-contain transition-opacity duration-400 ${isFading ? 'opacity-0' : 'opacity-100'}`}
+                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: '#fff' }}
                   />
                 ) : (
                   <div className="w-full h-[400px] flex items-center justify-center bg-[#101828] text-[#60A5FA]">No Image</div>
@@ -170,25 +208,16 @@ export default function ProductDetailPage() {
                   />
                 )}
               </div>
-              {product.imageUrls && product.imageUrls.length > 1 && (
-                <button
-                  onClick={handleNextImage}
-                  className={navBtnStyles + " right-0"}
-                  style={{ right: '8px', top: '50%', transform: 'translateY(-50%)' }}
-                  aria-label="Next image"
-                >
-                  <span className="drop-shadow-lg">&#8594;</span>
-                </button>
-              )}
             </div>
             {product.imageUrls && product.imageUrls.length > 1 && (
-              <div className="flex gap-2 mt-2">
+              <div className="flex gap-2 mt-2 max-w-xl">
                 {product.imageUrls.map((img: string, idx: number) => (
                   <img
                     key={img}
                     src={img}
                     alt={`Thumbnail ${idx}`}
-                    className={`w-20 h-20 object-cover rounded cursor-pointer border ${mainImageIdx === idx ? 'border-[#60A5FA]' : 'border-gray-700'}`}
+                    className={`w-20 h-20 object-contain rounded cursor-pointer border ${mainImageIdx === idx ? 'border-[#60A5FA]' : 'border-gray-700'}`}
+                    style={{ background: '#fff' }}
                     onClick={() => {
                       setMainImage(img);
                       setMainImageIdx(idx);
@@ -199,10 +228,15 @@ export default function ProductDetailPage() {
             )}
           </div>
           {/* Product Info */}
-          <div className="md:w-1/2 flex flex-col justify-center">
+          <div className="md:w-1/2 flex flex-col justify-center min-w-[350px]">
             <span className="text-sm text-[#60A5FA] uppercase font-medium mb-2">{product.brand}</span>
-            <h1 className="text-4xl font-extrabold text-[#60A5FA] mb-2">{product.name?.toUpperCase()}</h1>
-            <p className="text-xl text-[#60A5FA] font-bold mb-4">₱{product.price}</p>
+            <h1 className="text-4xl font-extrabold text-[#60A5FA] mb-2 flex items-center gap-3">
+              {product.name?.toUpperCase()}
+              {isSoldOut && (
+                <span className="bg-red-600 text-white text-xs font-semibold px-3 py-1 rounded-full ml-2">Sold out</span>
+              )}
+            </h1>
+            <p className="text-xl text-[#60A5FA] font-bold mb-4">₱{typeof product.price === 'number' ? product.price.toLocaleString() : Number(product.price).toLocaleString()}</p>
             <p className="text-[#60A5FA] mb-6 leading-relaxed">{product.description}</p>
             {product.sizes && product.sizes.length > 0 && (
               <div className="mb-6">
@@ -222,7 +256,7 @@ export default function ProductDetailPage() {
                         `}
                         disabled={isOutOfStock}
                       >
-                        {sizeLabel}
+                        <span className={isOutOfStock ? 'line-through' : ''}>{sizeLabel}</span>
                       </Button>
                     );
                   })}
@@ -238,15 +272,26 @@ export default function ProductDetailPage() {
               </div>
             </div>
             <div className="space-y-4">
-              <Button
-                className="w-full bg-[#60A5FA] text-[#101828] py-3 rounded-md hover:bg-[#3380c0] transition-colors"
-                onClick={handleAddToCart}
-              >
-                Add to cart
-              </Button>
-              <Button variant="outline" className="w-full border-2 border-[#60A5FA] text-[#60A5FA] py-3 rounded-md hover:bg-[#19223a] transition-colors">
-                Buy it now
-              </Button>
+              {isSoldOut ? (
+                <Button
+                  className="w-full bg-[#60A5FA] text-[#101828] py-3 rounded-md opacity-70 cursor-not-allowed"
+                  disabled
+                >
+                  Sold out
+                </Button>
+              ) : (
+                <>
+                  <Button
+                    className="w-full bg-[#60A5FA] text-[#101828] py-3 rounded-md hover:bg-[#3380c0] transition-colors"
+                    onClick={handleAddToCart}
+                  >
+                    Add to cart
+                  </Button>
+                  <Button variant="outline" className="w-full border-2 border-[#60A5FA] text-[#60A5FA] py-3 rounded-md hover:bg-[#19223a] transition-colors">
+                    Buy it now
+                  </Button>
+                </>
+              )}
             </div>
           </div>
         </div>
