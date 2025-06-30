@@ -188,29 +188,39 @@ export default function DPTOneFashion() {
                   {products.length === 0 ? (
                     <div className="col-span-4 text-center text-[#60A5FA]">No products found.</div>
                   ) : (
-                    products.map((product) => (
-                      <Link key={product.id} href={`/products/${product.id}`} className="w-full">
-                        <div
-                          className="bg-[#19223a] rounded-2xl shadow-lg p-4 flex flex-col items-center cursor-pointer hover:shadow-xl transition text-[#60A5FA]"
-                          onMouseEnter={() => setHoveredProduct(product.id)}
-                          onMouseLeave={() => setHoveredProduct(null)}
-                        >
-                          <img
-                            src={
-                              hoveredProduct === product.id && product.imageUrls && product.imageUrls.length > 1
-                                ? product.imageUrls[1]
-                                : product.imageUrls && product.imageUrls.length > 0
-                                  ? product.imageUrls[0]
-                                  : "/images/placeholder.jpg"
-                            }
-                            alt={product.name}
-                            className="w-48 h-48 object-contain mb-4"
-                          />
-                          <h3 className="font-bold text-lg text-center mb-1">{product.name}</h3>
-                          <p className="text-[#60A5FA] font-semibold mb-4">₱{product.price}</p>
-                        </div>
-                      </Link>
-                    ))
+                    products.map((product) => {
+                      // Sold out logic
+                      const isSoldOut = (typeof product.totalStock === 'number' && product.totalStock === 0) ||
+                        (Array.isArray(product.sizes) && product.sizes.reduce((sum: number, s: { stock: number }) => sum + (s.stock || 0), 0) === 0);
+                      return (
+                        <Link key={product.id} href={`/products/${product.id}`} className="w-full">
+                          <div
+                            className="bg-[#19223a] rounded-2xl shadow-lg p-4 flex flex-col items-center cursor-pointer hover:shadow-xl transition text-[#60A5FA] relative"
+                            onMouseEnter={() => setHoveredProduct(product.id)}
+                            onMouseLeave={() => setHoveredProduct(null)}
+                          >
+                            <div className="relative w-full flex justify-center">
+                              <img
+                                src={
+                                  hoveredProduct === product.id && product.imageUrls && product.imageUrls.length > 1
+                                    ? product.imageUrls[1]
+                                    : product.imageUrls && product.imageUrls.length > 0
+                                      ? product.imageUrls[0]
+                                      : "/images/placeholder.jpg"
+                                }
+                                alt={product.name}
+                                className="w-48 h-48 object-contain mb-4"
+                              />
+                              {isSoldOut && (
+                                <span className="absolute top-2 right-2 bg-red-600 text-white text-xs font-semibold px-3 py-1 rounded-full z-10">Sold out</span>
+                              )}
+                            </div>
+                            <h3 className="font-bold text-lg text-center mb-1">{product.name}</h3>
+                            <p className="text-[#60A5FA] font-semibold mb-4">₱{product.price}</p>
+                          </div>
+                        </Link>
+                      );
+                    })
                   )}
                 </div>
               )}

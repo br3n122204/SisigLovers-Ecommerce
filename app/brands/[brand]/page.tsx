@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { db } from '@/lib/firebase';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, query, where, getCountFromServer } from 'firebase/firestore';
 import Image from "next/image";
 import Link from "next/link";
 
@@ -29,6 +29,16 @@ export default function BrandPage() {
   const [loading, setLoading] = useState(true);
   const [sort, setSort] = useState("date-desc");
   const [availability, setAvailability] = useState("all");
+  const [priceFrom, setPriceFrom] = useState("");
+  const [priceTo, setPriceTo] = useState("");
+  const [showPriceDropdown, setShowPriceDropdown] = useState(false);
+  const [showAvailabilityDropdown, setShowAvailabilityDropdown] = useState(false);
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const [inStockCount, setInStockCount] = useState<number>(0);
+  const [outOfStockCount, setOutOfStockCount] = useState<number>(0);
+  // Compute unique sorted price options for dropdowns
+  const priceOptions = Array.from(new Set(products.map(p => Number(p.price)))).sort((a, b) => a - b);
+  const highestPrice = priceOptions.length > 0 ? priceOptions[priceOptions.length - 1] : 0;
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -40,18 +50,58 @@ export default function BrandPage() {
         items.push({ id: docSnap.id, ...docSnap.data() });
       });
       setProducts(items);
+      // Count in-stock and out-of-stock products client-side, considering sizes
+      setInStockCount(
+        items.filter(p =>
+          Array.isArray(p.sizes)
+            ? p.sizes.some((size: any) => Number(size.stock) > 0)
+            : Number(p.stock) > 0
+        ).length
+      );
+      setOutOfStockCount(
+        items.filter(p =>
+          Array.isArray(p.sizes)
+            ? !p.sizes.some((size: any) => Number(size.stock) > 0)
+            : !p.stock || Number(p.stock) === 0
+        ).length
+      );
       setLoading(false);
     };
-    if (brand) fetchProducts();
+    if (brand) {
+      fetchProducts();
+    }
   }, [brand]);
 
   useEffect(() => {
     let filtered = [...products];
     // Filter by availability
     if (availability === "in-stock") {
-      filtered = filtered.filter(p => p.stock && p.stock > 0);
+      filtered = filtered.filter(p => {
+        if (typeof p.totalStock === 'number') {
+          return p.totalStock > 0;
+        } else if (Array.isArray(p.sizes)) {
+          return p.sizes.some((size: any) => Number(size.stock) > 0);
+        } else {
+          return Number(p.stock) > 0;
+        }
+      });
     } else if (availability === "out-of-stock") {
-      filtered = filtered.filter(p => !p.stock || p.stock === 0);
+      filtered = filtered.filter(p => {
+        if (typeof p.totalStock === 'number') {
+          return p.totalStock === 0;
+        } else if (Array.isArray(p.sizes)) {
+          return !p.sizes.some((size: any) => Number(size.stock) > 0);
+        } else {
+          return !p.stock || Number(p.stock) === 0;
+        }
+      });
+    }
+    // Filter by price range
+    if (priceFrom !== "") {
+      filtered = filtered.filter(p => Number(p.price) >= Number(priceFrom));
+    }
+    if (priceTo !== "") {
+      filtered = filtered.filter(p => Number(p.price) <= Number(priceTo));
     }
     // Sort
     if (sort === "price-asc") {
@@ -64,7 +114,7 @@ export default function BrandPage() {
       filtered.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
     }
     setFilteredProducts(filtered);
-  }, [products, sort, availability]);
+  }, [products, sort, availability, priceFrom, priceTo]);
 
   return (
     <div className="min-h-screen bg-white">
@@ -72,31 +122,106 @@ export default function BrandPage() {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between mb-6">
           <h1 className="text-3xl font-bold mb-4 md:mb-0">{brand.toUpperCase()}</h1>
           <div className="flex items-center gap-4">
-            {/* Filter: Availability */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm">Filter:</span>
-              <select
-                className="border border-gray-300 bg-gray-50 rounded px-2 py-1 text-sm focus:border-[#60A5FA] focus:ring-2 focus:ring-[#60A5FA]"
-                value={availability}
-                onChange={e => setAvailability(e.target.value)}
+            {/* Filter: Availability as Dropdown */}
+            <div className="flex flex-col gap-2 relative">
+              <button
+                type="button"
+                className="flex items-center gap-1 text-sm font-medium focus:outline-none"
+                onClick={() => setShowAvailabilityDropdown(v => !v)}
               >
-                {availabilityOptions.map(opt => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
+                Availability
+                <svg className={`w-4 h-4 transition-transform ${showAvailabilityDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+              </button>
+              {showAvailabilityDropdown && (
+                <div className="absolute left-0 top-full z-10 mt-2 bg-white border rounded p-3 shadow-lg min-w-[150px]">
+                  <div className="flex flex-col gap-2">
+                    {availabilityOptions.map(opt => {
+                      let count = null;
+                      if (opt.value === 'in-stock') count = inStockCount;
+                      if (opt.value === 'out-of-stock') count = outOfStockCount;
+                      return (
+                        <button
+                          key={opt.value}
+                          className={`text-left px-2 py-1 rounded hover:bg-gray-100 ${availability === opt.value ? 'bg-gray-200 font-semibold' : ''}`}
+                          onClick={() => { setAvailability(opt.value); setShowAvailabilityDropdown(false); }}
+                        >
+                          {opt.label}
+                          {typeof count === 'number' && (
+                            <span className="ml-2 text-xs text-gray-500">({count})</span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
-            {/* Sort */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm">Sort by:</span>
-              <select
-                className="border border-gray-300 bg-gray-50 rounded px-2 py-1 text-sm focus:border-[#60A5FA] focus:ring-2 focus:ring-[#60A5FA]"
-                value={sort}
-                onChange={e => setSort(e.target.value)}
+            {/* Filter: Price Range as Dropdown */}
+            <div className="flex flex-col gap-2 relative">
+              <button
+                type="button"
+                className="flex items-center gap-1 text-sm font-medium focus:outline-none"
+                onClick={() => setShowPriceDropdown(v => !v)}
               >
-                {sortOptions.map(opt => (
-                  <option key={opt.value} value={opt.value}>{opt.label}</option>
-                ))}
-              </select>
+                Price
+                <svg className={`w-4 h-4 transition-transform ${showPriceDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+              </button>
+              {showPriceDropdown && (
+                <div className="absolute left-0 top-full z-10 mt-2 bg-white border rounded p-3 shadow-lg min-w-[250px]">
+                  <div className="mb-2 text-sm">The highest price is <span className="font-semibold">₱{highestPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
+                  <div className="flex gap-2">
+                    <div className="relative flex items-center w-28">
+                      <span className="absolute left-2 text-[#A75D43]">₱</span>
+                      <input
+                        type="number"
+                        placeholder="From"
+                        className="pl-6 border border-gray-300 bg-gray-50 rounded px-2 py-1 text-sm w-full focus:border-[#60A5FA] focus:ring-2 focus:ring-[#60A5FA]"
+                        value={priceFrom}
+                        onChange={e => setPriceFrom(e.target.value)}
+                        min="0"
+                      />
+                    </div>
+                    <div className="relative flex items-center w-28">
+                      <span className="absolute left-2 text-[#A75D43]">₱</span>
+                      <input
+                        type="number"
+                        placeholder="To"
+                        className="pl-6 border border-gray-300 bg-gray-50 rounded px-2 py-1 text-sm w-full focus:border-[#60A5FA] focus:ring-2 focus:ring-[#60A5FA]"
+                        value={priceTo}
+                        onChange={e => setPriceTo(e.target.value)}
+                        min="0"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            {/* Sort by: button and dropdown panel */}
+            <div className="flex items-center gap-2 relative">
+              <span className="text-sm">Sort by:</span>
+              <button
+                type="button"
+                className="flex items-center gap-1 text-sm font-normal border border-gray-300 bg-gray-50 rounded px-2 py-1 focus:outline-none min-w-[140px] text-[#001F3F]"
+                onClick={() => setShowSortDropdown(v => !v)}
+              >
+                {sortOptions.find(opt => opt.value === sort)?.label}
+                <svg className={`w-4 h-4 ml-1 transition-transform ${showSortDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
+              </button>
+              {showSortDropdown && (
+                <div className="absolute left-0 top-full z-10 mt-2 bg-white border rounded p-2 shadow-lg min-w-[180px]">
+                  <div className="flex flex-col">
+                    {sortOptions.map(opt => (
+                      <button
+                        key={opt.value}
+                        className={`text-left px-3 py-2 rounded hover:bg-gray-100 ${sort === opt.value ? 'bg-gray-200 font-semibold' : ''}`}
+                        onClick={() => { setSort(opt.value); setShowSortDropdown(false); }}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
             <span className="text-[#001F3F] text-sm">{filteredProducts.length} products</span>
           </div>
@@ -107,12 +232,21 @@ export default function BrandPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-7xl mx-auto">
             {filteredProducts.map(product => (
               <div key={product.id} className="flex flex-col items-center">
-                <Link href={`/products/${product.id}`}>
-                  <Image src={product.imageUrls?.[0] || product.image || "/placeholder.jpg"} alt={product.name} width={250} height={250} className="object-contain rounded-lg bg-gray-100" />
-                </Link>
+                <div className="relative w-[250px] h-[250px]">
+                  <Link href={`/products/${product.id}`}> 
+                    <Image src={product.imageUrls?.[0] || product.image || "/placeholder.jpg"} alt={product.name} width={250} height={250} className="object-contain rounded-lg bg-gray-100" />
+                  </Link>
+                  {(
+                    (typeof product.totalStock === 'number' && product.totalStock === 0) ||
+                    (Array.isArray(product.sizes) && !product.sizes.some((size: any) => Number(size.stock) > 0)) ||
+                    (typeof product.stock === 'number' && product.stock === 0)
+                  ) && (
+                    <div className="absolute left-3 bottom-3 bg-red-600 text-white text-sm font-semibold px-4 py-1 rounded-full shadow-lg select-none z-10">Sold out</div>
+                  )}
+                </div>
                 <div className="mt-4 text-center">
                   <div className="font-medium text-[#001F3F]">{product.name}</div>
-                  <div className="text-[#A75D43] font-semibold mt-1">₱{Number(product.price).toLocaleString()} PHP</div>
+                  <div className="text-[#A75D43] font-semibold mt-1">₱{Number(product.price).toLocaleString()}</div>
                 </div>
               </div>
             ))}

@@ -6,8 +6,8 @@ import { useAuth } from './AuthContext';
 import { collection, doc, setDoc, getDocs, deleteDoc, onSnapshot } from 'firebase/firestore';
 
 // Define the shape of a product in the cart
-interface CartItem {
-  id: number;
+export interface CartItem {
+  id: string;
   name: string;
   image: string;
   price: string; // Or number, depending on how you want to handle currency
@@ -20,11 +20,12 @@ interface CartItem {
 interface CartContextType {
   cartItems: CartItem[];
   addToCart: (product: CartItem) => void;
-  removeFromCart: (productId: number) => void;
-  updateQuantity: (productId: number, quantity: number) => void;
+  removeFromCart: (productId: string) => void;
+  updateQuantity: (productId: string, quantity: number) => void;
   calculateTotal: () => string;
   clearCart: () => void;
   isCartSyncing: boolean;
+  cartLoading: boolean;
   removeFromCartByIds: (ids: (number | string)[]) => void;
 }
 
@@ -36,19 +37,23 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartSyncing, setIsCartSyncing] = useState(false);
+  const [cartLoading, setCartLoading] = useState(true);
 
   // Load cart from Firestore on login
   React.useEffect(() => {
     if (user) {
       const cartRef = collection(db, 'cartProducts', user.uid, 'items');
+      setCartLoading(true);
       const unsubscribe = onSnapshot(cartRef, (snapshot) => {
         const items: CartItem[] = [];
         snapshot.forEach(doc => items.push(doc.data() as CartItem));
         setCartItems(items);
+        setCartLoading(false);
       });
       return () => unsubscribe();
     } else {
       setCartItems([]);
+      setCartLoading(false);
     }
   }, [user]);
 
@@ -81,13 +86,22 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       if (user) {
         const cartRef = collection(db, 'cartProducts', user.uid, 'items');
         const docRef = doc(cartRef, `${productToAdd.id}-${productToAdd.selectedSize || 'default'}`);
-        setDoc(docRef, { ...productToAdd, quantity: existingItem ? (existingItem.quantity + productToAdd.quantity) : (productToAdd.quantity || 1) });
+        console.log('[addToCart] User:', user.uid, 'Adding:', productToAdd, 'To:', `cartProducts/${user.uid}/items/${productToAdd.id}-${productToAdd.selectedSize || 'default'}`);
+        setDoc(docRef, { ...productToAdd, quantity: existingItem ? (existingItem.quantity + productToAdd.quantity) : (productToAdd.quantity || 1) })
+          .then(() => {
+            console.log('[addToCart] Successfully added to Firestore');
+          })
+          .catch((err) => {
+            console.error('[addToCart] Firestore error:', err);
+          });
+      } else {
+        console.warn('[addToCart] No user found, not writing to Firestore');
       }
       return newItems;
     });
   };
 
-  const removeFromCart = (productId: number) => {
+  const removeFromCart = (productId: string) => {
     setCartItems((prevItems) => {
       const itemToRemove = prevItems.find(item => item.id === productId);
       const newItems = prevItems.filter(item => item.id !== productId);
@@ -100,7 +114,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const updateQuantity = (productId: number, quantity: number) => {
+  const updateQuantity = (productId: string, quantity: number) => {
     setCartItems((prevItems) => {
       const newItems = prevItems.map(item =>
         item.id === productId
@@ -147,7 +161,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, updateQuantity, calculateTotal, clearCart, isCartSyncing, removeFromCartByIds }}>
+    <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, updateQuantity, calculateTotal, clearCart, isCartSyncing, cartLoading, removeFromCartByIds }}>
       {children}
     </CartContext.Provider>
   );
