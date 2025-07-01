@@ -172,10 +172,10 @@ export default function OrderDetailsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#101828] flex items-center justify-center text-[#60A5FA]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
-          <p className="mt-4 text-[#001F3F]">Loading order details...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#60A5FA] mx-auto"></div>
+          <p className="mt-4">Loading order details...</p>
         </div>
       </div>
     );
@@ -183,11 +183,11 @@ export default function OrderDetailsPage() {
 
   if (!order) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-[#101828] flex items-center justify-center text-[#60A5FA]">
         <div className="text-center">
-          <Package className="mx-auto h-12 w-12 text-[#001F3F]" />
-          <h3 className="mt-2 text-sm font-medium text-[#001F3F]">Order not found</h3>
-          <p className="mt-1 text-sm text-[#001F3F]">The order you're looking for doesn't exist.</p>
+          <Package className="mx-auto h-12 w-12" />
+          <h3 className="mt-2 text-sm font-medium">Order not found</h3>
+          <p className="mt-1 text-sm">The order you're looking for doesn't exist.</p>
           <div className="mt-6">
             <Link href="/orders">
               <Button>Back to Orders</Button>
@@ -199,24 +199,24 @@ export default function OrderDetailsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-[#101828] text-[#60A5FA] py-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="mb-8">
-          <Link href="/orders" className="inline-flex items-center text-sm text-[#001F3F] hover:text-[#003366] mb-4">
+          <Link href="/orders" className="inline-flex items-center text-sm hover:text-[#93c5fd] mb-4">
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Orders
           </Link>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-[#001F3F]">Order {order.orderNumber}</h1>
-              <p className="text-[#001F3F] mt-1 font-medium">
-                {order.status === "delivered" && order.deliveryDate
-                  ? `Date Delivered: ${formatDate(order.deliveryDate)}`
-                  : order.orderDate
-                    ? `Date Ordered: ${formatDate(order.orderDate)}`
-                    : ""}
-              </p>
+<h1 className="text-3xl font-bold text-[#001F3F]">Order {order.orderNumber}</h1>
+<p className="text-[#001F3F] mt-1 font-medium">
+  {order.status === "delivered" && order.deliveryDate
+    ? `Date Delivered: ${formatDate(order.deliveryDate)}`
+    : order.orderDate
+      ? `Date Ordered: ${formatDate(order.orderDate)}`
+      : ""}
+</p>
             </div>
           </div>
         </div>
@@ -225,198 +225,170 @@ export default function OrderDetailsPage() {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {/* Order Status */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  {getStatusIcon(order.status)}
-                  Order Status
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-3 mb-4">
-                  <Badge className={getStatusColor(order.status)}>
-                    {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                  </Badge>
-                  {order.estimatedDelivery && (
-                    <span className="text-sm text-[#001F3F]">
-                      Estimated delivery: {formatDate(order.estimatedDelivery)}
-                    </span>
-                  )}
-                </div>
-                {order.notes && (
-                  <div className="bg-blue-50 p-3 rounded-lg">
-                    <p className="text-sm text-blue-800">{order.notes}</p>
-                  </div>
+            <div className="bg-[#19223a] rounded-2xl shadow-lg p-4">
+              <div className="flex items-center gap-2 text-2xl font-semibold mb-4">
+                {getStatusIcon(order.status)}
+                <span>Order Status</span>
+              </div>
+              <div className="flex items-center gap-3 mb-4">
+                <Badge className={getStatusColor(order.status)}>
+                  {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                </Badge>
+                {order.estimatedDelivery && (
+                  <span className="text-sm">
+                    Estimated delivery: {formatDate(order.estimatedDelivery)}
+                  </span>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+              {order.notes && (
+                <div className="bg-blue-900 bg-opacity-30 p-3 rounded-lg">
+                  <p className="text-sm">{order.notes}</p>
+                </div>
+              )}
+            </div>
 
             {/* Order Items */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Items ({orderItems.length})</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {orderItems.map((item) => (
-                    <div key={item.id} className="flex items-start gap-4 p-4 border rounded-lg">
-                      <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                        <Image
-                          src={item.image}
-                          alt={item.name}
-                          fill
-                          className="object-cover"
-                        />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-[#001F3F]">{item.name}</h4>
-                        <p className="text-sm text-[#001F3F] mt-1">
-                          Size: {typeof item.size === 'object' && item.size !== null && 'size' in item.size
-                            ? (item.size as any).size
-                            : item.size}
-                          • Color: {typeof item.color === 'object' && item.color !== null && 'color' in item.color
-                            ? (item.color as any).color
-                            : item.color}
-                        </p>
-                        <div className="flex items-center justify-between mt-2">
-                          <span className="text-sm text-[#001F3F]">Qty: {item.quantity}</span>
-                          <span className="font-medium text-[#001F3F]">
-                            {formatCurrency(item.price)}
-                          </span>
-                        </div>
+            <div className="bg-[#19223a] rounded-2xl shadow-lg p-4">
+              <div className="text-2xl font-semibold mb-4">Items ({orderItems.length})</div>
+              <div className="space-y-4">
+                {orderItems.map((item) => (
+                  <div key={item.id} className="flex items-start gap-4 p-4 border border-[#22304a] rounded-lg bg-[#101828]">
+                    <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                      <Image
+                        src={item.image}
+                        alt={item.name}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium">{item.name}</h4>
+                      <p className="text-sm mt-1">
+                        Size: {typeof item.size === 'object' && item.size !== null && 'size' in item.size
+                          ? (item.size as any).size
+                          : item.size}
+                        • Color: {typeof item.color === 'object' && item.color !== null && 'color' in item.color
+                          ? (item.color as any).color
+                          : item.color}
+                      </p>
+                      <div className="flex items-center justify-between mt-2">
+                        <span className="text-sm">Qty: {item.quantity}</span>
+                        <span className="font-medium">
+                          {formatCurrency(item.price)}
+                        </span>
                       </div>
                     </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Order Summary */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Order Summary</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span>Subtotal</span>
-                    <span>{formatCurrency(order.subtotal)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Shipping</span>
-                    <span>{order.shipping === 0 ? 'Free' : formatCurrency(order.shipping)}</span>
-                  </div>
-                  {order.tax > 0 && (
-                    <div className="flex justify-between">
-                      <span>Tax</span>
-                      <span>{formatCurrency(order.tax)}</span>
-                    </div>
-                  )}
-                  <Separator />
-                  <div className="flex justify-between font-medium text-lg">
-                    <span>Total</span>
-                    <span>{formatCurrency(order.total)}</span>
-                  </div>
+            <div className="bg-[#19223a] rounded-2xl shadow-lg p-4">
+              <div className="text-2xl font-semibold mb-4">Order Summary</div>
+              <div className="space-y-3">
+                <div className="flex justify-between">
+                  <span>Subtotal</span>
+                  <span>{formatCurrency(order.subtotal)}</span>
                 </div>
-              </CardContent>
-            </Card>
+                <div className="flex justify-between">
+                  <span>Shipping</span>
+                  <span>{order.shipping === 0 ? 'Free' : formatCurrency(order.shipping)}</span>
+                </div>
+                {order.tax > 0 && (
+                  <div className="flex justify-between">
+                    <span>Tax</span>
+                    <span>{formatCurrency(order.tax)}</span>
+                  </div>
+                )}
+                <Separator />
+                <div className="flex justify-between font-medium text-lg">
+                  <span>Total</span>
+                  <span>{formatCurrency(order.total)}</span>
+                </div>
+              </div>
+            </div>
 
             {/* Payment Information */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Payment Information</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <CreditCard className="h-4 w-4 text-[#001F3F]" />
-                    <span className="text-sm">{order.paymentMethod}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge className={order.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
-                      {order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)}
-                    </Badge>
-                  </div>
+            <div className="bg-[#19223a] rounded-2xl shadow-lg p-4">
+              <div className="text-2xl font-semibold mb-4">Payment Information</div>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <CreditCard className="h-4 w-4" />
+                  <span className="text-sm">{order.paymentMethod}</span>
                 </div>
-              </CardContent>
-            </Card>
+                <div className="flex items-center gap-2">
+                  <Badge className={order.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
+                    {order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)}
+                  </Badge>
+                </div>
+              </div>
+            </div>
 
             {/* Shipping Address */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Shipping Address</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <p className="font-medium">
-                    {order.shippingAddress.firstName} {order.shippingAddress.lastName}
-                  </p>
-                  <p className="text-sm text-[#001F3F]">{order.shippingAddress.address1}</p>
-                  {order.shippingAddress.address2 && (
-                    <p className="text-sm text-[#001F3F]">{order.shippingAddress.address2}</p>
-                  )}
-                  <p className="text-sm text-[#001F3F]">
-                    {order.shippingAddress.city}, {order.shippingAddress.region} {order.shippingAddress.postalCode}
-                  </p>
-                  <div className="flex items-center gap-2 text-sm text-[#001F3F]">
-                    <Phone className="h-3 w-3" />
-                    {order.shippingAddress.phone}
-                  </div>
+            <div className="bg-[#19223a] rounded-2xl shadow-lg p-4">
+              <div className="text-2xl font-semibold mb-4">Shipping Address</div>
+              <div className="space-y-2">
+                <p className="font-medium">
+                  {order.shippingAddress.firstName} {order.shippingAddress.lastName}
+                </p>
+                <p className="text-sm">{order.shippingAddress.address1}</p>
+                {order.shippingAddress.address2 && (
+                  <p className="text-sm">{order.shippingAddress.address2}</p>
+                )}
+                <p className="text-sm">
+                  {order.shippingAddress.city}, {order.shippingAddress.region} {order.shippingAddress.postalCode}
+                </p>
+                <div className="flex items-center gap-2 text-sm">
+                  <Phone className="h-3 w-3" />
+                  {order.shippingAddress.phone}
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
             {/* Billing Address */}
             {JSON.stringify(order.shippingAddress) !== JSON.stringify(order.billingAddress) && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Billing Address</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <p className="font-medium">
-                      {order.billingAddress.firstName} {order.billingAddress.lastName}
-                    </p>
-                    <p className="text-sm text-[#001F3F]">{order.billingAddress.address1}</p>
-                    {order.billingAddress.address2 && (
-                      <p className="text-sm text-[#001F3F]">{order.billingAddress.address2}</p>
-                    )}
-                    <p className="text-sm text-[#001F3F]">
-                      {order.billingAddress.city}, {order.billingAddress.region} {order.billingAddress.postalCode}
-                    </p>
-                    <div className="flex items-center gap-2 text-sm text-[#001F3F]">
-                      <Phone className="h-3 w-3" />
-                      {order.billingAddress.phone}
-                    </div>
+              <div className="bg-[#19223a] rounded-2xl shadow-lg p-4">
+                <div className="text-2xl font-semibold mb-4">Billing Address</div>
+                <div className="space-y-2">
+                  <p className="font-medium">
+                    {order.billingAddress.firstName} {order.billingAddress.lastName}
+                  </p>
+                  <p className="text-sm">{order.billingAddress.address1}</p>
+                  {order.billingAddress.address2 && (
+                    <p className="text-sm">{order.billingAddress.address2}</p>
+                  )}
+                  <p className="text-sm">
+                    {order.billingAddress.city}, {order.billingAddress.region} {order.billingAddress.postalCode}
+                  </p>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Phone className="h-3 w-3" />
+                    {order.billingAddress.phone}
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             )}
 
             {/* Need Help */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Need Help?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-[#001F3F] mb-4">
-                  Questions about your order? We're here to help!
-                </p>
-                <div className="space-y-2">
-                  <Button variant="outline" className="w-full justify-start">
-                    <Mail className="h-4 w-4 mr-2" />
-                    Contact Support
-                  </Button>
-                  <Button variant="outline" className="w-full justify-start">
-                    <Phone className="h-4 w-4 mr-2" />
-                    Call Us
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="bg-[#19223a] rounded-2xl shadow-lg p-4">
+              <div className="text-2xl font-semibold mb-4">Need Help?</div>
+              <p className="text-sm mb-4">
+                Questions about your order? We're here to help!
+              </p>
+              <div className="space-y-2">
+                <Button variant="outline" className="w-full justify-start">
+                  <Mail className="h-4 w-4 mr-2" />
+                  Contact Support
+                </Button>
+                <Button variant="outline" className="w-full justify-start">
+                  <Phone className="h-4 w-4 mr-2" />
+                  Call Us
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
