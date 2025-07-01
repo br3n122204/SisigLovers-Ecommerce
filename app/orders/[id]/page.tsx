@@ -51,7 +51,7 @@ interface Order {
   paymentStatus: 'pending' | 'paid' | 'failed';
   trackingNumber?: string;
   estimatedDelivery?: Date;
-  actualDelivery?: Date;
+  deliveryDate?: Date;
   notes?: string;
 }
 
@@ -84,8 +84,11 @@ export default function OrderDetailsPage() {
             orderDate: (() => {
               const d = data.orderDate;
               if (d && typeof d.toDate === 'function') return d.toDate();
-              if (typeof d === 'string' || typeof d === 'number') return new Date(d);
-              return new Date();
+              if (typeof d === 'string' || typeof d === 'number') {
+                const dt = new Date(d);
+                if (!isNaN(dt.getTime())) return dt;
+              }
+              return undefined;
             })(),
             status: data.status,
             total: data.total,
@@ -99,7 +102,13 @@ export default function OrderDetailsPage() {
             paymentStatus: data.paymentStatus,
             trackingNumber: data.trackingNumber,
             estimatedDelivery: data.estimatedDelivery?.toDate(),
-            actualDelivery: data.actualDelivery?.toDate(),
+            deliveryDate: (() => {
+              if (data.actualDelivery && typeof data.actualDelivery.toDate === 'function') return data.actualDelivery.toDate();
+              if (data.actualDelivery) return new Date(data.actualDelivery);
+              if (data.deliveredAt && typeof data.deliveredAt.toDate === 'function') return data.deliveredAt.toDate();
+              if (data.deliveredAt) return new Date(data.deliveredAt);
+              return undefined;
+            })(),
             notes: data.notes
           };
           setOrder(fetchedOrder);
@@ -200,8 +209,14 @@ export default function OrderDetailsPage() {
           </Link>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold">Order {order.orderNumber}</h1>
-              <p className="mt-1 font-medium">Date Ordered: {formatDate(order.orderDate)}</p>
+<h1 className="text-3xl font-bold text-[#001F3F]">Order {order.orderNumber}</h1>
+<p className="text-[#001F3F] mt-1 font-medium">
+  {order.status === "delivered" && order.deliveryDate
+    ? `Date Delivered: ${formatDate(order.deliveryDate)}`
+    : order.orderDate
+      ? `Date Ordered: ${formatDate(order.orderDate)}`
+      : ""}
+</p>
             </div>
           </div>
         </div>
