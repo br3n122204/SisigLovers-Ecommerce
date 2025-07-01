@@ -9,7 +9,7 @@ export default function FooterConditional() {
     <footer className="bg-[#101828] text-[#60A5FA] font-sans mt-16">
       <div className="max-w-7xl mx-auto px-4 py-14 flex flex-col md:flex-row justify-between items-center md:items-start gap-12 md:gap-0">
         <div className="flex flex-col items-center md:items-start w-full md:w-1/3 mb-8 md:mb-0">
-          <Image src="/DPTONELOGO.png" alt="DPT ONE Footer Logo" width={90} height={90} className="mb-4" />
+          <Image src="https://ltfzekatcjpltiighukw.supabase.co/storage/v1/object/public/product-images/DPT%20ONE%20LOGO/DPTONELOGO.png" alt="DPT ONE Footer Logo" width={90} height={90} className="mb-4" />
         </div>
         <div className="w-full md:w-1/3 text-center md:text-left mb-8 md:mb-0">
           <h2 className="text-xl font-bold mb-2 text-[#60A5FA]">Why Shop With Us?</h2>

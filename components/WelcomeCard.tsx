@@ -9,10 +9,13 @@ export default function WelcomeCard() {
   const pathname = usePathname();
 
   useEffect(() => {
-    // Check localStorage only after component mounts (client-side)
-    const hasSeenWelcome = localStorage.getItem('welcomeCardDismissed');
-    if (!hasSeenWelcome) {
+    // Show the modal only on the first page load in this session
+    const hasShownModal = sessionStorage.getItem('welcomeModalShown');
+    if (!hasShownModal) {
       setDismissed(false);
+      sessionStorage.setItem('welcomeModalShown', 'true');
+    } else {
+      setDismissed(true);
     }
     setMounted(true);
   }, []);
@@ -28,6 +31,7 @@ export default function WelcomeCard() {
   };
 
   // Only show on homepage
+  console.log('[WelcomeCard] pathname:', pathname, 'mounted:', mounted, 'dismissed:', dismissed);
   if (pathname !== "/" || !mounted || dismissed) return null;
 
   return (
@@ -36,7 +40,7 @@ export default function WelcomeCard() {
         {/* Left: Image */}
         <div className="w-1/2 min-w-[240px] min-h-[340px] bg-[#101828] flex items-center justify-center border-r-2 border-[#60A5FA] relative overflow-hidden">
           <img
-            src="/images/welcome.jpg"
+            src="https://ltfzekatcjpltiighukw.supabase.co/storage/v1/object/public/product-images/Welcome%20Modal%20Image/welcomeModalImage.png"
             alt="Welcome"
             style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
             onError={e => { e.currentTarget.style.display = 'none'; e.currentTarget.parentElement?.insertAdjacentHTML('beforeend', '<span style="color:#60A5FA;font-size:1.2rem;">Image not found</span>'); }}
@@ -47,8 +51,8 @@ export default function WelcomeCard() {
           {/* Animated Logo */}
           <div className="mb-4 animate-bounce mt-2 flex justify-center items-center">
             <Image
-              src="/images/footer-logo.png"
-              alt="Logo"
+              src="https://ltfzekatcjpltiighukw.supabase.co/storage/v1/object/public/product-images/DPT%20ONE%20LOGO/DPTONELOGO.png"
+              alt="DPT ONE Logo"
               width={80}
               height={80}
               className="rounded-full drop-shadow-lg bg-white"
@@ -63,7 +67,6 @@ export default function WelcomeCard() {
           >
             Start Shopping
           </button>
-          <button className="text-[#60A5FA] underline text-sm mt-4 mb-1" onClick={handleDismiss}>No thanks, maybe later</button>
         </div>
       </div>
     </div>

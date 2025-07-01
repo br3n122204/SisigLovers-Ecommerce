@@ -84,7 +84,7 @@ export default function Header() {
         <div className="flex items-center gap-8 w-full md:w-auto md:flex-1">
           <Link href="/" className="flex items-center mr-4">
             <Image
-              src="/DPTONELOGO.png"
+              src="https://ltfzekatcjpltiighukw.supabase.co/storage/v1/object/public/product-images/DPT%20ONE%20LOGO/DPTONELOGO.png"
               alt="DPT ONE Logo"
               width={60}
               height={60}
