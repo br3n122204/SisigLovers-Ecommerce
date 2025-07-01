@@ -19,7 +19,7 @@ interface Order {
   id: string;
   orderNumber: string;
   dateOrdered: Date | string | undefined;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'rated' | 'returned';
   total: number;
   items: OrderItem[];
   shippingAddress: Address;
@@ -157,7 +157,11 @@ export default function OrdersPage() {
 
     // Filter by status
     if (statusFilter !== "all") {
-      filtered = filtered.filter(order => order.status === statusFilter);
+      if (statusFilter === "completed") {
+        filtered = filtered.filter(order => order.status === "rated" || order.status === "returned");
+      } else {
+        filtered = filtered.filter(order => order.status === statusFilter);
+      }
     }
 
     setFilteredOrders(filtered);
@@ -340,6 +344,7 @@ export default function OrdersPage() {
                   <SelectItem value="processing">Processing</SelectItem>
                   <SelectItem value="shipped">Shipped</SelectItem>
                   <SelectItem value="delivered">Delivered</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
                   <SelectItem value="cancelled">Cancelled</SelectItem>
                 </SelectContent>
               </Select>
@@ -388,8 +393,8 @@ export default function OrdersPage() {
                           <div>
                             <p className="font-medium text-[#60A5FA]">{order.orderNumber}</p>
                             <p className="text-sm text-[#60A5FA]">
-                              {order.status === "delivered" && order.deliveryDate
-                                ? `Date Delivered: ${formatDateLong(order.deliveryDate)}`
+                              {order.status === "delivered" && order.estimatedDelivery
+                                ? `Date Delivered: ${formatDateLong(order.estimatedDelivery)}`
                                 : order.dateOrdered
                                   ? `Date Ordered: ${formatDateLong(order.dateOrdered)}`
                                   : ""}
