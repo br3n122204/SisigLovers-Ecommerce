@@ -72,6 +72,8 @@ export default function OrderDetailsPage() {
   const [showOptions, setShowOptions] = useState(false);
   const [orderReceived, setOrderReceived] = useState(false);
   const [actionCompleted, setActionCompleted] = useState(false);
+  const [showReturnForm, setShowReturnForm] = useState(false);
+  const [returnReason, setReturnReason] = useState('');
 
   const params = useParams();
   const orderId = params.id as string;
@@ -195,7 +197,7 @@ export default function OrderDetailsPage() {
   };
 
   // Update handleReturnRefund to store in orderDetails and show Buy again
-  const handleReturnRefund = async () => {
+  const handleReturnRefund = async (reason: string) => {
     if (!user || !order) return;
     try {
       const userOrderRef = doc(db, 'users', user.uid, 'orders', order.id);
@@ -206,7 +208,7 @@ export default function OrderDetailsPage() {
         const orderDetailsRef = collection(db, 'productsOrder', globalOrderId, 'orderDetails');
         await addDoc(orderDetailsRef, {
           type: 'return',
-          reason: 'User requested return/refund', // You can pass the actual reason if you have a form
+          reason,
           timestamp: serverTimestamp(),
           userId: user.uid,
           orderId: order.id
@@ -214,6 +216,16 @@ export default function OrderDetailsPage() {
         const globalOrderRef = doc(db, 'productsOrder', globalOrderId);
         await updateDoc(globalOrderRef, { status: 'returned' });
       }
+      // Store the return/refund reason in a new collection
+      const returnReasonsRef = collection(db, 'returnRefundReasons');
+      await addDoc(returnReasonsRef, {
+        userId: user.uid,
+        orderId: order.id,
+        reason,
+        timestamp: serverTimestamp(),
+        orderNumber: order.orderNumber,
+        email: user.email || null
+      });
       setActionCompleted(true);
       router.push('/orders');
     } catch (err) {
@@ -246,6 +258,13 @@ export default function OrderDetailsPage() {
     } catch (err) {
       alert('Failed to update order status. Please try again.');
     }
+  };
+
+  // Helper to call handleReturnRefund with the entered reason
+  const handleReturnRefundWithReason = () => {
+    handleReturnRefund(returnReason);
+    setShowReturnForm(false);
+    setReturnReason('');
   };
 
   if (loading) {
@@ -403,92 +422,102 @@ export default function OrderDetailsPage() {
                     {order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)}
                   </Badge>
                 </div>
-{order.status === 'delivered' && (
-  <div className="space-y-4 mt-4">
-    {!orderReceived && !actionCompleted ? (
-      <Button
-        className="bg-green-600 hover:bg-green-700 text-white px-6"
-        onClick={handleOrderReceived}
-      >
-        Order Received
-      </Button>
-    ) : !actionCompleted ? (
-      <>
-        <Button
-          className="bg-red-600 hover:bg-red-700 text-white px-6"
-          onClick={handleReturnRefund}
-        >
-          Return / Refund
-        </Button>
-        <Button
-          className="bg-yellow-500 hover:bg-yellow-600 text-white px-6 mt-2"
-          onClick={handleRateOrder}
-        >
-          Rate Order
-        </Button>
-      </>
-    ) : (
-      <Button
-        className="bg-blue-600 hover:bg-blue-700 text-white px-6"
-        onClick={() => router.push('/products')}
-      >
-        Buy again
-      </Button>
-    )}
-  </div>
-)}
+                {order.status === 'delivered' && !orderReceived && !actionCompleted ? (
+                  <div className="space-y-4 mt-4">
+                    <Button
+                      className="bg-green-600 hover:bg-green-700 text-white px-6"
+                      onClick={handleOrderReceived}
+                    >
+                      Order Received
+                    </Button>
+                  </div>
+                ) : !actionCompleted ? (
+                  <>
+                    {!showReturnForm ? (
+                      <Button
+                        className="bg-red-600 hover:bg-red-700 text-white px-6"
+                        onClick={() => setShowReturnForm(true)}
+                      >
+                        Return / Refund
+                      </Button>
+                    ) : (
+                      <form className="flex flex-col gap-2 w-full" onSubmit={e => {
+                        e.preventDefault();
+                        handleReturnRefundWithReason();
+                      }}>
+                        <textarea
+                          className="w-full border border-gray-300 rounded p-2 mb-2 text-black"
+                          rows={3}
+                          value={returnReason}
+                          onChange={e => setReturnReason(e.target.value)}
+                          required
+                          placeholder="Enter your reason here..."
+                        />
+                        <Button type="submit" className="bg-red-600 hover:bg-red-700 text-white px-6">Submit</Button>
+                        <Button type="button" variant="outline" className="px-6" onClick={() => setShowReturnForm(false)}>Cancel</Button>
+                      </form>
+                    )}
+                    <Button
+                      className="bg-yellow-500 hover:bg-yellow-600 text-white px-6 mt-2"
+                      onClick={handleRateOrder}
+                    >
+                      Rate Order
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6"
+                    onClick={() => router.push('/products')}
+                  >
+                    Buy again
+                  </Button>
+                )}
+              </div>
+            </div>
 
-// ... (other order details, then:)
+            {/* Shipping Address */}
+            <div className="bg-[#19223a] rounded-2xl shadow-lg p-4">
+              <div className="text-2xl font-semibold mb-4">Shipping Address</div>
+              <div className="space-y-2">
+                <p className="font-medium">
+                  {order?.shippingAddress?.firstName} {order?.shippingAddress?.lastName}
+                </p>
+                <p className="text-sm">{order?.shippingAddress?.address1}</p>
+                {order?.shippingAddress?.address2 && (
+                  <p className="text-sm">{order?.shippingAddress?.address2}</p>
+                )}
+                <p className="text-sm">
+                  {order?.shippingAddress?.city}, {order?.shippingAddress?.region} {order?.shippingAddress?.postalCode}
+                </p>
+                <div className="flex items-center gap-2 text-sm">
+                  <Phone className="h-3 w-3" />
+                  {order?.shippingAddress?.phone}
+                </div>
+              </div>
+            </div>
 
-</CardContent>
-</Card>
-
-</div>
-</div>
-
-{/* Shipping Address */}
-<div className="bg-[#19223a] rounded-2xl shadow-lg p-4">
-  <div className="text-2xl font-semibold mb-4">Shipping Address</div>
-  <div className="space-y-2">
-    <p className="font-medium">
-      {order.shippingAddress.firstName} {order.shippingAddress.lastName}
-    </p>
-    <p className="text-sm">{order.shippingAddress.address1}</p>
-    {order.shippingAddress.address2 && (
-      <p className="text-sm">{order.shippingAddress.address2}</p>
-    )}
-    <p className="text-sm">
-      {order.shippingAddress.city}, {order.shippingAddress.region} {order.shippingAddress.postalCode}
-    </p>
-    <div className="flex items-center gap-2 text-sm">
-      <Phone className="h-3 w-3" />
-      {order.shippingAddress.phone}
-    </div>
-  </div>
-</div>
-
-{/* Billing Address */}
-{JSON.stringify(order.shippingAddress) !== JSON.stringify(order.billingAddress) && (
-  <div className="bg-[#19223a] rounded-2xl shadow-lg p-4">
-    <div className="text-2xl font-semibold mb-4">Billing Address</div>
-    <div className="space-y-2">
-      <p className="font-medium">
-        {order.billingAddress.firstName} {order.billingAddress.lastName}
-      </p>
-      <p className="text-sm">{order.billingAddress.address1}</p>
-      {order.billingAddress.address2 && (
-        <p className="text-sm">{order.billingAddress.address2}</p>
-      )}
-      <p className="text-sm">
-        {order.billingAddress.city}, {order.billingAddress.region} {order.billingAddress.postalCode}
-      </p>
-      <div className="flex items-center gap-2 text-sm">
-        <Phone className="h-3 w-3" />
-        {order.billingAddress.phone}
-      </div>
-    </div>
-  </div>
-)}
+            {/* Billing Address */}
+            {order?.billingAddress && order?.shippingAddress && JSON.stringify(order.shippingAddress) !== JSON.stringify(order.billingAddress) && (
+              <div className="bg-[#19223a] rounded-2xl shadow-lg p-4">
+                <div className="text-2xl font-semibold mb-4">Billing Address</div>
+                <div className="space-y-2">
+                  <p className="font-medium">
+                    {order?.billingAddress?.firstName} {order?.billingAddress?.lastName}
+                  </p>
+                  <p className="text-sm">{order?.billingAddress?.address1}</p>
+                  {order?.billingAddress?.address2 && (
+                    <p className="text-sm">{order?.billingAddress?.address2}</p>
+                  )}
+                  <p className="text-sm">
+                    {order?.billingAddress?.city}, {order?.billingAddress?.region} {order?.billingAddress?.postalCode}
+                  </p>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Phone className="h-3 w-3" />
+                    {order?.billingAddress?.phone}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Need Help */}
             <div className="bg-[#19223a] rounded-2xl shadow-lg p-4">
