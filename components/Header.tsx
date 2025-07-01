@@ -84,8 +84,8 @@ export default function Header() {
         <div className="flex items-center gap-8 w-full md:w-auto md:flex-1">
           <Link href="/" className="flex items-center mr-4">
             <Image
-              src="/images/logo.png"
-              alt="Sisig Lovers Logo"
+              src="/DPTONELOGO.png"
+              alt="DPT ONE Logo"
               width={60}
               height={60}
               className="h-auto"

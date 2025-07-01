@@ -16,27 +16,27 @@ import WelcomeCard from "@/components/WelcomeCard"
 const sliderImages = [
   {
     id: 1,
-    image: "/images/slider/image1.jpg",
-    title: "Street Culture",
-    subtitle: "Authentic streetwear for fashion",
+    image: "/images/slider/newcharlottefolkimageslider.png",
+    title: "Charlotte Folk",
+    subtitle: "Fresh streetwear for the bold.",
   },
   {
     id: 2,
-    image: "/images/slider/image2.jpg",
-    title: "Urban Style",
-    subtitle: "Express your individuality",
+    image: "/images/slider/newmnlaimageslider.png",
+    title: "MNLA",
+    subtitle: "Urban vibes, modern style.",
   },
   {
     id: 3,
-    image: "/images/slider/image3.jpg",
-    title: "Modern Fashion",
-    subtitle: "Contemporary designs for today",
+    image: "/images/slider/newrichboyzimageslider.png",
+    title: "Rich Boyz",
+    subtitle: "Elevate your look.",
   },
   {
     id: 4,
-    image: "/images/slider/image4.jpg",
-    title: "Street Heat",
-    subtitle: "Stay raw. Stay real.",
+    image: "/images/slider/newStrapimageslider.png",
+    title: "Strap",
+    subtitle: "Strap in for style.",
   },
 ]
 
@@ -103,20 +103,17 @@ function ImageSlider() {
         <ChevronRight className="h-7 w-7" />
       </button>
       {/* Dots Navigation */}
-      <div className="absolute left-1/2 -translate-x-1/2 z-30 flex flex-col items-center" style={{ bottom: '2.5rem' }}>
-        <div className="flex space-x-3 mb-4">
+      <div className="absolute left-1/2 -translate-x-1/2 z-30 flex flex-col items-center" style={{ bottom: '1rem' }}>
+        <div className="flex space-x-2 mb-2">
           {sliderImages.map((_, index) => (
             <button
               key={index}
               onClick={() => goToSlide(index)}
-              className={`w-4 h-4 rounded-full border-2 border-white transition-all ${index === currentSlide ? 'bg-white' : 'bg-white bg-opacity-40'}`}
+              className={`w-2.5 h-2.5 rounded-full border border-white transition-all ${index === currentSlide ? 'bg-white' : 'bg-white bg-opacity-40'}`}
               aria-label={`Go to slide ${index + 1}`}
             />
           ))}
         </div>
-        <button className="px-8 py-3 text-lg font-semibold bg-white text-black hover:bg-neutral-200 shadow-lg rounded-full transition-all">
-          Shop Now
-        </button>
       </div>
     </div>
   )
