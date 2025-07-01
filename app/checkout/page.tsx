@@ -216,15 +216,16 @@ export default function CheckoutPage() {
       // Clean undefined values deeply
       console.log('orderData before cleaning:', orderData);
       const cleanOrderData = deepCleanUndefined(orderData);
+      // Guarantee dateOrdered is always set after cleaning
+      cleanOrderData.dateOrdered = serverTimestamp();
       console.log('orderData after cleaning:', cleanOrderData);
 
       // Save to global productsOrder collection (for admin/global view)
       const productsOrderRef = collection(db, 'productsOrder');
-      // Always include userId and dateOrdered in the global order
+      // Always include userId in the global order
       const globalOrderDoc = await addDoc(productsOrderRef, {
         ...cleanOrderData,
         userId: user.uid, // <-- ensure userId is always present
-        dateOrdered: serverTimestamp(), // <-- always set dateOrdered for admin
       });
       console.log("Order saved to productsOrder with ID:", globalOrderDoc.id);
 
@@ -232,7 +233,7 @@ export default function CheckoutPage() {
       for (const item of cleanOrderData.items) {
         await addDoc(collection(db, 'productsOrder', globalOrderDoc.id, 'orderDetails'), {
           ...item,
-          dateOrdered: cleanOrderData.dateOrdered || serverTimestamp(),
+          dateOrdered: cleanOrderData.dateOrdered,
         });
       }
 
@@ -242,9 +243,16 @@ export default function CheckoutPage() {
       const userOrderDoc = await addDoc(userOrdersRef, {
         ...cleanOrderData,
         globalOrderId: globalOrderDoc.id, // <-- ensure globalOrderId is always present
-        dateOrdered: cleanOrderData.dateOrdered || serverTimestamp(),
       });
       console.log("Order saved to users/{userId}/orders with ID:", userOrderDoc.id);
+
+      // Add to sales collection for analytics
+      await addDoc(collection(db, 'sales'), {
+        timestamp: cleanOrderData.dateOrdered || serverTimestamp(),
+        total: cleanOrderData.total,
+        userId: user.uid,
+        orderId: globalOrderDoc.id,
+      });
 
       // Update product stock (totalStock and sizes) for each item
       for (const item of cleanOrderData.items) {

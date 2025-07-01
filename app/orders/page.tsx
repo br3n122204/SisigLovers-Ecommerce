@@ -18,7 +18,7 @@ import { toast } from '@/hooks/use-toast';
 interface Order {
   id: string;
   orderNumber: string;
-  dateOrdered: Date | undefined;
+  dateOrdered: Date | string | undefined;
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   total: number;
   items: OrderItem[];
@@ -89,8 +89,19 @@ export default function OrdersPage() {
               let dateOrderedValue: Date | undefined = undefined;
               if (data.dateOrdered && typeof data.dateOrdered.toDate === 'function') {
                 dateOrderedValue = data.dateOrdered.toDate();
-              } else if (data.dateOrdered) {
-                dateOrderedValue = new Date(data.dateOrdered);
+              } else if (typeof data.dateOrdered === 'string' || typeof data.dateOrdered === 'number') {
+                const d = new Date(data.dateOrdered);
+                if (!isNaN(d.getTime())) dateOrderedValue = d;
+              }
+              let deliveryDateValue: Date | undefined = undefined;
+              if (data.actualDelivery && typeof data.actualDelivery.toDate === 'function') {
+                deliveryDateValue = data.actualDelivery.toDate();
+              } else if (data.actualDelivery) {
+                deliveryDateValue = new Date(data.actualDelivery);
+              } else if (data.deliveredAt && typeof data.deliveredAt.toDate === 'function') {
+                deliveryDateValue = data.deliveredAt.toDate();
+              } else if (data.deliveredAt) {
+                deliveryDateValue = new Date(data.deliveredAt);
               }
               fetchedOrders.push({
                 id: doc.id,
@@ -376,7 +387,13 @@ export default function OrdersPage() {
                           </div>
                           <div>
                             <p className="font-medium text-[#60A5FA]">{order.orderNumber}</p>
-                            <p className="text-sm text-[#60A5FA]">Date Ordered: {formatDateLong(dateObj)}</p>
+                            <p className="text-sm text-[#60A5FA]">
+                              {order.status === "delivered" && order.deliveryDate
+                                ? `Date Delivered: ${formatDateLong(order.deliveryDate)}`
+                                : order.dateOrdered
+                                  ? `Date Ordered: ${formatDateLong(order.dateOrdered)}`
+                                  : ""}
+                            </p>
                           </div>
                         </div>
                       </div>

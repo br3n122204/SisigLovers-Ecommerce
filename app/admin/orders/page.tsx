@@ -398,7 +398,7 @@ export default function AdminOrdersPage() {
                               const newStatus = e.target.value;
                               let deliveredAtUpdate = {};
                               let optimisticDeliveredAt = undefined;
-                              if (newStatus === 'delivered' && !order.deliveredAt) {
+                              if (newStatus === 'delivered') {
                                 deliveredAtUpdate = { deliveredAt: serverTimestamp() };
                                 optimisticDeliveredAt = new Date();
                               } else if (order.status === 'delivered' && newStatus !== 'delivered') {

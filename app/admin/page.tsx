@@ -13,7 +13,8 @@ import AdminSidebar from "@/components/AdminSidebar";
 import AddProductPage from "./add-product/page";
 import AdminProductsPage from "./products/page";
 import AdminOrdersPage from "./orders/page";
-// You can create placeholder components for Analytics and Activities for now
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Area } from 'recharts';
+import React from "react";
 
 interface User {
   id: string;
@@ -131,10 +132,63 @@ function LoginForm({ onLogin }: { onLogin: (email: string, password: string) => 
 }
 
 function AnalyticsSection() {
+  const [salesData, setSalesData] = React.useState<{ month: string; sales: number }[]>([]);
+  const { recentUsers = [], totalProducts = 0, totalSalesAmount = 0 } = React.useContext(AdminAnalyticsContext) || {};
+
+  React.useEffect(() => {
+    // Fetch sales data grouped by month from the 'sales' collection
+    async function fetchSalesData() {
+      const salesRef = collection(db, 'sales');
+      const q = query(salesRef);
+      const querySnapshot = await getDocs(q);
+      const salesByMonth: { [month: string]: number } = {};
+      querySnapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.timestamp && data.total) {
+          const date = data.timestamp.toDate();
+          const month = date.toLocaleString('default', { month: 'short' });
+          salesByMonth[month] = (salesByMonth[month] || 0) + (typeof data.total === 'number' ? data.total : parseFloat(data.total));
+        }
+      });
+      // Ensure all months are present for the chart
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      const salesArr = months.map(month => ({ month, sales: salesByMonth[month] || 0 }));
+      setSalesData(salesArr);
+    }
+    fetchSalesData();
+  }, []);
+
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center text-[#8ec0ff]">
-      <h2 className="text-2xl font-bold mb-4">Analytics Dashboard</h2>
-      <p>Analytics content goes here.</p>
+    <div className="w-full h-full flex flex-col gap-8 text-[#8ec0ff]">
+      {/* Top Stats */}
+      <div className="flex flex-wrap gap-6 justify-center mb-8">
+        <div className="bg-[#22304a] rounded-lg p-6 min-w-[180px] text-center shadow">
+          <div className="text-lg font-semibold">Customers</div>
+          <div className="text-3xl font-bold mt-2">{recentUsers.length}</div>
+        </div>
+        <div className="bg-[#22304a] rounded-lg p-6 min-w-[180px] text-center shadow">
+          <div className="text-lg font-semibold">Products</div>
+          <div className="text-3xl font-bold mt-2">{totalProducts}</div>
+        </div>
+        <div className="bg-[#22304a] rounded-lg p-6 min-w-[180px] text-center shadow">
+          <div className="text-lg font-semibold">Total Sales</div>
+          <div className="text-3xl font-bold mt-2">₱{totalSalesAmount.toLocaleString()}</div>
+        </div>
+      </div>
+      {/* Sales Chart */}
+      <div className="bg-[#22304a] rounded-lg p-6 w-full max-w-3xl mx-auto shadow">
+        <div className="text-xl font-semibold mb-4">Sales Over Time</div>
+        <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={salesData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <XAxis dataKey="month" stroke="#8ec0ff" />
+            <YAxis stroke="#8ec0ff" tickFormatter={v => `${v / 1000}K`} />
+            <Tooltip />
+            <Area type="monotone" dataKey="sales" stroke="#60A5FA" fill="rgba(96,165,250,0.1)" />
+            <Line type="monotone" dataKey="sales" stroke="#60A5FA" strokeWidth={3} dot={false} />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }
@@ -195,6 +249,9 @@ function ActivitiesSection({ recentActivities, isLoadingActivities, fetchRecentA
   );
 }
 
+// Provide AdminAnalyticsContext to AnalyticsSection
+const AdminAnalyticsContext = React.createContext<any>(null);
+
 export default function AdminDashboardSinglePage() {
   const { user, loading } = useAuth();
   const [recentUsers, setRecentUsers] = useState<User[]>([]);
@@ -213,6 +270,13 @@ export default function AdminDashboardSinglePage() {
 
   const handleLogin = async (email: string, password: string) => {
     try {
+      // Check for hardcoded admin credentials
+      if (email === "sisiglovers@gmail.com" && password === "msadsisiglovers2025") {
+        // Optionally, you can sign in with Firebase as well if needed
+        // await signInWithEmailAndPassword(auth, email, password);
+        return true;
+      }
+      // Otherwise, proceed with normal sign in
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       if (userCredential.user.uid !== ADMIN_UID) {
         toast({
@@ -396,7 +460,9 @@ export default function AdminDashboardSinglePage() {
     <div className="flex min-h-screen w-full bg-black">
       <AdminSidebar activeSection={activeSection} onSectionChange={setActiveSection} onLogout={handleLogout} />
       <main className="flex-1 w-full h-screen bg-[#161e2e] px-8 py-10 flex flex-col">
-        {content}
+        <AdminAnalyticsContext.Provider value={{ recentUsers, totalProducts, totalSalesAmount }}>
+          {content}
+        </AdminAnalyticsContext.Provider>
       </main>
     </div>
   ) : <LoginForm onLogin={handleLogin} />;
