@@ -10,7 +10,7 @@ import { Calendar, Download, Search, Filter, ChevronDown, ChevronUp } from "luci
 interface Order {
   id: string;
   orderNumber: string;
-  dateOrdered: number;
+  dateOrdered: Date | null;
   status: string;
   total: number;
   subtotal: number;
@@ -28,6 +28,7 @@ interface Order {
   estimatedDelivery: Date | null;
   userId?: string;
   deliveredAt?: number;
+  adminProductId: string;
 }
 
 interface OrderItem {
@@ -71,50 +72,61 @@ export default function AdminOrdersPage() {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const ordersRef = collection(db, "productsOrder");
-        const q = query(ordersRef, orderBy("dateOrdered", "desc"));
-        const querySnapshot = await getDocs(q);
-        const fetchedOrders: Order[] = [];
-        querySnapshot.forEach((docSnap) => {
-          const data = docSnap.data();
-          let dateOrderedValue;
-          if (data.dateOrdered && typeof data.dateOrdered.toDate === "function") {
-            dateOrderedValue = data.dateOrdered.toDate();
-          } else if (data.dateOrdered) {
-            dateOrderedValue = new Date(data.dateOrdered);
-          }
-          let deliveredAtValue;
-          if (data.deliveredAt && typeof data.deliveredAt.toDate === "function") {
-            deliveredAtValue = data.deliveredAt.toDate();
-          } else if (data.deliveredAt) {
-            deliveredAtValue = new Date(data.deliveredAt);
-          }
-          fetchedOrders.push({
-            id: docSnap.id,
-            orderNumber: data.orderNumber,
-            dateOrdered: dateOrderedValue,
-            status: data.status,
-            total: data.total,
-            subtotal: data.subtotal,
-            shipping: data.shipping,
-            tax: data.tax,
-            items: data.items || [],
-            shippingAddress: data.shippingAddress,
-            billingAddress: data.billingAddress,
-            paymentMethod: data.paymentMethod,
-            paymentStatus: data.paymentStatus,
-            userEmail: data.userEmail,
-            userName: data.shippingAddress?.firstName + ' ' + data.shippingAddress?.lastName,
-            userPhone: data.shippingAddress?.phone,
-            trackingNumber: data.trackingNumber,
-            estimatedDelivery: data.estimatedDelivery && typeof data.estimatedDelivery.toDate === "function"
-              ? data.estimatedDelivery.toDate()
-              : (data.estimatedDelivery ? new Date(data.estimatedDelivery) : undefined),
-            userId: data.userId,
-            deliveredAt: deliveredAtValue
+        // Fetch all adminProducts
+        const adminProductsSnapshot = await getDocs(collection(db, 'adminProducts'));
+        let allOrders: Order[] = [];
+        for (const productDoc of adminProductsSnapshot.docs) {
+          const productId = productDoc.id;
+          const ordersSnapshot = await getDocs(collection(db, 'adminProducts', productId, 'productsOrder'));
+          ordersSnapshot.forEach(orderDoc => {
+            const data = orderDoc.data();
+            let dateOrderedValue: Date | null = null;
+            if (data.dateOrdered && typeof data.dateOrdered.toDate === "function") {
+              dateOrderedValue = data.dateOrdered.toDate();
+            } else if (data.dateOrdered) {
+              const d = new Date(data.dateOrdered);
+              dateOrderedValue = isNaN(d.getTime()) ? null : d;
+            }
+            let deliveredAtValue;
+            if (data.deliveredAt && typeof data.deliveredAt.toDate === "function") {
+              deliveredAtValue = data.deliveredAt.toDate();
+            } else if (data.deliveredAt) {
+              deliveredAtValue = new Date(data.deliveredAt);
+            }
+            allOrders.push({
+              id: orderDoc.id,
+              orderNumber: data.orderNumber,
+              dateOrdered: dateOrderedValue,
+              status: data.status,
+              total: data.total,
+              subtotal: data.subtotal,
+              shipping: data.shipping,
+              tax: data.tax,
+              items: data.items || [],
+              shippingAddress: data.shippingAddress,
+              billingAddress: data.billingAddress,
+              paymentMethod: data.paymentMethod,
+              paymentStatus: data.paymentStatus,
+              userEmail: data.userEmail,
+              userName: data.shippingAddress?.firstName + ' ' + data.shippingAddress?.lastName,
+              userPhone: data.shippingAddress?.phone,
+              trackingNumber: data.trackingNumber,
+              estimatedDelivery: data.estimatedDelivery && typeof data.estimatedDelivery.toDate === "function"
+                ? data.estimatedDelivery.toDate()
+                : (data.estimatedDelivery ? new Date(data.estimatedDelivery) : undefined),
+              userId: data.userId,
+              deliveredAt: deliveredAtValue,
+              adminProductId: productId
+            });
           });
+        }
+        // Sort allOrders by dateOrdered descending
+        allOrders.sort((a, b) => {
+          const dateA = (a.dateOrdered && a.dateOrdered instanceof Date) ? Number(a.dateOrdered.getTime()) : 0;
+          const dateB = (b.dateOrdered && b.dateOrdered instanceof Date) ? Number(b.dateOrdered.getTime()) : 0;
+          return dateB - dateA;
         });
-        setOrders(fetchedOrders);
+        setOrders(allOrders);
       } catch (error) {
         console.error("Error fetching orders:", error);
         setOrders([]);
@@ -156,7 +168,7 @@ export default function AdminOrdersPage() {
     const rows = filteredOrders.map(order => [
       order.orderNumber,
       order.status,
-      formatDate(new Date(order.dateOrdered), true),
+      formatDate(order.dateOrdered ? order.dateOrdered : new Date(0), true),
       order.userName,
       order.userEmail,
       order.userPhone,
@@ -268,25 +280,8 @@ export default function AdminOrdersPage() {
     optimisticDeliveredAt?: Date | null
   }) {
     try {
-      // 1. Update global order
-      const globalOrderRef = doc(db, "productsOrder", orderId);
-      await updateDoc(globalOrderRef, { status: newStatus, ...deliveredAtUpdate });
-      // 2. Find and update user order
-      if (userId) {
-        const userOrdersCol = collection(db, "users", userId, "orders");
-        const userOrdersSnap = await getDocs(userOrdersCol);
-        let userOrderDocId = null;
-        userOrdersSnap.forEach(docSnap => {
-          if (docSnap.data().globalOrderId === orderId) {
-            userOrderDocId = docSnap.id;
-          }
-        });
-        if (userOrderDocId) {
-          const userOrderRef = doc(db, "users", userId, "orders", userOrderDocId);
-          await updateDoc(userOrderRef, { status: newStatus, ...deliveredAtUpdate });
-        }
-      }
-      // 3. Optimistically update local state
+      // Instead, update in adminProducts/*/productsOrder (requires knowing adminProductId)
+      // TODO: Implement logic to update in adminProducts/*/productsOrder
       setOrders(prev => prev.map(o =>
         o.id === orderId
           ? { ...o, status: newStatus, ...deliveredAtUpdate, deliveredAt: optimisticDeliveredAt !== undefined ? optimisticDeliveredAt : o.deliveredAt }

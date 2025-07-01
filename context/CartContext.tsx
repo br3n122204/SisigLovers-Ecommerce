@@ -42,7 +42,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   // Load cart from Firestore on login
   React.useEffect(() => {
     if (user) {
-      const cartRef = collection(db, 'cartProducts', user.uid, 'items');
+      const cartRef = collection(db, 'users', user.uid, 'cartProducts');
       setCartLoading(true);
       const unsubscribe = onSnapshot(cartRef, (snapshot) => {
         const items: CartItem[] = [];
@@ -84,9 +84,9 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       }
       // Only update the changed item in Firestore
       if (user) {
-        const cartRef = collection(db, 'cartProducts', user.uid, 'items');
+        const cartRef = collection(db, 'users', user.uid, 'cartProducts');
         const docRef = doc(cartRef, `${productToAdd.id}-${productToAdd.selectedSize || 'default'}`);
-        console.log('[addToCart] User:', user.uid, 'Adding:', productToAdd, 'To:', `cartProducts/${user.uid}/items/${productToAdd.id}-${productToAdd.selectedSize || 'default'}`);
+        console.log('[addToCart] User:', user.uid, 'Adding:', productToAdd, 'To:', `users/${user.uid}/cartProducts/${productToAdd.id}-${productToAdd.selectedSize || 'default'}`);
         setDoc(docRef, { ...productToAdd, quantity: existingItem ? (existingItem.quantity + productToAdd.quantity) : (productToAdd.quantity || 1) })
           .then(() => {
             console.log('[addToCart] Successfully added to Firestore');
@@ -106,7 +106,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       const itemToRemove = prevItems.find(item => item.id === productId);
       const newItems = prevItems.filter(item => item.id !== productId);
       if (user && itemToRemove) {
-        const cartRef = collection(db, 'cartProducts', user.uid, 'items');
+        const cartRef = collection(db, 'users', user.uid, 'cartProducts');
         const docRef = doc(cartRef, `${itemToRemove.id}-${itemToRemove.selectedSize || 'default'}`);
         deleteDoc(docRef);
       }
@@ -125,7 +125,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       if (user) {
         const updatedItem = newItems.find(item => item.id === productId);
         if (updatedItem) {
-          const cartRef = collection(db, 'cartProducts', user.uid, 'items');
+          const cartRef = collection(db, 'users', user.uid, 'cartProducts');
           const docRef = doc(cartRef, `${updatedItem.id}-${updatedItem.selectedSize || 'default'}`);
           setDoc(docRef, updatedItem);
         }
@@ -137,7 +137,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const clearCart = () => {
     setCartItems([]);
     if (user) {
-      const cartRef = collection(db, 'cartProducts', user.uid, 'items');
+      const cartRef = collection(db, 'users', user.uid, 'cartProducts');
       // Remove all docs in the cart
       // (optional: you could optimize this with a batch delete)
       // For now, just rely on onSnapshot to clear UI
@@ -148,7 +148,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     setCartItems((prevItems) => {
       const newItems = prevItems.filter(item => !ids.includes(item.id));
       if (user) {
-        const cartRef = collection(db, 'cartProducts', user.uid, 'items');
+        const cartRef = collection(db, 'users', user.uid, 'cartProducts');
         prevItems.forEach(item => {
           if (ids.includes(item.id)) {
             const docRef = doc(cartRef, `${item.id}-${item.selectedSize || 'default'}`);

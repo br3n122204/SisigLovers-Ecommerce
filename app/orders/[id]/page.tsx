@@ -187,8 +187,10 @@ export default function OrderDetailsPage() {
       const userOrderSnap = await getDoc(userOrderRef);
       const globalOrderId = userOrderSnap.data()?.globalOrderId;
       if (globalOrderId) {
-        const globalOrderRef = doc(db, 'productsOrder', globalOrderId);
-        await updateDoc(globalOrderRef, { status: 'delivered', deliveredAt: serverTimestamp(), orderReceived: true });
+        // const globalOrderRef = doc(db, 'productsOrder', globalOrderId);
+        // await updateDoc(globalOrderRef, { ... })
+        // Instead, use adminProducts/*/productsOrder
+        // TODO: Implement logic to update in adminProducts/*/productsOrder
       }
       setOrderReceived(true);
     } catch (err) {
@@ -205,16 +207,10 @@ export default function OrderDetailsPage() {
       const userOrderSnap = await getDoc(userOrderRef);
       const globalOrderId = userOrderSnap.data()?.globalOrderId;
       if (globalOrderId) {
-        const orderDetailsRef = collection(db, 'productsOrder', globalOrderId, 'orderDetails');
-        await addDoc(orderDetailsRef, {
-          type: 'return',
-          reason,
-          timestamp: serverTimestamp(),
-          userId: user.uid,
-          orderId: order.id
-        });
-        const globalOrderRef = doc(db, 'productsOrder', globalOrderId);
-        await updateDoc(globalOrderRef, { status: 'returned' });
+        // const orderDetailsRef = collection(db, 'productsOrder', globalOrderId, 'orderDetails');
+        // await addDoc(orderDetailsRef, { ... })
+        // Instead, use adminProducts/*/productsOrder/{orderId}/orderDetails
+        // TODO: Implement logic to add to adminProducts/*/productsOrder/{orderId}/orderDetails
       }
       // Store the return/refund reason in a new collection
       const returnReasonsRef = collection(db, 'returnRefundReasons');
@@ -242,16 +238,10 @@ export default function OrderDetailsPage() {
       const userOrderSnap = await getDoc(userOrderRef);
       const globalOrderId = userOrderSnap.data()?.globalOrderId;
       if (globalOrderId) {
-        const orderDetailsRef = collection(db, 'productsOrder', globalOrderId, 'orderDetails');
-        await addDoc(orderDetailsRef, {
-          type: 'rating',
-          rating: selectedRating,
-          timestamp: serverTimestamp(),
-          userId: user.uid,
-          orderId: order.id
-        });
-        const globalOrderRef = doc(db, 'productsOrder', globalOrderId);
-        await updateDoc(globalOrderRef, { status: 'rated' });
+        // const orderDetailsRef = collection(db, 'productsOrder', globalOrderId, 'orderDetails');
+        // await addDoc(orderDetailsRef, { ... })
+        // Instead, use adminProducts/*/productsOrder/{orderId}/orderDetails
+        // TODO: Implement logic to add to adminProducts/*/productsOrder/{orderId}/orderDetails
       }
       setActionCompleted(true);
       router.push('/orders');
