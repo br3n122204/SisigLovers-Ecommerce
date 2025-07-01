@@ -63,27 +63,26 @@ function ImageSlider() {
         style={{ transform: `translateX(-${currentSlide * 100}%)` }}
       >
         {sliderImages.map((slide) => (
-          <div key={slide.id} className="relative w-full h-full flex-shrink-0">
+          <div key={slide.id} className="relative w-full h-full flex-shrink-0 flex items-center justify-center overflow-hidden">
+            {/* Blurred Background */}
             <Image
               src={slide.image}
               alt={slide.title}
               fill
-              className="object-cover scale-105"
+              className="object-cover w-full h-full scale-105 blur-lg brightness-75 absolute inset-0 z-0"
               priority={slide.id === 1}
             />
-            <div className="absolute inset-0 bg-black bg-opacity-40" />
-            <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 z-10">
-              <h1 className="text-5xl md:text-6xl font-extrabold text-white drop-shadow-lg mb-4 tracking-tight">
-                {slide.title}
-              </h1>
-              <p className="text-xl md:text-2xl text-white font-medium mb-8 drop-shadow">
-                {slide.subtitle}
-              </p>
-              <Link href="/products" className="inline-block">
-                <Button className="px-8 py-3 text-lg font-semibold bg-white text-black hover:bg-neutral-200 shadow-lg rounded-full transition-all">
-                  Shop Now
-                </Button>
-              </Link>
+            <div className="absolute inset-0 bg-black bg-opacity-40 z-10" />
+            {/* Foreground Image and Button */}
+            <div className="relative z-20 flex flex-col items-center justify-center">
+              <Image
+                src={slide.image}
+                alt={slide.title}
+                width={480}
+                height={480}
+                className="rounded-2xl shadow-2xl object-cover w-[480px] h-[480px]"
+                priority={slide.id === 1}
+              />
             </div>
           </div>
         ))}
@@ -91,28 +90,33 @@ function ImageSlider() {
       {/* Navigation Arrows */}
       <button
         onClick={goToPrevious}
-        className="absolute left-6 top-1/2 -translate-y-1/2 bg-white bg-opacity-30 hover:bg-opacity-60 text-black p-2 rounded-full shadow transition-all z-20"
+        className="absolute left-6 top-1/2 -translate-y-1/2 bg-white bg-opacity-30 hover:bg-opacity-60 text-black p-2 rounded-full shadow transition-all z-30"
         aria-label="Previous Slide"
       >
         <ChevronLeft className="h-7 w-7" />
       </button>
       <button
         onClick={goToNext}
-        className="absolute right-6 top-1/2 -translate-y-1/2 bg-white bg-opacity-30 hover:bg-opacity-60 text-black p-2 rounded-full shadow transition-all z-20"
+        className="absolute right-6 top-1/2 -translate-y-1/2 bg-white bg-opacity-30 hover:bg-opacity-60 text-black p-2 rounded-full shadow transition-all z-30"
         aria-label="Next Slide"
       >
         <ChevronRight className="h-7 w-7" />
       </button>
       {/* Dots Navigation */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex space-x-3 z-20">
-        {sliderImages.map((_, index) => (
-          <button
-            key={index}
-            onClick={() => goToSlide(index)}
-            className={`w-4 h-4 rounded-full border-2 border-white transition-all ${index === currentSlide ? 'bg-white' : 'bg-white bg-opacity-40'}`}
-            aria-label={`Go to slide ${index + 1}`}
-          />
-        ))}
+      <div className="absolute left-1/2 -translate-x-1/2 z-30 flex flex-col items-center" style={{ bottom: '2.5rem' }}>
+        <div className="flex space-x-3 mb-4">
+          {sliderImages.map((_, index) => (
+            <button
+              key={index}
+              onClick={() => goToSlide(index)}
+              className={`w-4 h-4 rounded-full border-2 border-white transition-all ${index === currentSlide ? 'bg-white' : 'bg-white bg-opacity-40'}`}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
+        <button className="px-8 py-3 text-lg font-semibold bg-white text-black hover:bg-neutral-200 shadow-lg rounded-full transition-all">
+          Shop Now
+        </button>
       </div>
     </div>
   )
