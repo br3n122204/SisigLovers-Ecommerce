@@ -39,6 +39,12 @@ export default function LoginPage() {
     console.log('[Login Effect] user:', user, 'loading:', loading, 'cartItems:', cartItems, 'cartLoading:', cartLoading, 'pendingAdded:', pendingAdded);
     if (loading) return; // Wait for loading to finish
 
+    // Prevent multiple redirects
+    if (typeof window !== 'undefined' && localStorage.getItem('redirectedToCheckout')) {
+      localStorage.removeItem('redirectedToCheckout');
+      return;
+    }
+
     if (user) {
       // Only run this block when user is set
       const pending = localStorage.getItem('pendingCartItem');
@@ -51,11 +57,13 @@ export default function LoginPage() {
             addToCart(cartItem);
             localStorage.removeItem('pendingCartItem');
             setPendingAdded(true);
-            router.push('/cart');
+            localStorage.setItem('redirectedToCheckout', 'true');
+            router.push('/checkout');
             return;
           }
         } catch (e) { console.error('[Login Effect] Error parsing pendingCartItem:', e); }
         localStorage.removeItem('pendingCartItem');
+        return;
       }
       router.push("/");
     }
@@ -71,23 +79,6 @@ export default function LoginPage() {
       return () => clearTimeout(timer);
     }
   }, [showModal, router]);
-
-  useEffect(() => {
-    if (pendingCartItem) {
-      console.log('[Redirect Effect] pendingCartItem:', pendingCartItem, 'cartItems:', cartItems);
-      const found = cartItems.find(item => {
-        console.log('[Redirect Effect] comparing:', item, pendingCartItem);
-        return (
-          String(item.id).trim() === String(pendingCartItem.id).trim() &&
-          String(item.selectedSize).trim() === String(pendingCartItem.selectedSize).trim()
-        );
-      });
-      if (found) {
-        setPendingCartItem(null);
-        router.push('/cart');
-      }
-    }
-  }, [pendingCartItem, cartItems, router]);
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
