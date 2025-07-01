@@ -246,6 +246,14 @@ export default function CheckoutPage() {
       });
       console.log("Order saved to users/{userId}/orders with ID:", userOrderDoc.id);
 
+      // Add to sales collection for analytics
+      await addDoc(collection(db, 'sales'), {
+        timestamp: cleanOrderData.dateOrdered || serverTimestamp(),
+        total: cleanOrderData.total,
+        userId: user.uid,
+        orderId: globalOrderDoc.id,
+      });
+
       // Update product stock (totalStock and sizes) for each item
       for (const item of cleanOrderData.items) {
         const productRef = doc(db, 'adminProducts', item.id);
