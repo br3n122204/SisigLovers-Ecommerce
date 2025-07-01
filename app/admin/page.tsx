@@ -15,6 +15,7 @@ import AdminProductsPage from "./products/page";
 import AdminOrdersPage from "./orders/page";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Area } from 'recharts';
 import React from "react";
+import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 
 interface User {
   id: string;
@@ -132,7 +133,8 @@ function LoginForm({ onLogin }: { onLogin: (email: string, password: string) => 
 }
 
 function AnalyticsSection() {
-  const [salesData, setSalesData] = React.useState<{ month: string; sales: number }[]>([]);
+  const [chartType, setChartType] = React.useState<'sales' | 'quantity'>('sales');
+  const [salesData, setSalesData] = React.useState<{ month: string; sales: number; quantity: number }[]>([]);
   const { recentUsers = [], totalProducts = 0, totalSalesAmount = 0 } = React.useContext(AdminAnalyticsContext) || {};
 
   React.useEffect(() => {
@@ -141,18 +143,36 @@ function AnalyticsSection() {
       const salesRef = collection(db, 'sales');
       const q = query(salesRef);
       const querySnapshot = await getDocs(q);
-      const salesByMonth: { [month: string]: number } = {};
+      const salesByMonth: { [month: string]: { sales: number; quantity: number } } = {};
       querySnapshot.forEach(doc => {
         const data = doc.data();
-        if (data.timestamp && data.total) {
+        console.log('Sales doc:', data);
+        if (data.timestamp && (data.total || data.quantity || data.items)) {
           const date = data.timestamp.toDate();
           const month = date.toLocaleString('default', { month: 'short' });
-          salesByMonth[month] = (salesByMonth[month] || 0) + (typeof data.total === 'number' ? data.total : parseFloat(data.total));
+          if (!salesByMonth[month]) salesByMonth[month] = { sales: 0, quantity: 0 };
+          if (typeof data.total === 'number') salesByMonth[month].sales += data.total;
+          else if (typeof data.total === 'string') {
+            const parsed = parseFloat(data.total.replace(/[^\d.]/g, ''));
+            if (!isNaN(parsed)) salesByMonth[month].sales += parsed;
+          }
+          // Fix: If quantity is missing, sum from items array
+          let quantity = 0;
+          if (typeof data.quantity === 'number') {
+            quantity = data.quantity;
+          } else if (Array.isArray(data.items)) {
+            quantity = data.items.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0);
+          }
+          salesByMonth[month].quantity += quantity;
         }
       });
       // Ensure all months are present for the chart
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      const salesArr = months.map(month => ({ month, sales: salesByMonth[month] || 0 }));
+      const salesArr = months.map(month => ({
+        month,
+        sales: salesByMonth[month]?.sales || 0,
+        quantity: salesByMonth[month]?.quantity || 0,
+      }));
       setSalesData(salesArr);
     }
     fetchSalesData();
@@ -175,17 +195,29 @@ function AnalyticsSection() {
           <div className="text-3xl font-bold mt-2">₱{totalSalesAmount.toLocaleString()}</div>
         </div>
       </div>
+      {/* Chart Type Selector */}
+      <div className="flex justify-end max-w-3xl mx-auto mb-2">
+        <Select value={chartType} onValueChange={v => setChartType(v as 'sales' | 'quantity')}>
+          <SelectTrigger className="w-56 bg-[#22304a] border border-[#60A5FA] text-[#8ec0ff]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="sales">Total Sales (₱)</SelectItem>
+            <SelectItem value="quantity">Products Purchased</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
       {/* Sales Chart */}
       <div className="bg-[#22304a] rounded-lg p-6 w-full max-w-3xl mx-auto shadow">
-        <div className="text-xl font-semibold mb-4">Sales Over Time</div>
+        <div className="text-xl font-semibold mb-4">{chartType === 'sales' ? 'Sales Over Time' : 'Products Purchased Over Time'}</div>
         <ResponsiveContainer width="100%" height={300}>
           <LineChart data={salesData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis dataKey="month" stroke="#8ec0ff" />
-            <YAxis stroke="#8ec0ff" tickFormatter={v => `${v / 1000}K`} />
+            <YAxis stroke="#8ec0ff" tickFormatter={v => chartType === 'sales' ? `${v / 1000}K` : v} />
             <Tooltip />
-            <Area type="monotone" dataKey="sales" stroke="#60A5FA" fill="rgba(96,165,250,0.1)" />
-            <Line type="monotone" dataKey="sales" stroke="#60A5FA" strokeWidth={3} dot={false} />
+            <Area type="monotone" dataKey={chartType} stroke="#60A5FA" fill="rgba(96,165,250,0.1)" />
+            <Line type="monotone" dataKey={chartType} stroke="#60A5FA" strokeWidth={3} dot={false} />
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -397,10 +429,10 @@ export default function AdminDashboardSinglePage() {
     setTotalSales(querySnapshot.size);
   };
 
-  // Fetch total sales amount from completed sales
+  // Fetch total sales amount from sales collection
   const fetchTotalSalesAmount = async () => {
-    const activitiesRef = collection(db, "activities");
-    const q = query(activitiesRef, where("type", "==", "purchase"), where("status", "==", "completed"));
+    const salesRef = collection(db, "sales");
+    const q = query(salesRef);
     const querySnapshot = await getDocs(q);
     let sum = 0;
     querySnapshot.forEach(doc => {
