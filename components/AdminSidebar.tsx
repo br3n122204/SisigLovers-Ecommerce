@@ -17,7 +17,7 @@ export default function AdminSidebar({ activeSection, onSectionChange, onLogout 
     <aside className="bg-[#101726] text-[#8ec0ff] w-60 min-h-screen flex flex-col py-6 px-3">
       <div className="flex items-center mb-10 px-2">
         <img
-          src="/images/dpt-one-logo.png"
+          src="https://ltfzekatcjpltiighukw.supabase.co/storage/v1/object/public/product-images/DPT%20ONE%20LOGO/DPTONELOGO.png"
           alt="DPT ONE Logo"
           className="w-14 h-14 object-contain mr-3 bg-transparent"
         />

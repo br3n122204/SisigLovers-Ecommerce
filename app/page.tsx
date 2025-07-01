@@ -16,25 +16,25 @@ import WelcomeCard from "@/components/WelcomeCard"
 const sliderImages = [
   {
     id: 1,
-    image: "/images/slider/newcharlottefolkimageslider.png",
+    image: "https://ltfzekatcjpltiighukw.supabase.co/storage/v1/object/public/product-images/Image%20Sliders/CharlotteFolk.png",
     title: "Charlotte Folk",
     subtitle: "Fresh streetwear for the bold.",
   },
   {
     id: 2,
-    image: "/images/slider/newmnlaimageslider.png",
+    image: "https://ltfzekatcjpltiighukw.supabase.co/storage/v1/object/public/product-images/Image%20Sliders/MNLA.png",
     title: "MNLA",
     subtitle: "Urban vibes, modern style.",
   },
   {
     id: 3,
-    image: "/images/slider/newrichboyzimageslider.png",
+    image: "https://ltfzekatcjpltiighukw.supabase.co/storage/v1/object/public/product-images/Image%20Sliders/RichBoyz.png",
     title: "Rich Boyz",
     subtitle: "Elevate your look.",
   },
   {
     id: 4,
-    image: "/images/slider/newStrapimageslider.png",
+    image: "https://ltfzekatcjpltiighukw.supabase.co/storage/v1/object/public/product-images/Image%20Sliders/Strap.png",
     title: "Strap",
     subtitle: "Strap in for style.",
   },
