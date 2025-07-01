@@ -213,6 +213,13 @@ export default function AdminDashboardSinglePage() {
 
   const handleLogin = async (email: string, password: string) => {
     try {
+      // Check for hardcoded admin credentials
+      if (email === "sisiglovers@gmail.com" && password === "msadsisiglovers2025") {
+        // Optionally, you can sign in with Firebase as well if needed
+        // await signInWithEmailAndPassword(auth, email, password);
+        return true;
+      }
+      // Otherwise, proceed with normal sign in
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       if (userCredential.user.uid !== ADMIN_UID) {
         toast({
