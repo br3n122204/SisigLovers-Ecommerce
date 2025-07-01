@@ -221,17 +221,19 @@ export default function CheckoutPage() {
       console.log('orderData after cleaning:', cleanOrderData);
 
       // Save to global productsOrder collection (for admin/global view)
-      const productsOrderRef = collection(db, 'productsOrder');
+      const adminProductId = cleanOrderData.items[0]?.id;
+      if (!adminProductId) throw new Error('No adminProductId found in order items');
+      const productsOrderRef = collection(db, 'adminProducts', adminProductId, 'productsOrder');
       // Always include userId in the global order
       const globalOrderDoc = await addDoc(productsOrderRef, {
         ...cleanOrderData,
         userId: user.uid, // <-- ensure userId is always present
       });
-      console.log("Order saved to productsOrder with ID:", globalOrderDoc.id);
+      console.log("Order saved to adminProducts/" + adminProductId + "/productsOrder with ID:", globalOrderDoc.id);
 
       // Save each cart item as a document in the orderDetails subcollection
       for (const item of cleanOrderData.items) {
-        await addDoc(collection(db, 'productsOrder', globalOrderDoc.id, 'orderDetails'), {
+        await addDoc(collection(db, 'adminProducts', adminProductId, 'productsOrder', globalOrderDoc.id, 'orderDetails'), {
           ...item,
           dateOrdered: cleanOrderData.dateOrdered,
         });

@@ -236,16 +236,8 @@ export default function OrdersPage() {
       const userOrderSnap = await getDoc(userOrderRef);
       const globalOrderId = userOrderSnap.data()?.globalOrderId;
       if (globalOrderId) {
-        const orderDetailsRef = collection(db, 'productsOrder', globalOrderId, 'orderDetails');
-        await addDoc(orderDetailsRef, {
-          type: 'return',
-          reason,
-          timestamp: serverTimestamp(),
-          userId: user.uid,
-          orderId: order.id
-        });
-        const globalOrderRef = doc(db, 'productsOrder', globalOrderId);
-        await updateDoc(globalOrderRef, { status: 'returned' });
+        // Instead, use adminProducts/*/productsOrder
+        // TODO: Implement logic to add to adminProducts/*/productsOrder/{orderId}/orderDetails
       }
       setActionCompleted(prev => ({ ...prev, [order.id]: true }));
       toast && toast({ title: 'Return/Refund submitted', description: 'Your request has been recorded.' });
@@ -263,16 +255,8 @@ export default function OrdersPage() {
       const userOrderSnap = await getDoc(userOrderRef);
       const globalOrderId = userOrderSnap.data()?.globalOrderId;
       if (globalOrderId) {
-        const orderDetailsRef = collection(db, 'productsOrder', globalOrderId, 'orderDetails');
-        await addDoc(orderDetailsRef, {
-          type: 'rating',
-          rating,
-          timestamp: serverTimestamp(),
-          userId: user.uid,
-          orderId: order.id
-        });
-        const globalOrderRef = doc(db, 'productsOrder', globalOrderId);
-        await updateDoc(globalOrderRef, { status: 'rated' });
+        // Instead, use adminProducts/*/productsOrder
+        // TODO: Implement logic to update in adminProducts/*/productsOrder
       }
       setActionCompleted(prev => ({ ...prev, [order.id]: true }));
       toast && toast({ title: 'Thank you for your rating!', description: 'Your feedback has been recorded.' });
@@ -289,8 +273,8 @@ export default function OrdersPage() {
       const userOrderSnap = await getDoc(userOrderRef);
       const globalOrderId = userOrderSnap.data()?.globalOrderId;
       if (globalOrderId) {
-        const globalOrderRef = doc(db, 'productsOrder', globalOrderId);
-        await updateDoc(globalOrderRef, { orderReceived: true });
+        // Instead, use adminProducts/*/productsOrder
+        // TODO: Implement logic to update in adminProducts/*/productsOrder
       }
       setOrders(prev => prev.map(o => o.id === order.id ? { ...o, orderReceived: true } : o));
       setFilteredOrders(prev => prev.map(o => o.id === order.id ? { ...o, orderReceived: true } : o));
