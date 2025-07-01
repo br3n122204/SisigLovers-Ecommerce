@@ -246,16 +246,17 @@ export default function CheckoutPage() {
       });
       console.log("Order saved to users/{userId}/orders with ID:", userOrderDoc.id);
 
-      // Add to sales collection for analytics
+      // Calculate total quantity purchased
       const totalQuantity = Array.isArray(cleanOrderData.items)
         ? cleanOrderData.items.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0)
         : 0;
+      // Add to sales collection for analytics
       await addDoc(collection(db, 'sales'), {
         timestamp: cleanOrderData.dateOrdered || serverTimestamp(),
         total: cleanOrderData.total,
+        quantity: totalQuantity,
         userId: user.uid,
         orderId: globalOrderDoc.id,
-        quantity: totalQuantity,
       });
 
       // Update product stock (totalStock and sizes) for each item
