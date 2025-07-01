@@ -214,7 +214,18 @@ function AnalyticsSection() {
           <LineChart data={salesData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis dataKey="month" stroke="#8ec0ff" />
-            <YAxis stroke="#8ec0ff" tickFormatter={v => chartType === 'sales' ? `${v / 1000}K` : v} />
+            <YAxis 
+              stroke="#8ec0ff" 
+              tickFormatter={v => {
+                if (chartType === 'sales') {
+                  if (v >= 1000) return `₱${v / 1000}K`;
+                  if (v === 0) return '₱0';
+                  return `₱${v.toLocaleString()}`;
+                } else {
+                  return v;
+                }
+              }}
+            />
             <Tooltip />
             <Area type="monotone" dataKey={chartType} stroke="#60A5FA" fill="rgba(96,165,250,0.1)" />
             <Line type="monotone" dataKey={chartType} stroke="#60A5FA" strokeWidth={3} dot={false} />
