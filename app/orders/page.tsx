@@ -9,9 +9,11 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/context/AuthContext";
-import { collection, query, where, orderBy, getDocs, onSnapshot } from "firebase/firestore";
+import { collection, query, where, orderBy, getDocs, onSnapshot, addDoc, updateDoc, doc, getDoc, serverTimestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Calendar, Package, Search, Filter, Eye, Download } from "lucide-react";
+import { useRouter } from 'next/navigation';
+import { toast } from '@/hooks/use-toast';
 
 interface Order {
   id: string;
@@ -24,6 +26,7 @@ interface Order {
   paymentMethod: string;
   trackingNumber?: string;
   estimatedDelivery?: Date;
+  orderReceived?: boolean;
 }
 
 interface OrderItem {
@@ -49,11 +52,24 @@ interface Address {
 
 export default function OrdersPage() {
   const { user } = useAuth();
+  const router = useRouter();
   const [orders, setOrders] = useState<Order[]>([]);
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [showOptions, setShowOptions] = useState<{ [orderId: string]: boolean }>({});
+  const [selectedRating, setSelectedRating] = useState<{ [orderId: string]: number }>({});
+  const [showReturnForm, setShowReturnForm] = useState<{ [orderId: string]: boolean }>({});
+  const [returnReason, setReturnReason] = useState<{ [orderId: string]: string }>({});
+  const [returnSubmitted, setReturnSubmitted] = useState<{ [orderId: string]: boolean }>({});
+  const [ratingSubmitted, setRatingSubmitted] = useState<{ [orderId: string]: boolean }>({});
+  const [showStarRating, setShowStarRating] = useState<{ [orderId: string]: boolean }>({});
+  const [actionCompleted, setActionCompleted] = useState<{ [orderId: string]: boolean }>({});
+  const [showReturnPrompt, setShowReturnPrompt] = useState<{ [orderId: string]: boolean }>({});
+  const [returnReasonInput, setReturnReasonInput] = useState<{ [orderId: string]: string }>({});
+  const [showRatingPrompt, setShowRatingPrompt] = useState<{ [orderId: string]: boolean }>({});
+  const [ratingInput, setRatingInput] = useState<{ [orderId: string]: number }>({});
 
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
@@ -88,7 +104,8 @@ export default function OrdersPage() {
                 trackingNumber: data.trackingNumber,
                 estimatedDelivery: data.estimatedDelivery && typeof data.estimatedDelivery.toDate === 'function'
                   ? data.estimatedDelivery.toDate()
-                  : (data.estimatedDelivery ? new Date(data.estimatedDelivery) : undefined)
+                  : (data.estimatedDelivery ? new Date(data.estimatedDelivery) : undefined),
+                orderReceived: data.orderReceived
               });
             });
             setOrders(fetchedOrders);
@@ -153,7 +170,7 @@ export default function OrdersPage() {
       case 'shipped': return '📦';
       case 'delivered': return '✅';
       case 'cancelled': return '❌';
-      default: return '📋';
+      default: return '��';
     }
   };
 
@@ -193,6 +210,78 @@ export default function OrdersPage() {
       style: 'currency',
       currency: 'PHP'
     }).format(amount);
+  };
+
+  // Add handler for return/refund
+  const handleReturnRefund = async (order: Order, reason: string) => {
+    if (!user || !order) return;
+    try {
+      const userOrderRef = doc(db, 'users', user.uid, 'orders', order.id);
+      await updateDoc(userOrderRef, { status: 'returned' });
+      const userOrderSnap = await getDoc(userOrderRef);
+      const globalOrderId = userOrderSnap.data()?.globalOrderId;
+      if (globalOrderId) {
+        const orderDetailsRef = collection(db, 'productsOrder', globalOrderId, 'orderDetails');
+        await addDoc(orderDetailsRef, {
+          type: 'return',
+          reason,
+          timestamp: serverTimestamp(),
+          userId: user.uid,
+          orderId: order.id
+        });
+        const globalOrderRef = doc(db, 'productsOrder', globalOrderId);
+        await updateDoc(globalOrderRef, { status: 'returned' });
+      }
+      setActionCompleted(prev => ({ ...prev, [order.id]: true }));
+      toast && toast({ title: 'Return/Refund submitted', description: 'Your request has been recorded.' });
+    } catch (err) {
+      alert('Failed to update order status. Please try again.');
+    }
+  };
+
+  // Add handler for rate order
+  const handleRateOrder = async (order: Order, rating: number) => {
+    if (!user || !order) return;
+    try {
+      const userOrderRef = doc(db, 'users', user.uid, 'orders', order.id);
+      await updateDoc(userOrderRef, { status: 'rated' });
+      const userOrderSnap = await getDoc(userOrderRef);
+      const globalOrderId = userOrderSnap.data()?.globalOrderId;
+      if (globalOrderId) {
+        const orderDetailsRef = collection(db, 'productsOrder', globalOrderId, 'orderDetails');
+        await addDoc(orderDetailsRef, {
+          type: 'rating',
+          rating,
+          timestamp: serverTimestamp(),
+          userId: user.uid,
+          orderId: order.id
+        });
+        const globalOrderRef = doc(db, 'productsOrder', globalOrderId);
+        await updateDoc(globalOrderRef, { status: 'rated' });
+      }
+      setActionCompleted(prev => ({ ...prev, [order.id]: true }));
+      toast && toast({ title: 'Thank you for your rating!', description: 'Your feedback has been recorded.' });
+    } catch (err) {
+      alert('Failed to update order status. Please try again.');
+    }
+  };
+
+  const handleOrderReceived = async (order: Order) => {
+    if (!user || !order) return;
+    try {
+      const userOrderRef = doc(db, 'users', user.uid, 'orders', order.id);
+      await updateDoc(userOrderRef, { orderReceived: true });
+      const userOrderSnap = await getDoc(userOrderRef);
+      const globalOrderId = userOrderSnap.data()?.globalOrderId;
+      if (globalOrderId) {
+        const globalOrderRef = doc(db, 'productsOrder', globalOrderId);
+        await updateDoc(globalOrderRef, { orderReceived: true });
+      }
+      setOrders(prev => prev.map(o => o.id === order.id ? { ...o, orderReceived: true } : o));
+      setFilteredOrders(prev => prev.map(o => o.id === order.id ? { ...o, orderReceived: true } : o));
+    } catch (err) {
+      alert('Failed to update order status. Please try again.');
+    }
   };
 
   if (loading) {
@@ -271,8 +360,11 @@ export default function OrdersPage() {
             {filteredOrders.map((order) => {
               const dateObj = getOrderDate(order);
               return (
-                <Link key={order.id} href={`/orders/${order.id}`} className="block">
-                  <Card className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow bg-[#19223a] border-[#60A5FA] text-[#60A5FA]">
+                <div key={order.id}>
+                  <Card
+                    className="overflow-hidden cursor-pointer hover:shadow-lg transition-shadow bg-[#19223a] border-[#60A5FA] text-[#60A5FA]"
+                    onClick={() => router.push(`/orders/${order.id}`)}
+                  >
                     <CardHeader className="bg-[#19223a] border-b border-[#60A5FA]">
                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <div className="flex items-center gap-4">
@@ -330,6 +422,95 @@ export default function OrdersPage() {
                               </div>
                             ))}
                           </div>
+                          {order.status === 'delivered' && (
+                            <>
+                              {!order.orderReceived && !actionCompleted[order.id] ? (
+                                <div className="mt-4">
+                                  <Button
+                                    className="bg-green-600 hover:bg-green-700 text-white px-6"
+                                    onClick={e => {
+                                      e.stopPropagation();
+                                      handleOrderReceived(order);
+                                    }}
+                                  >
+                                    Order Received
+                                  </Button>
+                                </div>
+                              ) : !actionCompleted[order.id] ? (
+                                <div className="mt-4 flex flex-col items-center gap-4">
+                                  {/* Return/Refund Prompt */}
+                                  {!showReturnPrompt[order.id] ? (
+                                    <Button
+                                      className="bg-red-600 hover:bg-red-700 text-white px-6"
+                                      onClick={e => {
+                                        e.stopPropagation();
+                                        setShowReturnPrompt(prev => ({ ...prev, [order.id]: true }));
+                                      }}
+                                    >
+                                      Return / Refund
+                                    </Button>
+                                  ) : (
+                                    <form className="w-full flex flex-col items-center gap-2" onSubmit={e => {
+                                      e.preventDefault();
+                                      handleReturnRefund(order, returnReasonInput[order.id] || '');
+                                    }}>
+                                      <textarea
+                                        className="w-full border border-gray-300 rounded p-2 mb-2"
+                                        rows={3}
+                                        value={returnReasonInput[order.id] || ''}
+                                        onChange={e => setReturnReasonInput(prev => ({ ...prev, [order.id]: e.target.value }))}
+                                        required
+                                        placeholder="Enter your reason here..."
+                                      />
+                                      <Button type="submit" className="bg-red-600 hover:bg-red-700 text-white px-6">Submit</Button>
+                                    </form>
+                                  )}
+                                  {/* Rating Prompt */}
+                                  {!showRatingPrompt[order.id] ? (
+                                    <Button
+                                      className="bg-yellow-500 hover:bg-yellow-600 text-white px-6"
+                                      onClick={e => {
+                                        e.stopPropagation();
+                                        setShowRatingPrompt(prev => ({ ...prev, [order.id]: true }));
+                                      }}
+                                    >
+                                      Rate Order
+                                    </Button>
+                                  ) : (
+                                    <div className="flex flex-col items-center">
+                                      <span className="mb-2 text-[#001F3F] font-medium">Select your rating:</span>
+                                      <div className="flex space-x-1">
+                                        {[1,2,3,4,5].map((star) => (
+                                          <button
+                                            key={star}
+                                            type="button"
+                                            className={`text-2xl ${ratingInput[order.id] >= star ? 'text-yellow-400' : 'text-gray-300'}`}
+                                            onClick={e => {
+                                              e.stopPropagation();
+                                              setRatingInput(prev => ({ ...prev, [order.id]: star }));
+                                              handleRateOrder(order, star);
+                                            }}
+                                            aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
+                                          >
+                                            ★
+                                          </button>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="mt-4 flex flex-col items-center gap-4">
+                                  <Button
+                                    className="bg-blue-600 hover:bg-blue-700 text-white px-6"
+                                    onClick={() => router.push('/products')}
+                                  >
+                                    Buy again
+                                  </Button>
+                                </div>
+                              )}
+                            </>
+                          )}
                         </div>
 
                         {/* Order Summary */}
@@ -377,7 +558,7 @@ export default function OrdersPage() {
                       </div>
                     </CardContent>
                   </Card>
-                </Link>
+                </div>
               );
             })}
           </div>

@@ -9,9 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/context/AuthContext";
 import { ArrowLeft, Package, Truck, CheckCircle, Clock, MapPin, Phone, Mail, CreditCard, Download, Share2 } from "lucide-react";
-import { doc, getDoc, collection, getDocs, onSnapshot } from "firebase/firestore";
+import { doc, getDoc, collection, getDocs, onSnapshot, updateDoc, serverTimestamp, addDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import React from 'react';
 
 interface OrderItem {
@@ -68,9 +68,14 @@ export default function OrderDetailsPage() {
   const [trackingEvents, setTrackingEvents] = useState<TrackingEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
+  const [selectedRating, setSelectedRating] = useState(0);
+  const [showOptions, setShowOptions] = useState(false);
+  const [orderReceived, setOrderReceived] = useState(false);
+  const [actionCompleted, setActionCompleted] = useState(false);
 
   const params = useParams();
   const orderId = params.id as string;
+  const router = useRouter();
 
   useEffect(() => {
     if (user) {
@@ -104,6 +109,7 @@ export default function OrderDetailsPage() {
           };
           setOrder(fetchedOrder);
           setOrderItems(data.items || []);
+          setOrderReceived(!!data.orderReceived);
         } else {
           setOrder(null);
           setOrderItems([]);
@@ -159,6 +165,78 @@ export default function OrderDetailsPage() {
       style: 'currency',
       currency: 'PHP'
     }).format(amount);
+  };
+
+  // Add handler to mark order as received
+  const handleOrderReceived = async () => {
+    if (!user || !order) return;
+    try {
+      const userOrderRef = doc(db, 'users', user.uid, 'orders', order.id);
+      await updateDoc(userOrderRef, { status: 'delivered', deliveredAt: serverTimestamp(), orderReceived: true });
+      const userOrderSnap = await getDoc(userOrderRef);
+      const globalOrderId = userOrderSnap.data()?.globalOrderId;
+      if (globalOrderId) {
+        const globalOrderRef = doc(db, 'productsOrder', globalOrderId);
+        await updateDoc(globalOrderRef, { status: 'delivered', deliveredAt: serverTimestamp(), orderReceived: true });
+      }
+      setOrderReceived(true);
+    } catch (err) {
+      alert('Failed to update order status. Please try again.');
+    }
+  };
+
+  // Update handleReturnRefund to store in orderDetails and show Buy again
+  const handleReturnRefund = async () => {
+    if (!user || !order) return;
+    try {
+      const userOrderRef = doc(db, 'users', user.uid, 'orders', order.id);
+      await updateDoc(userOrderRef, { status: 'returned' });
+      const userOrderSnap = await getDoc(userOrderRef);
+      const globalOrderId = userOrderSnap.data()?.globalOrderId;
+      if (globalOrderId) {
+        const orderDetailsRef = collection(db, 'productsOrder', globalOrderId, 'orderDetails');
+        await addDoc(orderDetailsRef, {
+          type: 'return',
+          reason: 'User requested return/refund', // You can pass the actual reason if you have a form
+          timestamp: serverTimestamp(),
+          userId: user.uid,
+          orderId: order.id
+        });
+        const globalOrderRef = doc(db, 'productsOrder', globalOrderId);
+        await updateDoc(globalOrderRef, { status: 'returned' });
+      }
+      setActionCompleted(true);
+      router.push('/orders');
+    } catch (err) {
+      alert('Failed to update order status. Please try again.');
+    }
+  };
+
+  // Update handleRateOrder to store in orderDetails and show Buy again
+  const handleRateOrder = async () => {
+    if (!user || !order) return;
+    try {
+      const userOrderRef = doc(db, 'users', user.uid, 'orders', order.id);
+      await updateDoc(userOrderRef, { status: 'rated' });
+      const userOrderSnap = await getDoc(userOrderRef);
+      const globalOrderId = userOrderSnap.data()?.globalOrderId;
+      if (globalOrderId) {
+        const orderDetailsRef = collection(db, 'productsOrder', globalOrderId, 'orderDetails');
+        await addDoc(orderDetailsRef, {
+          type: 'rating',
+          rating: selectedRating,
+          timestamp: serverTimestamp(),
+          userId: user.uid,
+          orderId: order.id
+        });
+        const globalOrderRef = doc(db, 'productsOrder', globalOrderId);
+        await updateDoc(globalOrderRef, { status: 'rated' });
+      }
+      setActionCompleted(true);
+      router.push('/orders');
+    } catch (err) {
+      alert('Failed to update order status. Please try again.');
+    }
   };
 
   if (loading) {
@@ -326,60 +404,42 @@ export default function OrderDetailsPage() {
                     </Badge>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-
-            {/* Shipping Address */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Shipping Address</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <p className="font-medium">
-                    {order.shippingAddress.firstName} {order.shippingAddress.lastName}
-                  </p>
-                  <p className="text-sm text-[#001F3F]">{order.shippingAddress.address1}</p>
-                  {order.shippingAddress.address2 && (
-                    <p className="text-sm text-[#001F3F]">{order.shippingAddress.address2}</p>
-                  )}
-                  <p className="text-sm text-[#001F3F]">
-                    {order.shippingAddress.city}, {order.shippingAddress.region} {order.shippingAddress.postalCode}
-                  </p>
-                  <div className="flex items-center gap-2 text-sm text-[#001F3F]">
-                    <Phone className="h-3 w-3" />
-                    {order.shippingAddress.phone}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Billing Address */}
-            {JSON.stringify(order.shippingAddress) !== JSON.stringify(order.billingAddress) && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Billing Address</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <p className="font-medium">
-                      {order.billingAddress.firstName} {order.billingAddress.lastName}
-                    </p>
-                    <p className="text-sm text-[#001F3F]">{order.billingAddress.address1}</p>
-                    {order.billingAddress.address2 && (
-                      <p className="text-sm text-[#001F3F]">{order.billingAddress.address2}</p>
+                {order.status === 'delivered' && (
+                  <div className="space-y-4 mt-4">
+                    {!orderReceived && !actionCompleted ? (
+                      <Button
+                        className="bg-green-600 hover:bg-green-700 text-white px-6"
+                        onClick={handleOrderReceived}
+                      >
+                        Order Received
+                      </Button>
+                    ) : !actionCompleted ? (
+                      <>
+                        <Button
+                          className="bg-red-600 hover:bg-red-700 text-white px-6"
+                          onClick={handleReturnRefund}
+                        >
+                          Return / Refund
+                        </Button>
+                        <Button
+                          className="bg-yellow-500 hover:bg-yellow-600 text-white px-6 mt-2"
+                          onClick={handleRateOrder}
+                        >
+                          Rate Order
+                        </Button>
+                      </>
+                    ) : (
+                      <Button
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-6"
+                        onClick={() => router.push('/products')}
+                      >
+                        Buy again
+                      </Button>
                     )}
-                    <p className="text-sm text-[#001F3F]">
-                      {order.billingAddress.city}, {order.billingAddress.region} {order.billingAddress.postalCode}
-                    </p>
-                    <div className="flex items-center gap-2 text-sm text-[#001F3F]">
-                      <Phone className="h-3 w-3" />
-                      {order.billingAddress.phone}
-                    </div>
                   </div>
-                </CardContent>
-              </Card>
-            )}
+                )}
+              </CardContent>
+            </Card>
 
             {/* Need Help */}
             <Card>
