@@ -287,7 +287,43 @@ export default function ProductDetailPage() {
                   >
                     Add to cart
                   </Button>
-                  <Button variant="outline" className="w-full border-2 border-[#60A5FA] text-[#60A5FA] py-3 rounded-md hover:bg-[#19223a] transition-colors">
+                  <Button 
+                    variant="outline" 
+                    className="w-full border-2 border-[#60A5FA] text-[#60A5FA] py-3 rounded-md hover:bg-[#19223a] transition-colors"
+                    onClick={() => {
+                      if (!user) {
+                        if (!selectedSize) {
+                          alert('Please select a size.');
+                          return;
+                        }
+                        localStorage.setItem('pendingCartItem', JSON.stringify({
+                          id: productId,
+                          name: product?.name,
+                          image: mainImage,
+                          price: String(product?.price),
+                          quantity: Number(quantity),
+                          selectedSize: String(selectedSize),
+                        }));
+                        router.push('/login');
+                        return;
+                      }
+                      if (product && !selectedSize) {
+                        alert('Please select a size.');
+                        return;
+                      }
+                      if (product && selectedSize) {
+                        addToCart({
+                          id: productId,
+                          name: product.name,
+                          image: mainImage,
+                          price: String(product.price),
+                          quantity: Number(quantity),
+                          selectedSize: String(selectedSize),
+                        });
+                        router.push('/checkout');
+                      }
+                    }}
+                  >
                     Buy it now
                   </Button>
                 </>
