@@ -41,7 +41,10 @@ export default function CheckoutPage() {
     return item.selectedSize ? `${item.id}-${item.selectedSize}` : String(item.id);
   }
   const selectedIds = selectedIdsParam ? selectedIdsParam.split(',') : cartItems.map(getCartItemKey);
-  const selectedCartItems = cartItems.filter(item => selectedIds.includes(getCartItemKey(item)));
+  let selectedCartItems = cartItems.filter(item => selectedIds.includes(getCartItemKey(item)));
+  if (selectedCartItems.length === 0 && cartItems.length > 0) {
+    selectedCartItems = cartItems;
+  }
 
   const [addresses, setAddresses] = useState<any[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);

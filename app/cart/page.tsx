@@ -8,25 +8,30 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 
+// Helper to generate the cart item key (id-selectedSize or id)
+function getCartItemKey(item: { id: string | number; selectedSize?: string }): string {
+  return item.selectedSize ? `${item.id}-${item.selectedSize}` : String(item.id);
+}
+
 export default function CartPage() {
   const { cartItems, removeFromCart, updateQuantity, isCartSyncing } = useCart();
   const { user } = useAuth();
   const router = useRouter();
-  const [removingItemIds, setRemovingItemIds] = useState<number[]>([]);
-  const [selectedItemIds, setSelectedItemIds] = useState<number[]>([]);
+  const [removingItemIds, setRemovingItemIds] = useState<(string | number)[]>([]);
+  const [selectedItemKeys, setSelectedItemKeys] = useState<string[]>([]);
 
   useEffect(() => {
     // By default, select all items when cart changes
-    setSelectedItemIds(cartItems.map(item => item.id));
+    setSelectedItemKeys(cartItems.map(getCartItemKey));
   }, [cartItems]);
 
-  const handleSelectItem = (id: number) => {
-    setSelectedItemIds(prev =>
-      prev.includes(id) ? prev.filter(itemId => itemId !== id) : [...prev, id]
+  const handleSelectItem = (key: string) => {
+    setSelectedItemKeys(prev =>
+      prev.includes(key) ? prev.filter(itemKey => itemKey !== key) : [...prev, key]
     );
   };
 
-  const selectedCartItems = cartItems.filter(item => selectedItemIds.includes(item.id));
+  const selectedCartItems = cartItems.filter(item => selectedItemKeys.includes(getCartItemKey(item)));
 
   const calculateTotal = () => {
     return selectedCartItems.reduce((total, item) => {
@@ -42,35 +47,46 @@ export default function CartPage() {
 
   const handleProceedToCheckout = () => {
     if (selectedCartItems.length === 0) return;
-    // Pass selected item IDs to checkout page as a query string
-    router.push(`/checkout?selected=${selectedItemIds.join(',')}`);
+    // Pass selected item keys to checkout page as a query string
+    router.push(`/checkout?selected=${selectedItemKeys.join(',')}`);
   };
 
-  const handleUpdateQuantity = (id: number, newQuantity: number) => {
+  const handleUpdateQuantity = (key: string, newQuantity: number) => {
     if (newQuantity < 1) {
-      // Do nothing if trying to go below 1
       return;
     }
-    updateQuantity(id, newQuantity);
+    const item = cartItems.find(item => getCartItemKey(item) === key);
+    if (item) {
+      updateQuantity(item.id, newQuantity);
+    }
   };
 
-  const handleRemoveFromCart = (id: number) => {
-    setRemovingItemIds((prev) => [...prev, id]);
-    setTimeout(() => {
-      removeFromCart(id);
-      setRemovingItemIds((prev) => prev.filter((itemId) => itemId !== id));
-    }, 300);
+  const handleRemoveFromCart = (key: string) => {
+    const item = cartItems.find(item => getCartItemKey(item) === key);
+    if (!item) return;
+    if (typeof item.id === 'number') {
+      setRemovingItemIds((prev: (string | number)[]) => [...prev, item.id]);
+      setTimeout(() => {
+        removeFromCart(item.id);
+        setRemovingItemIds((prev: (string | number)[]) => prev.filter((itemId) => {
+          if (typeof itemId === 'number' && typeof item.id === 'number') {
+            return itemId !== item.id;
+          }
+          return true;
+        }));
+      }, 300);
+    }
   };
 
   // Determine if all, some, or none are selected
-  const allSelected = cartItems.length > 0 && selectedItemIds.length === cartItems.length;
-  const someSelected = selectedItemIds.length > 0 && selectedItemIds.length < cartItems.length;
+  const allSelected = cartItems.length > 0 && selectedItemKeys.length === cartItems.length;
+  const someSelected = selectedItemKeys.length > 0 && selectedItemKeys.length < cartItems.length;
 
   const handleSelectAll = () => {
     if (allSelected) {
-      setSelectedItemIds([]);
+      setSelectedItemKeys([]);
     } else {
-      setSelectedItemIds(cartItems.map(item => item.id));
+      setSelectedItemKeys(cartItems.map(getCartItemKey));
     }
   };
 
@@ -111,13 +127,13 @@ export default function CartPage() {
               )}
               {cartItems.map((item) => (
                 <div
-                  key={`${item.id}-${typeof item.selectedSize === 'object' && item.selectedSize !== null ? JSON.stringify(item.selectedSize) : item.selectedSize}`}
-                  className={`flex items-center space-x-4 border-b border-[#60A5FA] pb-4 transition-opacity duration-300 ${removingItemIds.includes(item.id) ? 'opacity-30 pointer-events-none' : ''}`}
+                  key={getCartItemKey(item)}
+                  className={`flex items-center space-x-4 border-b border-[#60A5FA] pb-4 transition-opacity duration-300 ${typeof item.id === 'number' && removingItemIds.includes(item.id) ? 'opacity-30 pointer-events-none' : ''}`}
                 >
                   <input
                     type="checkbox"
-                    checked={selectedItemIds.includes(item.id)}
-                    onChange={() => handleSelectItem(item.id)}
+                    checked={selectedItemKeys.includes(getCartItemKey(item))}
+                    onChange={() => handleSelectItem(getCartItemKey(item))}
                     className="mr-2 accent-[#60A5FA] w-5 h-5"
                   />
                   <div className="relative w-24 h-24 flex-shrink-0 rounded-md overflow-hidden border border-gray-200">
@@ -139,9 +155,9 @@ export default function CartPage() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
+                        onClick={() => handleUpdateQuantity(getCartItemKey(item), item.quantity - 1)}
                         className="border-[#60A5FA] text-[#60A5FA] hover:bg-[#19223a]"
-                        disabled={removingItemIds.includes(item.id)}
+                        disabled={typeof item.id === 'number' && removingItemIds.includes(item.id)}
                       >
                         -
                       </Button>
@@ -149,18 +165,18 @@ export default function CartPage() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
+                        onClick={() => handleUpdateQuantity(getCartItemKey(item), item.quantity + 1)}
                         className="border-[#60A5FA] text-[#60A5FA] hover:bg-[#19223a]"
-                        disabled={removingItemIds.includes(item.id)}
+                        disabled={typeof item.id === 'number' && removingItemIds.includes(item.id)}
                       >
                         +
                       </Button>
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleRemoveFromCart(item.id)}
+                        onClick={() => handleRemoveFromCart(getCartItemKey(item))}
                         className="ml-4 text-red-600 hover:bg-red-50"
-                        disabled={removingItemIds.includes(item.id)}
+                        disabled={typeof item.id === 'number' && removingItemIds.includes(item.id)}
                       >
                         Remove
                       </Button>
