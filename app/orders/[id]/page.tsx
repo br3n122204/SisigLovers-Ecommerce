@@ -56,6 +56,7 @@ interface Order {
   notes?: string;
   processedDate?: Date;
   shippedDate?: Date;
+  statusHistory?: { status: string; timestamp: any }[];
 }
 
 interface TrackingEvent {
@@ -123,6 +124,7 @@ export default function OrderDetailsPage() {
             notes: data.notes,
             processedDate: data.processedDate?.toDate(),
             shippedDate: data.shippedDate?.toDate(),
+            statusHistory: data.statusHistory || [],
           };
           console.log(`Order ${data.orderNumber}: Raw status from Firestore: ${data.status}, actionCompleted: ${data.actionCompleted}`);
           setOrder(fetchedOrder);
@@ -443,6 +445,29 @@ export default function OrderDetailsPage() {
                   <p className="text-sm">{order.notes}</p>
                 </div>
               )}
+            </div>
+
+            {/* Status History */}
+            <div className="bg-[#19223a] rounded-2xl shadow-lg p-4">
+              <div className="text-xl font-semibold mb-4 flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                <span>Status History</span>
+              </div>
+              <div className="flex flex-col gap-4 pl-2 border-l-2 border-blue-900">
+                {order.statusHistory && order.statusHistory.length > 0 ? (
+                  order.statusHistory.map((entry, idx) => (
+                    <div key={idx} className="flex items-start gap-3">
+                      <div className="w-3 h-3 rounded-full bg-blue-400 mt-1" />
+                      <div>
+                        <div className="font-medium">{entry.status.charAt(0).toUpperCase() + entry.status.slice(1)}</div>
+                        <div className="text-xs text-[#93c5fd]">{formatDate(entry.timestamp?.toDate ? entry.timestamp.toDate() : entry.timestamp)}</div>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-sm text-[#93c5fd]">No status history yet.</div>
+                )}
+              </div>
             </div>
 
             {/* Order Items */}

@@ -29,6 +29,7 @@ interface Order {
   userId?: string;
   deliveredAt?: number;
   adminProductId: string;
+  statusHistory?: { status: string; timestamp: any }[];
 }
 
 interface OrderItem {
@@ -116,7 +117,8 @@ export default function AdminOrdersPage() {
                 : (data.estimatedDelivery ? new Date(data.estimatedDelivery) : undefined),
               userId: data.userId,
               deliveredAt: deliveredAtValue,
-              adminProductId: productId
+              adminProductId: productId,
+              statusHistory: data.statusHistory || [],
             });
           });
         }
@@ -298,9 +300,10 @@ export default function AdminOrdersPage() {
       const adminProductId = orderToUpdate.adminProductId;
 
       // Optimistically update the UI
+      const newHistoryEntry = { status: newStatus, timestamp: new Date() };
       setOrders(prev => prev.map(o =>
         o.id === orderId
-          ? { ...o, status: newStatus, ...deliveredAtUpdate, deliveredAt: optimisticDeliveredAt !== undefined ? optimisticDeliveredAt : o.deliveredAt }
+          ? { ...o, status: newStatus, ...deliveredAtUpdate, deliveredAt: optimisticDeliveredAt !== undefined ? optimisticDeliveredAt : o.deliveredAt, statusHistory: [...(o.statusHistory || []), newHistoryEntry] }
           : o
       ));
 
@@ -308,6 +311,7 @@ export default function AdminOrdersPage() {
       await updateDoc(orderRef, {
         status: newStatus,
         ...deliveredAtUpdate,
+        statusHistory: [...(orderToUpdate.statusHistory || []), newHistoryEntry],
       });
 
       // Update the user's order as well
@@ -322,6 +326,7 @@ export default function AdminOrdersPage() {
         await updateDoc(userOrderRef, {
           status: newStatus,
           ...deliveredAtUpdate,
+          statusHistory: [...((userOrderSnapshot.docs[0].data().statusHistory) || []), newHistoryEntry],
         });
         console.log("User's order status updated successfully in Firestore!");
       } else {
@@ -436,7 +441,7 @@ export default function AdminOrdersPage() {
                               let deliveredAtUpdate = {};
                               let optimisticDeliveredAt = undefined;
                               if (newStatus === 'delivered') {
-                                deliveredAtUpdate = { deliveredAt: serverTimestamp() };
+                                deliveredAtUpdate = { deliveredAt: new Date() };
                                 optimisticDeliveredAt = new Date();
                               } else if (order.status === 'delivered' && newStatus !== 'delivered') {
                                 deliveredAtUpdate = { deliveredAt: null };
@@ -485,8 +490,8 @@ export default function AdminOrdersPage() {
                       <div className="lg:col-span-2">
                         <h4 className="font-medium text-[#8ec0ff] mb-3">Items Ordered</h4>
                         <div className="space-y-3">
-                          {order.items.map((item) => (
-                            <div key={item.id} className="flex items-center gap-3">
+                          {order.items.map((item, idx) => (
+                            <div key={`${item.id}-${idx}`} className="flex items-center gap-3">
                               <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-[#22304a]">
                                 <img
                                   src={item.image}
@@ -562,6 +567,22 @@ export default function AdminOrdersPage() {
                         <h4 className="font-medium text-[#8ec0ff] mb-2">Billing Address</h4>
                         <p className="text-sm text-white">{formatAddress(order.billingAddress)}</p>
                       </div>
+                    </div>
+                    {/* Status History */}
+                    <div className="flex flex-col gap-4 pl-2 border-l-2 border-blue-900">
+                      {order.statusHistory && order.statusHistory.length > 0 ? (
+                        order.statusHistory.map((entry, idx) => (
+                          <div key={idx} className="flex items-start gap-3">
+                            <div className="w-3 h-3 rounded-full bg-blue-400 mt-1" />
+                            <div>
+                              <div className="font-medium">{entry.status.charAt(0).toUpperCase() + entry.status.slice(1)}</div>
+                              <div className="text-xs text-[#93c5fd]">{formatDateLong(entry.timestamp?.toDate ? entry.timestamp.toDate() : entry.timestamp)}</div>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-sm text-[#93c5fd]">No status history yet.</div>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
