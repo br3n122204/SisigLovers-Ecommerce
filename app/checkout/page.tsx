@@ -248,6 +248,11 @@ export default function CheckoutPage() {
       });
       console.log("Order saved to users/{userId}/orders with ID:", userOrderDoc.id);
 
+      // Update the global order with the userOrderId
+      await updateDoc(doc(db, 'adminProducts', adminProductId, 'productsOrder', globalOrderDoc.id), {
+        userOrderId: userOrderDoc.id,
+      });
+
       // Calculate total quantity purchased
       const totalQuantity = Array.isArray(cleanOrderData.items)
         ? cleanOrderData.items.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0)

@@ -5,7 +5,7 @@
 
 @layer base {
   :root {
-    --background: 40 33% 98%; /* #FAF9F6 */
+    --background: 13 0% 10%; /* #101828 - Set to desired dark background */
     --foreground: 220 100% 20%;   /* Dark Blue #001F3F */
     --card: 40 33% 98%;       /* #FAF9F6 */
     --card-foreground: 220 100% 20%;
@@ -80,5 +80,6 @@
 }
 
 html, body {
-  background: transparent !important;
+  margin: 0;
+  padding: 0;
 }

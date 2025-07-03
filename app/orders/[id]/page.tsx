@@ -9,10 +9,11 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/context/AuthContext";
 import { ArrowLeft, Package, Truck, CheckCircle, Clock, MapPin, Phone, Mail, CreditCard, Download, Share2 } from "lucide-react";
-import { doc, getDoc, collection, getDocs, onSnapshot, updateDoc, serverTimestamp, addDoc } from "firebase/firestore";
+import { doc, getDoc, collection, getDocs, onSnapshot, updateDoc, serverTimestamp, addDoc, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useParams, useRouter } from 'next/navigation';
 import React from 'react';
+import { Star } from "lucide-react";
 
 interface OrderItem {
   id: string;
@@ -39,7 +40,7 @@ interface Order {
   id: string;
   orderNumber: string;
   orderDate: Date;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'completed';
   total: number;
   subtotal: number;
   shipping: number;
@@ -53,6 +54,8 @@ interface Order {
   estimatedDelivery?: Date;
   deliveryDate?: Date;
   notes?: string;
+  processedDate?: Date;
+  shippedDate?: Date;
 }
 
 interface TrackingEvent {
@@ -74,6 +77,7 @@ export default function OrderDetailsPage() {
   const [actionCompleted, setActionCompleted] = useState(false);
   const [showReturnForm, setShowReturnForm] = useState(false);
   const [returnReason, setReturnReason] = useState('');
+  const [feedback, setFeedback] = useState('');
 
   const params = useParams();
   const orderId = params.id as string;
@@ -97,7 +101,7 @@ export default function OrderDetailsPage() {
               }
               return undefined;
             })(),
-            status: data.status,
+            status: (data.status === 'rated' || data.status === 'returned') ? 'completed' : data.status,
             total: data.total,
             subtotal: data.subtotal,
             shipping: data.shipping,
@@ -116,11 +120,15 @@ export default function OrderDetailsPage() {
               if (data.deliveredAt) return new Date(data.deliveredAt);
               return undefined;
             })(),
-            notes: data.notes
+            notes: data.notes,
+            processedDate: data.processedDate?.toDate(),
+            shippedDate: data.shippedDate?.toDate(),
           };
+          console.log(`Order ${data.orderNumber}: Raw status from Firestore: ${data.status}, actionCompleted: ${data.actionCompleted}`);
           setOrder(fetchedOrder);
           setOrderItems(data.items || []);
           setOrderReceived(!!data.orderReceived);
+          setActionCompleted(!!data.actionCompleted);
         } else {
           setOrder(null);
           setOrderItems([]);
@@ -146,6 +154,7 @@ export default function OrderDetailsPage() {
       case 'shipped': return 'bg-purple-100 text-purple-800';
       case 'delivered': return 'bg-green-100 text-green-800';
       case 'cancelled': return 'bg-red-100 text-red-800';
+      case 'completed': return 'bg-green-100 text-green-800';
       default: return 'bg-gray-100 text-[#001F3F]';
     }
   };
@@ -157,6 +166,7 @@ export default function OrderDetailsPage() {
       case 'shipped': return <Truck className="h-5 w-5" />;
       case 'delivered': return <CheckCircle className="h-5 w-5" />;
       case 'cancelled': return <Clock className="h-5 w-5" />;
+      case 'completed': return <CheckCircle className="h-5 w-5" />;
       default: return <Package className="h-5 w-5" />;
     }
   };
@@ -183,7 +193,7 @@ export default function OrderDetailsPage() {
     if (!user || !order) return;
     try {
       const userOrderRef = doc(db, 'users', user.uid, 'orders', order.id);
-      await updateDoc(userOrderRef, { status: 'delivered', deliveredAt: serverTimestamp(), orderReceived: true });
+      await updateDoc(userOrderRef, { status: 'delivered', deliveredAt: serverTimestamp(), orderReceived: true, paymentStatus: 'paid' });
       const userOrderSnap = await getDoc(userOrderRef);
       const globalOrderId = userOrderSnap.data()?.globalOrderId;
       if (globalOrderId) {
@@ -203,7 +213,7 @@ export default function OrderDetailsPage() {
     if (!user || !order) return;
     try {
       const userOrderRef = doc(db, 'users', user.uid, 'orders', order.id);
-      await updateDoc(userOrderRef, { status: 'returned' });
+      await updateDoc(userOrderRef, { status: 'completed' });
       const userOrderSnap = await getDoc(userOrderRef);
       const globalOrderId = userOrderSnap.data()?.globalOrderId;
       if (globalOrderId) {
@@ -230,29 +240,74 @@ export default function OrderDetailsPage() {
   };
 
   // Update handleRateOrder to store in orderDetails and show Buy again
-  const handleRateOrder = async () => {
+  const handleRateOrder = async (rating: number, feedback: string) => {
     if (!user || !order) return;
     try {
       const userOrderRef = doc(db, 'users', user.uid, 'orders', order.id);
-      await updateDoc(userOrderRef, { status: 'rated' });
-      const userOrderSnap = await getDoc(userOrderRef);
-      const globalOrderId = userOrderSnap.data()?.globalOrderId;
-      if (globalOrderId) {
-        // const orderDetailsRef = collection(db, 'productsOrder', globalOrderId, 'orderDetails');
-        // await addDoc(orderDetailsRef, { ... })
-        // Instead, use adminProducts/*/productsOrder/{orderId}/orderDetails
-        // TODO: Implement logic to add to adminProducts/*/productsOrder/{orderId}/orderDetails
+      await updateDoc(userOrderRef, { status: 'completed', rating, feedback, actionCompleted: true });
+
+      for (const item of order.items) {
+        const q = query(collection(db, "adminProducts"), where("name", "==", item.name));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+          const productDoc = querySnapshot.docs[0];
+          const productId = productDoc.id;
+
+          await addDoc(collection(db, "adminProducts", productId, "ratings"), {
+            userId: user.uid,
+            orderId: order.id,
+            rating,
+            feedback,
+            timestamp: serverTimestamp(),
+            orderNumber: order.orderNumber,
+            email: user.email || null,
+            productName: item.name,
+            productId: productId
+          });
+        }
       }
       setActionCompleted(true);
       router.push('/orders');
     } catch (err) {
-      alert('Failed to update order status. Please try again.');
+      console.error("Failed to update order status or add rating:", err);
+      alert('Failed to update order status or add rating. Please try again.');
     }
   };
 
   // Helper to call handleReturnRefund with the entered reason
-  const handleReturnRefundWithReason = () => {
-    handleReturnRefund(returnReason);
+  const handleReturnRefundWithReason = async () => {
+    if (!user || !order) return;
+    try {
+      for (const item of order.items) {
+        const q = query(collection(db, "adminProducts"), where("name", "==", item.name));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+          const productDoc = querySnapshot.docs[0];
+          const productId = productDoc.id;
+
+          await addDoc(collection(db, "adminProducts", productId, "returnRefundReasons"), {
+            userId: user.uid,
+            orderId: order.id,
+            reason: returnReason,
+            timestamp: serverTimestamp(),
+            orderNumber: order.orderNumber,
+            email: user.email || null,
+            productName: item.name,
+            productId: productId
+          });
+        }
+      }
+      const userOrderRef = doc(db, 'users', user.uid, 'orders', order.id);
+      await updateDoc(userOrderRef, { status: 'completed', actionCompleted: true });
+
+      setActionCompleted(true);
+      router.push('/orders');
+    } catch (err) {
+      console.error("Failed to update order status or add return reason:", err);
+      alert('Failed to update order status or add return reason. Please try again.');
+    }
     setShowReturnForm(false);
     setReturnReason('');
   };
@@ -319,12 +374,27 @@ export default function OrderDetailsPage() {
               </div>
               <div className="flex items-center gap-3 mb-4">
                 <Badge className={getStatusColor(order.status)}>
-                  {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                  {order.status === 'completed' ? 'Completed' : order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                 </Badge>
                 {order.estimatedDelivery && (
                   <span className="text-sm">
                     Estimated delivery: {formatDate(order.estimatedDelivery)}
                   </span>
+                )}
+              </div>
+              {/* Status Dates Section */}
+              <div className="flex flex-col gap-1 mt-2 text-[#60A5FA] text-base">
+                {order.orderDate && (
+                  <div>Date Ordered: <span className="font-medium">{formatDate(order.orderDate)}</span></div>
+                )}
+                {order.processedDate && (
+                  <div>Date Processed: <span className="font-medium">{formatDate(order.processedDate)}</span></div>
+                )}
+                {order.shippedDate && (
+                  <div>Date Shipped: <span className="font-medium">{formatDate(order.shippedDate)}</span></div>
+                )}
+                {order.deliveryDate && (
+                  <div>Date Delivered: <span className="font-medium">{formatDate(order.deliveryDate)}</span></div>
                 )}
               </div>
               {order.notes && (
@@ -412,6 +482,20 @@ export default function OrderDetailsPage() {
                     {order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)}
                   </Badge>
                 </div>
+                {(order.status === 'delivered' || order.status === 'completed') && actionCompleted && (
+                  <Button
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 mt-4"
+                    onClick={() => {
+                      if (order && order.items && order.items.length > 0) {
+                        router.push(`/products/${order.items[0].id}`);
+                      } else {
+                        router.push('/products'); // Fallback if no items
+                      }
+                    }}
+                  >
+                    Buy again
+                  </Button>
+                )}
                 {order.status === 'delivered' && !orderReceived && !actionCompleted ? (
                   <div className="space-y-4 mt-4">
                     <Button
@@ -421,8 +505,8 @@ export default function OrderDetailsPage() {
                       Order Received
                     </Button>
                   </div>
-                ) : !actionCompleted ? (
-                  <>
+                ) : order.status === 'delivered' && orderReceived && !actionCompleted ? (
+                  <div className="space-y-4 mt-4">
                     {!showReturnForm ? (
                       <Button
                         className="bg-red-600 hover:bg-red-700 text-white px-6"
@@ -447,21 +531,31 @@ export default function OrderDetailsPage() {
                         <Button type="button" variant="outline" className="px-6" onClick={() => setShowReturnForm(false)}>Cancel</Button>
                       </form>
                     )}
+                    <div className="flex items-center gap-1 mb-2 mt-4">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          className={`h-6 w-6 cursor-pointer ${i < selectedRating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-400'}`}
+                          onClick={() => setSelectedRating(i + 1)}
+                        />
+                      ))}
+                    </div>
+                    <textarea
+                      className="w-full border border-gray-300 rounded p-2 mb-2 text-black"
+                      rows={3}
+                      value={feedback}
+                      onChange={e => setFeedback(e.target.value)}
+                      placeholder="Share your feedback..."
+                    />
                     <Button
                       className="bg-yellow-500 hover:bg-yellow-600 text-white px-6 mt-2"
-                      onClick={handleRateOrder}
+                      onClick={() => handleRateOrder(selectedRating, feedback)}
+                      disabled={selectedRating === 0}
                     >
-                      Rate Order
+                      Submit Rating
                     </Button>
-                  </>
-                ) : (
-                  <Button
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6"
-                    onClick={() => router.push('/products')}
-                  >
-                    Buy again
-                  </Button>
-                )}
+                  </div>
+                ) : null /* Render nothing for other statuses */}
               </div>
             </div>
 
