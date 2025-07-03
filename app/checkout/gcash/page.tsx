@@ -8,6 +8,7 @@ import { useCart } from "@/context/CartContext";
 import { db } from "@/lib/firebase";
 import { collection, addDoc, serverTimestamp, doc, getDoc, updateDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 
 function deepCleanUndefined(obj: any): any {
   if (Array.isArray(obj)) {
@@ -41,6 +42,9 @@ export default function GCashFakePage() {
   const [reference, setReference] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [receipt, setReceipt] = useState<any | null>(null);
+  const [showReceipt, setShowReceipt] = useState(false);
+  const [userOrderId, setUserOrderId] = useState<string | null>(null);
 
   // Use selected items and details from orderInfo if present
   const selectedCartItems = orderInfo?.selectedIds
@@ -136,10 +140,33 @@ export default function GCashFakePage() {
       });
       // Remove only checked-out items from cart
       removeFromCartByIds(selectedCartItems.map(item => item.id));
-      setShowSuccess(true);
-      setTimeout(() => {
-        router.push("/orders");
-      }, 1800);
+      // --- RECEIPT LOGIC ---
+      const receiptData = {
+        orderNumber: cleanOrderData.orderNumber,
+        date: new Date().toLocaleString(),
+        user: {
+          name: `${deliveryDetails.firstName} ${deliveryDetails.lastName}`,
+          email: user.email,
+          phone: deliveryDetails.phone,
+        },
+        items: cleanOrderData.items,
+        subtotal: cleanOrderData.subtotal,
+        shipping: cleanOrderData.shipping,
+        total: cleanOrderData.total,
+        paymentMethod: cleanOrderData.paymentMethod,
+        reference,
+        shippingAddress: deliveryDetails,
+        billingAddress: billingDetails,
+      };
+      setReceipt(receiptData);
+      setShowReceipt(true);
+      setUserOrderId(userOrderDoc.id);
+      // Store receipt in Firebase under user's order
+      await addDoc(collection(db, 'users', user.uid, 'orders', userOrderDoc.id, 'receipts'), receiptData);
+      setShowSuccess(true); // keep for legacy, but will not show overlay if receipt is open
+      // setTimeout(() => {
+      //   router.push("/orders");
+      // }, 1800);
     } catch (error) {
       toast({ title: "Error", description: "Error saving order: " + (error instanceof Error ? error.message : String(error)) });
     } finally {
@@ -200,13 +227,56 @@ export default function GCashFakePage() {
           </Button>
         </div>
         {/* Success Modal/Animation */}
-        {showSuccess && (
+        {showSuccess && !showReceipt && (
           <div className="absolute inset-0 bg-[#101828cc] flex flex-col items-center justify-center z-10 animate-fade-in">
             <div className="bg-white rounded-full p-4 mb-4 shadow-lg">
               <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="24" fill="#60A5FA"/><path d="M16 25l6 6 10-12" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </div>
             <div className="text-xl font-bold text-white mb-2">Payment Successful!</div>
             <div className="text-[#93c5fd]">Redirecting to your orders...</div>
+          </div>
+        )}
+        {/* Receipt Modal */}
+        {showReceipt && receipt && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
+            <div className="bg-white text-black rounded-lg shadow-lg p-8 max-w-2xl w-full relative">
+              <button onClick={() => { setShowReceipt(false); router.push("/orders"); }} className="absolute top-2 right-2 text-gray-500 hover:text-gray-800">✕</button>
+              <h2 className="text-2xl font-bold mb-4 text-center">Payment Receipt</h2>
+              <div className="mb-2 text-sm">Order #: <b>{receipt.orderNumber}</b></div>
+              <div className="mb-2 text-sm">Date: <b>{receipt.date}</b></div>
+              <div className="mb-2 text-sm">Reference #: <b>{receipt.reference}</b></div>
+              <div className="mb-2 text-sm">Name: <b>{receipt.user.name}</b></div>
+              <div className="mb-2 text-sm">Email: <b>{receipt.user.email}</b></div>
+              <div className="mb-2 text-sm">Phone: <b>{receipt.user.phone}</b></div>
+              <div className="mb-2 text-sm">Shipping Address: <b>{receipt.shippingAddress.address1}, {receipt.shippingAddress.city}, {receipt.shippingAddress.region}, {receipt.shippingAddress.postalCode}</b></div>
+              <div className="mb-2 text-sm">Billing Address: <b>{receipt.billingAddress.address1}, {receipt.billingAddress.city}, {receipt.billingAddress.region}, {receipt.billingAddress.postalCode}</b></div>
+              <div className="mb-2 text-sm">Payment Method: <b>{receipt.paymentMethod}</b></div>
+              <Table className="my-4">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Item</TableHead>
+                    <TableHead>Qty</TableHead>
+                    <TableHead>Price</TableHead>
+                    <TableHead>Total</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {receipt.items.map((item: any) => (
+                    <TableRow key={item.id}>
+                      <TableCell>{item.name}</TableCell>
+                      <TableCell>{item.quantity}</TableCell>
+                      <TableCell>₱{item.price.toFixed(2)}</TableCell>
+                      <TableCell>₱{(item.price * item.quantity).toFixed(2)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              <div className="flex justify-end gap-8 text-lg font-semibold">
+                <div>Subtotal: ₱{receipt.subtotal.toFixed(2)}</div>
+                <div>Shipping: ₱{receipt.shipping.toFixed(2)}</div>
+                <div>Total: ₱{receipt.total.toFixed(2)}</div>
+              </div>
+            </div>
           </div>
         )}
       </div>
