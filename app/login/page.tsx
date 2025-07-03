@@ -39,26 +39,28 @@ export default function LoginPage() {
     console.log('[Login Effect] user:', user, 'loading:', loading, 'cartItems:', cartItems, 'cartLoading:', cartLoading, 'pendingAdded:', pendingAdded);
     if (loading) return; // Wait for loading to finish
 
-    // Prevent multiple redirects
-    if (typeof window !== 'undefined' && localStorage.getItem('redirectedToCheckout')) {
-      localStorage.removeItem('redirectedToCheckout');
-      return;
-    }
-
     if (user) {
       // Only run this block when user is set
-      const pending = localStorage.getItem('pendingCartItem');
-      console.log('[Login Effect] pendingCartItem:', pending);
+      const pending = typeof window !== 'undefined' ? localStorage.getItem('pendingCartItem') : null;
       if (pending) {
         try {
           const cartItem = JSON.parse(pending);
           if (cartItem && cartItem.id && cartItem.selectedSize) {
-            console.log('[Login Effect] Adding to cart:', cartItem);
-            addToCart(cartItem);
+            const compositeKey = cartItem.selectedSize ? `${cartItem.id}-${cartItem.selectedSize}` : cartItem.id;
+            // Add to cart if not already present
+            const alreadyInCart = cartItems.some(item => {
+              const key = item.selectedSize ? `${item.id}-${item.selectedSize}` : item.id;
+              return key === compositeKey;
+            });
+            if (!alreadyInCart && !pendingAdded) {
+              addToCart(cartItem);
+              setPendingAdded(true);
+              // Wait for cart sync
+              return;
+            }
+            // If already in cart (or just added), redirect
             localStorage.removeItem('pendingCartItem');
-            setPendingAdded(true);
-            localStorage.setItem('redirectedToCheckout', 'true');
-            router.push('/checkout');
+            router.push(`/checkout?selected=${compositeKey}`);
             return;
           }
         } catch (e) { console.error('[Login Effect] Error parsing pendingCartItem:', e); }

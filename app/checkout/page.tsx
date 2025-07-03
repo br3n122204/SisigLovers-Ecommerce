@@ -12,6 +12,7 @@ import { collection, getDocs, query, addDoc, serverTimestamp, doc, getDoc, updat
 import { db } from "@/lib/firebase";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import type { CartItem } from "@/context/CartContext";
 
 function deepCleanUndefined(obj: any): any {
   if (Array.isArray(obj)) {
@@ -35,8 +36,12 @@ export default function CheckoutPage() {
 
   // Get selected item IDs from query string (treat as strings)
   const selectedIdsParam = searchParams.get('selected');
-  const selectedIds = selectedIdsParam ? selectedIdsParam.split(',') : cartItems.map(item => String(item.id));
-  const selectedCartItems = cartItems.filter(item => selectedIds.includes(String(item.id)));
+  // Support composite key: id-selectedSize
+  function getCartItemKey(item: CartItem) {
+    return item.selectedSize ? `${item.id}-${item.selectedSize}` : String(item.id);
+  }
+  const selectedIds = selectedIdsParam ? selectedIdsParam.split(',') : cartItems.map(getCartItemKey);
+  const selectedCartItems = cartItems.filter(item => selectedIds.includes(getCartItemKey(item)));
 
   const [addresses, setAddresses] = useState<any[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
