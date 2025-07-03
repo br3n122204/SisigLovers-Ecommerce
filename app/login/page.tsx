@@ -60,7 +60,13 @@ export default function LoginPage() {
             }
             // If already in cart (or just added), redirect
             localStorage.removeItem('pendingCartItem');
-            router.push(`/checkout?selected=${compositeKey}`);
+            // Only redirect to checkout if a special flag is set (for Buy it now)
+            const buyNow = cartItem.buyNow;
+            if (buyNow) {
+              router.push(`/checkout?selected=${compositeKey}`);
+            } else {
+              router.push("/");
+            }
             return;
           }
         } catch (e) { console.error('[Login Effect] Error parsing pendingCartItem:', e); }

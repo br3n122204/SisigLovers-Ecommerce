@@ -154,7 +154,14 @@ export default function DPTOneFashion() {
       router.push('/login')
       return
     }
-    addToCart(product)
+    // Always use the first image for cart
+    const image = Array.isArray(product.imageUrls) && product.imageUrls.length > 0
+      ? product.imageUrls[0]
+      : product.imageUrl || product.image || '/images/placeholder.jpg';
+    addToCart({
+      ...product,
+      image,
+    });
   }
 
   return (

@@ -93,11 +93,14 @@ export default function ProductDetailPage() {
         alert('Please select a size.');
         return;
       }
-      // Store intended cart action
+      // Always use the first image for cart
+      const image = product?.imageUrls && product.imageUrls.length > 0
+        ? product.imageUrls[0]
+        : product?.imageUrl || product?.image || '/images/placeholder.jpg';
       localStorage.setItem('pendingCartItem', JSON.stringify({
         id: productId,
         name: product?.name,
-        image: mainImage,
+        image,
         price: String(product?.price),
         quantity: Number(quantity),
         selectedSize: String(selectedSize),
@@ -110,10 +113,14 @@ export default function ProductDetailPage() {
       return;
     }
     if (product && selectedSize) {
+      // Always use the first image for cart
+      const image = product.imageUrls && product.imageUrls.length > 0
+        ? product.imageUrls[0]
+        : product.imageUrl || product.image || '/images/placeholder.jpg';
       addToCart({
         id: productId,
         name: product.name,
-        image: mainImage,
+        image,
         price: String(product.price),
         quantity: Number(quantity),
         selectedSize: String(selectedSize),
@@ -328,6 +335,7 @@ export default function ProductDetailPage() {
                             price: String(product?.price),
                             quantity: Number(quantity),
                             selectedSize: String(selectedSize),
+                            buyNow: true,
                           }));
                           router.push('/login');
                           return;
