@@ -46,4 +46,4 @@ npm run dev
 
 ---
 
-Enjoy shopping with Sisig Lovers! 
+Enjoy shopping with DPT ONE by Sisig Lovers!
