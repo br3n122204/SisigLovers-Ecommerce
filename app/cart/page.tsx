@@ -64,18 +64,11 @@ export default function CartPage() {
   const handleRemoveFromCart = (key: string) => {
     const item = cartItems.find(item => getCartItemKey(item) === key);
     if (!item) return;
-    if (typeof item.id === 'number') {
-      setRemovingItemIds((prev: (string | number)[]) => [...prev, item.id]);
-      setTimeout(() => {
-        removeFromCart(item.id);
-        setRemovingItemIds((prev: (string | number)[]) => prev.filter((itemId) => {
-          if (typeof itemId === 'number' && typeof item.id === 'number') {
-            return itemId !== item.id;
-          }
-          return true;
-        }));
-      }, 300);
-    }
+    setRemovingItemIds((prev: (string | number)[]) => [...prev, item.id]);
+    setTimeout(() => {
+      removeFromCart(item.id);
+      setRemovingItemIds((prev: (string | number)[]) => prev.filter((itemId) => itemId !== item.id));
+    }, 300);
   };
 
   // Determine if all, some, or none are selected
@@ -150,7 +143,12 @@ export default function CartPage() {
                         Size: {typeof item.selectedSize === 'object' ? ((item.selectedSize as any).size ?? JSON.stringify(item.selectedSize)) : item.selectedSize}
                       </p>
                     )}
-                    <p className="text-md font-medium text-[#60A5FA]">{item.price}</p>
+                    {item.selectedColor && (
+                      <p className="text-sm text-[#60A5FA]">
+                        Color: {item.selectedColor}
+                      </p>
+                    )}
+                    <p className="text-md font-medium text-[#60A5FA]">₱{item.price}</p>
                     <div className="flex items-center mt-2">
                       <Button
                         variant="outline"
