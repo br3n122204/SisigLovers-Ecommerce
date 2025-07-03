@@ -27,6 +27,7 @@ interface Order {
   trackingNumber?: string;
   estimatedDelivery?: Date;
   orderReceived?: boolean;
+  billingAddress?: Address;
 }
 
 interface OrderItem {
@@ -117,7 +118,8 @@ export default function OrdersPage() {
                 estimatedDelivery: data.estimatedDelivery && typeof data.estimatedDelivery.toDate === 'function'
                   ? data.estimatedDelivery.toDate()
                   : (data.estimatedDelivery ? new Date(data.estimatedDelivery) : undefined),
-                orderReceived: data.orderReceived
+                orderReceived: data.orderReceived,
+                billingAddress: data.billingAddress
               });
             });
             setOrders(fetchedOrders);
@@ -461,6 +463,19 @@ export default function OrdersPage() {
                               {order.shippingAddress.phone}
                             </p>
                           </div>
+
+                          {order.billingAddress && (
+                            <div>
+                              <h4 className="font-medium text-[#60A5FA] mb-2">Billing Address</h4>
+                              <p className="text-sm text-[#60A5FA]">
+                                {order.billingAddress.firstName} {order.billingAddress.lastName}<br />
+                                {order.billingAddress.address1 && <>{order.billingAddress.address1}<br /></>}
+                                {order.billingAddress.address2 && <>{order.billingAddress.address2}<br /></>}
+                                {order.billingAddress.city && <>{order.billingAddress.city}, </>}{order.billingAddress.region && <>{order.billingAddress.region} </>}{order.billingAddress.postalCode && <>{order.billingAddress.postalCode}<br /></>}
+                                {order.billingAddress.phone}
+                              </p>
+                            </div>
+                          )}
 
                           {order.trackingNumber && (
                             <div>

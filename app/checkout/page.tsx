@@ -145,6 +145,17 @@ export default function CheckoutPage() {
     }
   }, [user]);
 
+  // Add a useEffect to keep billingDetails in sync if sameAsShipping is true
+  useEffect(() => {
+    if (sameAsShipping) {
+      setBillingDetails({
+        ...deliveryDetails,
+        country: 'Philippines',
+      });
+    }
+    // Do not clear billingDetails if unchecked, to preserve user input
+  }, [sameAsShipping, deliveryDetails]);
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     const inputValue = type === "checkbox" ? (e.target as HTMLInputElement).checked : value;
@@ -169,7 +180,7 @@ export default function CheckoutPage() {
     }
   };
 
-  const saveOrderToFirebase = async () => {
+  const saveOrderToFirebase = async (billingDetailsArg?: any) => {
     if (!user) {
       toast({
         title: "Error",
@@ -206,7 +217,7 @@ export default function CheckoutPage() {
           color: item.color || 'N/A'
         })),
         shippingAddress: deliveryDetails,
-        billingAddress: sameAsShipping ? deliveryDetails : billingDetails,
+        billingAddress: billingDetailsArg || deliveryDetails,
         paymentMethod: paymentMethod,
         paymentStatus: paymentMethod === 'cod' ? 'pending' : 'pending',
         shippingMethod: shippingMethod,
@@ -351,8 +362,10 @@ export default function CheckoutPage() {
     setIsProcessing(true);
     try {
       if (paymentMethod === 'cod') {
-        // Save order to Firebase
-        const orderId = await saveOrderToFirebase();
+        // Ensure billingDetails is complete if sameAsShipping is true
+        const billingToSend = sameAsShipping ? { ...deliveryDetails, country: 'Philippines' } : billingDetails;
+        // Save order to Firebase, passing billingToSend directly
+        const orderId = await saveOrderToFirebase(billingToSend);
         if (orderId) {
           // Show success message
           toast({
@@ -370,11 +383,16 @@ export default function CheckoutPage() {
           console.error("Order was not saved (no orderId returned)");
         }
       } else {
-        toast({
-          title: "Info",
-          description: "GCash payment processing will be implemented here",
-        });
-        console.log("GCash payment selected");
+        // Pass full order info to GCash page via query string
+        const orderInfo = encodeURIComponent(JSON.stringify({
+          deliveryDetails,
+          billingDetails: billingDetails,
+          shippingMethod,
+          selectedIds: selectedCartItems.map(item => item.id),
+          amount: totalAmount
+        }));
+        router.push(`/checkout/gcash?orderInfo=${orderInfo}`);
+        return;
       }
     } catch (error) {
       toast({
