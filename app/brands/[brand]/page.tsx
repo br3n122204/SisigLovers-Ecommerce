@@ -117,7 +117,7 @@ export default function BrandPage() {
   }, [products, sort, availability, priceFrom, priceTo]);
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-[#101828] text-[#60A5FA]">
       <div className="w-full pt-8 pb-16">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center md:justify-between mb-6">
           <h1 className="text-3xl font-bold mb-4 md:mb-0">{brand.toUpperCase()}</h1>
@@ -126,14 +126,14 @@ export default function BrandPage() {
             <div className="flex flex-col gap-2 relative">
               <button
                 type="button"
-                className="flex items-center gap-1 text-sm font-medium focus:outline-none"
+                className="flex items-center gap-1 text-sm font-medium focus:outline-none text-[#60A5FA]"
                 onClick={() => setShowAvailabilityDropdown(v => !v)}
               >
                 Availability
                 <svg className={`w-4 h-4 transition-transform ${showAvailabilityDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
               </button>
               {showAvailabilityDropdown && (
-                <div className="absolute left-0 top-full z-10 mt-2 bg-white border rounded p-3 shadow-lg min-w-[150px]">
+                <div className="absolute left-0 top-full z-10 mt-2 bg-[#19223a] border border-[#22304a] rounded p-3 shadow-lg min-w-[150px]">
                   <div className="flex flex-col gap-2">
                     {availabilityOptions.map(opt => {
                       let count = null;
@@ -142,12 +142,12 @@ export default function BrandPage() {
                       return (
                         <button
                           key={opt.value}
-                          className={`text-left px-2 py-1 rounded hover:bg-gray-100 ${availability === opt.value ? 'bg-gray-200 font-semibold' : ''}`}
+                          className={`text-left px-2 py-1 rounded hover:bg-[#22304a] ${availability === opt.value ? 'bg-[#22304a] font-semibold' : ''} text-[#60A5FA]`}
                           onClick={() => { setAvailability(opt.value); setShowAvailabilityDropdown(false); }}
                         >
                           {opt.label}
                           {typeof count === 'number' && (
-                            <span className="ml-2 text-xs text-gray-500">({count})</span>
+                            <span className="ml-2 text-xs text-[#60A5FA]">({count})</span>
                           )}
                         </button>
                       );
@@ -160,33 +160,33 @@ export default function BrandPage() {
             <div className="flex flex-col gap-2 relative">
               <button
                 type="button"
-                className="flex items-center gap-1 text-sm font-medium focus:outline-none"
+                className="flex items-center gap-1 text-sm font-medium focus:outline-none text-[#60A5FA]"
                 onClick={() => setShowPriceDropdown(v => !v)}
               >
                 Price
                 <svg className={`w-4 h-4 transition-transform ${showPriceDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
               </button>
               {showPriceDropdown && (
-                <div className="absolute left-0 top-full z-10 mt-2 bg-white border rounded p-3 shadow-lg min-w-[250px]">
-                  <div className="mb-2 text-sm">The highest price is <span className="font-semibold">₱{highestPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
+                <div className="absolute left-0 top-full z-10 mt-2 bg-[#19223a] border border-[#22304a] rounded p-3 shadow-lg min-w-[250px]">
+                  <div className="mb-2 text-sm text-[#60A5FA]">The highest price is <span className="font-semibold">₱{highestPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>
                   <div className="flex gap-2">
                     <div className="relative flex items-center w-28">
-                      <span className="absolute left-2 text-[#A75D43]">₱</span>
+                      <span className="absolute left-2 text-[#60A5FA]">₱</span>
                       <input
                         type="number"
                         placeholder="From"
-                        className="pl-6 border border-gray-300 bg-gray-50 rounded px-2 py-1 text-sm w-full focus:border-[#60A5FA] focus:ring-2 focus:ring-[#60A5FA]"
+                        className="pl-6 border border-[#22304a] bg-[#101828] rounded px-2 py-1 text-sm w-full focus:border-[#60A5FA] focus:ring-2 focus:ring-[#60A5FA] text-[#60A5FA]"
                         value={priceFrom}
                         onChange={e => setPriceFrom(e.target.value)}
                         min="0"
                       />
                     </div>
                     <div className="relative flex items-center w-28">
-                      <span className="absolute left-2 text-[#A75D43]">₱</span>
+                      <span className="absolute left-2 text-[#60A5FA]">₱</span>
                       <input
                         type="number"
                         placeholder="To"
-                        className="pl-6 border border-gray-300 bg-gray-50 rounded px-2 py-1 text-sm w-full focus:border-[#60A5FA] focus:ring-2 focus:ring-[#60A5FA]"
+                        className="pl-6 border border-[#22304a] bg-[#101828] rounded px-2 py-1 text-sm w-full focus:border-[#60A5FA] focus:ring-2 focus:ring-[#60A5FA] text-[#60A5FA]"
                         value={priceTo}
                         onChange={e => setPriceTo(e.target.value)}
                         min="0"
@@ -198,22 +198,22 @@ export default function BrandPage() {
             </div>
             {/* Sort by: button and dropdown panel */}
             <div className="flex items-center gap-2 relative">
-              <span className="text-sm">Sort by:</span>
+              <span className="text-sm text-[#60A5FA]">Sort by:</span>
               <button
                 type="button"
-                className="flex items-center gap-1 text-sm font-normal border border-gray-300 bg-gray-50 rounded px-2 py-1 focus:outline-none min-w-[140px] text-[#001F3F]"
+                className="flex items-center gap-1 text-sm font-normal border border-[#22304a] bg-[#101828] rounded px-2 py-1 focus:outline-none min-w-[140px] text-[#60A5FA]"
                 onClick={() => setShowSortDropdown(v => !v)}
               >
                 {sortOptions.find(opt => opt.value === sort)?.label}
                 <svg className={`w-4 h-4 ml-1 transition-transform ${showSortDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" /></svg>
               </button>
               {showSortDropdown && (
-                <div className="absolute left-0 top-full z-10 mt-2 bg-white border rounded p-2 shadow-lg min-w-[180px]">
+                <div className="absolute left-0 top-full z-10 mt-2 bg-[#19223a] border border-[#22304a] rounded p-2 shadow-lg min-w-[180px]">
                   <div className="flex flex-col">
                     {sortOptions.map(opt => (
                       <button
                         key={opt.value}
-                        className={`text-left px-3 py-2 rounded hover:bg-gray-100 ${sort === opt.value ? 'bg-gray-200 font-semibold' : ''}`}
+                        className={`text-left px-3 py-2 rounded hover:bg-[#22304a] ${sort === opt.value ? 'bg-[#22304a] font-semibold' : ''} text-[#60A5FA]`}
                         onClick={() => { setSort(opt.value); setShowSortDropdown(false); }}
                       >
                         {opt.label}
@@ -223,18 +223,22 @@ export default function BrandPage() {
                 </div>
               )}
             </div>
-            <span className="text-[#001F3F] text-sm">{filteredProducts.length} products</span>
+            <span className="text-[#60A5FA] text-sm">{filteredProducts.length} product{filteredProducts.length === 1 ? '' : 's'}</span>
           </div>
         </div>
         {loading ? (
-          <div className="text-center py-20 text-lg">Loading products...</div>
+          <div className="text-center py-20 text-lg text-[#60A5FA]">Loading products...</div>
+        ) : filteredProducts.length === 0 ? (
+          <div className="text-center py-20 text-lg text-[#60A5FA]">
+            No products found for this brand.
+          </div>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-7xl mx-auto">
             {filteredProducts.map(product => (
-              <div key={product.id} className="flex flex-col items-center">
-                <div className="relative w-[250px] h-[250px]">
+              <div key={product.id} className="bg-[#19223a] rounded-2xl shadow-lg p-6 flex flex-col items-center w-full max-w-xs mx-auto">
+                <div className="relative w-[220px] h-[180px] flex items-center justify-center">
                   <Link href={`/products/${product.id}`}> 
-                    <Image src={product.imageUrls?.[0] || product.image || "/placeholder.jpg"} alt={product.name} width={250} height={250} className="object-contain rounded-lg bg-gray-100" />
+                    <Image src={product.imageUrls?.[0] || product.image || "/placeholder.jpg"} alt={product.name} width={200} height={160} className="object-contain rounded-lg bg-white" />
                   </Link>
                   {(
                     (typeof product.totalStock === 'number' && product.totalStock === 0) ||
@@ -244,9 +248,9 @@ export default function BrandPage() {
                     <div className="absolute left-3 bottom-3 bg-red-600 text-white text-sm font-semibold px-4 py-1 rounded-full shadow-lg select-none z-10">Sold out</div>
                   )}
                 </div>
-                <div className="mt-4 text-center">
-                  <div className="font-medium text-[#001F3F]">{product.name}</div>
-                  <div className="text-[#A75D43] font-semibold mt-1">₱{Number(product.price).toLocaleString()}</div>
+                <div className="mt-6 text-center">
+                  <div className="font-bold text-lg text-[#60A5FA]">{product.name}</div>
+                  <div className="text-[#60A5FA] font-semibold mt-2">₱{Number(product.price).toLocaleString()}</div>
                 </div>
               </div>
             ))}

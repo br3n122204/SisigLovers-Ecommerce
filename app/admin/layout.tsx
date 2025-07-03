@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
-import "../../styles/globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
+import { CartProvider } from "@/context/CartContext";
+import { AuthProvider } from "@/context/AuthContext";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (

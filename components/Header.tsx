@@ -124,58 +124,60 @@ export default function Header() {
           </nav>
         </div>
         {/* Centered Search Bar - improved centering and spacing */}
-        <div className="w-full md:w-[600px] flex justify-center my-4 md:my-0 order-2 md:order-none">
-          <form onSubmit={handleSearch} className="relative w-full max-w-xl">
-            <input
-              type="text"
-              placeholder="Search products..."
-              value={searchQuery}
-              onChange={handleInputChange}
-              onFocus={() => setShowSuggestions(true)}
-              onBlur={() => setTimeout(() => setShowSuggestions(false), 100)}
-              className="w-full px-5 py-2.5 pl-12 pr-5 border-2 border-[#60A5FA] rounded-full bg-[#f5f2ef] text-[#001F3F] placeholder-[#001F3F] focus:outline-none focus:ring-3 focus:ring-[#60A5FA] focus:border-[#60A5FA] transition-all duration-300 ease-in-out shadow-md text-base"
-            />
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#001F3F]" />
-            <button
-              type="submit"
-              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#001F3F] hover:text-[#fff9f3] transition-colors"
-            >
-              <Search className="h-5 w-5" />
-            </button>
+        {!isAdminPage && !(pathname === '/orders') && (
+          <div className="w-full md:w-[600px] flex justify-center my-4 md:my-0 order-2 md:order-none">
+            <form onSubmit={handleSearch} className="relative w-full max-w-xl">
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={searchQuery}
+                onChange={handleInputChange}
+                onFocus={() => setShowSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 100)}
+                className="w-full px-5 py-2.5 pl-12 pr-5 border-2 border-[#60A5FA] rounded-full bg-[#f5f2ef] text-[#001F3F] placeholder-[#001F3F] focus:outline-none focus:ring-3 focus:ring-[#60A5FA] focus:border-[#60A5FA] transition-all duration-300 ease-in-out shadow-md text-base"
+              />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-[#001F3F]" />
+              <button
+                type="submit"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#001F3F] hover:text-[#fff9f3] transition-colors"
+              >
+                <Search className="h-5 w-5" />
+              </button>
 
-            {/* Search Suggestions Dropdown (Desktop) */}
-            {showSuggestions && searchQuery.length > 0 && searchResults.length > 0 && (
-              <div className="absolute z-10 w-full bg-[#001F3F] border border-gray-200 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
-                <p className="px-4 py-2 text-xs text-white uppercase font-bold">Products</p>
-                {searchResults.map((product) => {
-                  let productImg = '/images/placeholder.jpg';
-                  if (Array.isArray(product.imageUrls) && product.imageUrls.length > 0) {
-                    productImg = product.imageUrls[0];
-                  } else if (product.image) {
-                    productImg = product.image;
-                  } else if (product.imageUrl) {
-                    productImg = product.imageUrl;
-                  }
-                  return (
-                    <Link href={`/products/${product.id}`} key={product.id} className="flex items-center px-4 py-2 hover:bg-[#003366] cursor-pointer">
-                      <Image
-                        src={productImg}
-                        alt={product.name || 'Product'}
-                        width={40}
-                        height={40}
-                        className="mr-3 rounded"
-                      />
-                      <span className="text-sm font-medium text-white">{product.name}</span>
-                    </Link>
-                  );
-                })}
-                <Link href={`/search?q=${encodeURIComponent(searchQuery)}`} className="block px-4 py-3 bg-[#003366] text-white hover:bg-[#001F3F] text-sm font-medium text-center border-t border-gray-200">
-                  Search for "{searchQuery}"
-                </Link>
-              </div>
-            )}
-          </form>
-        </div>
+              {/* Search Suggestions Dropdown (Desktop) */}
+              {showSuggestions && searchQuery.length > 0 && searchResults.length > 0 && (
+                <div className="absolute z-10 w-full bg-[#001F3F] border border-gray-200 rounded-md shadow-lg mt-1 max-h-60 overflow-y-auto">
+                  <p className="px-4 py-2 text-xs text-white uppercase font-bold">Products</p>
+                  {searchResults.map((product) => {
+                    let productImg = '/images/placeholder.jpg';
+                    if (Array.isArray(product.imageUrls) && product.imageUrls.length > 0) {
+                      productImg = product.imageUrls[0];
+                    } else if (product.image) {
+                      productImg = product.image;
+                    } else if (product.imageUrl) {
+                      productImg = product.imageUrl;
+                    }
+                    return (
+                      <Link href={`/products/${product.id}`} key={product.id} className="flex items-center px-4 py-2 hover:bg-[#003366] cursor-pointer">
+                        <Image
+                          src={productImg}
+                          alt={product.name || 'Product'}
+                          width={40}
+                          height={40}
+                          className="mr-3 rounded"
+                        />
+                        <span className="text-sm font-medium text-white">{product.name}</span>
+                      </Link>
+                    );
+                  })}
+                  <Link href={`/search?q=${encodeURIComponent(searchQuery)}`} className="block px-4 py-3 bg-[#003366] text-white hover:bg-[#001F3F] text-sm font-medium text-center border-t border-gray-200">
+                    Search for "{searchQuery}"
+                  </Link>
+                </div>
+              )}
+            </form>
+          </div>
+        )}
         {/* Right Section: User/Cart/Profile */}
         {!isAdminPage && !isAdmin && (
           <div className="flex items-center space-x-4">
@@ -193,7 +195,7 @@ export default function Header() {
       </div>
 
       {/* Mobile Search Bar (hidden on /profile, /cart, /settings, and /admin) */}
-      {isSearchOpen && !(pathname === '/profile' || pathname === '/cart' || pathname === '/settings' || pathname === '/checkout' || isAdminPage) && (
+      {isSearchOpen && !(pathname === '/profile' || pathname === '/cart' || pathname === '/settings' || pathname === '/checkout' || isAdminPage || pathname === '/orders') && (
         <div className="md:hidden px-4 py-3 border-t border-gray-200">
           <form onSubmit={handleSearch} className="relative">
             <input

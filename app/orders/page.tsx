@@ -19,7 +19,7 @@ interface Order {
   id: string;
   orderNumber: string;
   dateOrdered: Date | string | undefined;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'rated' | 'returned';
+  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'completed';
   total: number;
   items: OrderItem[];
   shippingAddress: Address;
@@ -103,11 +103,12 @@ export default function OrdersPage() {
               } else if (data.deliveredAt) {
                 deliveryDateValue = new Date(data.deliveredAt);
               }
+              console.log(`Order ${data.orderNumber}: Original status ${data.status}, Transformed status: ${(data.status === 'rated' || data.status === 'returned') ? 'completed' : data.status}`);
               fetchedOrders.push({
                 id: doc.id,
                 orderNumber: data.orderNumber,
                 dateOrdered: dateOrderedValue,
-                status: data.status,
+                status: (data.status === 'rated' || data.status === 'returned') ? 'completed' : data.status,
                 total: data.total,
                 items: data.items || [],
                 shippingAddress: data.shippingAddress,
@@ -158,7 +159,7 @@ export default function OrdersPage() {
     // Filter by status
     if (statusFilter !== "all") {
       if (statusFilter === "completed") {
-        filtered = filtered.filter(order => order.status === "rated" || order.status === "returned");
+        filtered = filtered.filter(order => order.status === "completed");
       } else {
         filtered = filtered.filter(order => order.status === statusFilter);
       }
@@ -185,7 +186,8 @@ export default function OrdersPage() {
       case 'shipped': return '📦';
       case 'delivered': return '✅';
       case 'cancelled': return '❌';
-      default: return '��';
+      case 'completed': return '✅';
+      default: return '';
     }
   };
 
@@ -232,7 +234,7 @@ export default function OrdersPage() {
     if (!user || !order) return;
     try {
       const userOrderRef = doc(db, 'users', user.uid, 'orders', order.id);
-      await updateDoc(userOrderRef, { status: 'returned' });
+      await updateDoc(userOrderRef, { status: 'completed' });
       const userOrderSnap = await getDoc(userOrderRef);
       const globalOrderId = userOrderSnap.data()?.globalOrderId;
       if (globalOrderId) {
@@ -251,7 +253,7 @@ export default function OrdersPage() {
     if (!user || !order) return;
     try {
       const userOrderRef = doc(db, 'users', user.uid, 'orders', order.id);
-      await updateDoc(userOrderRef, { status: 'rated' });
+      await updateDoc(userOrderRef, { status: 'completed' });
       const userOrderSnap = await getDoc(userOrderRef);
       const globalOrderId = userOrderSnap.data()?.globalOrderId;
       if (globalOrderId) {
@@ -371,7 +373,7 @@ export default function OrdersPage() {
                           <div className="flex items-center gap-2">
                             <span className="text-2xl">{getStatusIcon(order.status)}</span>
                             <Badge className="bg-[#60A5FA] text-[#101828]">
-                              {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                              {order.status === 'completed' ? 'Completed' : order.status.charAt(0).toUpperCase() + order.status.slice(1)}
                             </Badge>
                           </div>
                           <div>
@@ -428,95 +430,6 @@ export default function OrdersPage() {
                               </div>
                             ))}
                           </div>
-                          {order.status === 'delivered' && (
-                            <>
-                              {!order.orderReceived && !actionCompleted[order.id] ? (
-                                <div className="mt-4">
-                                  <Button
-                                    className="bg-green-600 hover:bg-green-700 text-white px-6"
-                                    onClick={e => {
-                                      e.stopPropagation();
-                                      handleOrderReceived(order);
-                                    }}
-                                  >
-                                    Order Received
-                                  </Button>
-                                </div>
-                              ) : !actionCompleted[order.id] ? (
-                                <div className="mt-4 flex flex-col items-center gap-4">
-                                  {/* Return/Refund Prompt */}
-                                  {!showReturnPrompt[order.id] ? (
-                                    <Button
-                                      className="bg-red-600 hover:bg-red-700 text-white px-6"
-                                      onClick={e => {
-                                        e.stopPropagation();
-                                        setShowReturnPrompt(prev => ({ ...prev, [order.id]: true }));
-                                      }}
-                                    >
-                                      Return / Refund
-                                    </Button>
-                                  ) : (
-                                    <form className="w-full flex flex-col items-center gap-2" onSubmit={e => {
-                                      e.preventDefault();
-                                      handleReturnRefund(order, returnReasonInput[order.id] || '');
-                                    }}>
-                                      <textarea
-                                        className="w-full border border-gray-300 rounded p-2 mb-2"
-                                        rows={3}
-                                        value={returnReasonInput[order.id] || ''}
-                                        onChange={e => setReturnReasonInput(prev => ({ ...prev, [order.id]: e.target.value }))}
-                                        required
-                                        placeholder="Enter your reason here..."
-                                      />
-                                      <Button type="submit" className="bg-red-600 hover:bg-red-700 text-white px-6">Submit</Button>
-                                    </form>
-                                  )}
-                                  {/* Rating Prompt */}
-                                  {!showRatingPrompt[order.id] ? (
-                                    <Button
-                                      className="bg-yellow-500 hover:bg-yellow-600 text-white px-6"
-                                      onClick={e => {
-                                        e.stopPropagation();
-                                        setShowRatingPrompt(prev => ({ ...prev, [order.id]: true }));
-                                      }}
-                                    >
-                                      Rate Order
-                                    </Button>
-                                  ) : (
-                                    <div className="flex flex-col items-center">
-                                      <span className="mb-2 text-[#001F3F] font-medium">Select your rating:</span>
-                                      <div className="flex space-x-1">
-                                        {[1,2,3,4,5].map((star) => (
-                                          <button
-                                            key={star}
-                                            type="button"
-                                            className={`text-2xl ${ratingInput[order.id] >= star ? 'text-yellow-400' : 'text-gray-300'}`}
-                                            onClick={e => {
-                                              e.stopPropagation();
-                                              setRatingInput(prev => ({ ...prev, [order.id]: star }));
-                                              handleRateOrder(order, star);
-                                            }}
-                                            aria-label={`Rate ${star} star${star > 1 ? 's' : ''}`}
-                                          >
-                                            ★
-                                          </button>
-                                        ))}
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              ) : (
-                                <div className="mt-4 flex flex-col items-center gap-4">
-                                  <Button
-                                    className="bg-blue-600 hover:bg-blue-700 text-white px-6"
-                                    onClick={() => router.push('/products')}
-                                  >
-                                    Buy again
-                                  </Button>
-                                </div>
-                              )}
-                            </>
-                          )}
                         </div>
 
                         {/* Order Summary */}

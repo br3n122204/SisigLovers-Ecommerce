@@ -10,7 +10,6 @@ import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
 import { db } from '@/lib/firebase'
 import { collection, getDocs } from 'firebase/firestore'
-import WelcomeCard from "@/components/WelcomeCard"
 
 // Sample slider images data
 const sliderImages = [
@@ -90,14 +89,14 @@ function ImageSlider() {
       {/* Navigation Arrows */}
       <button
         onClick={goToPrevious}
-        className="absolute left-6 top-1/2 -translate-y-1/2 bg-white bg-opacity-30 hover:bg-opacity-60 text-black p-2 rounded-full shadow transition-all z-30"
+        className="absolute left-6 top-1/2 -translate-y-1/2 bg-[#19223a] bg-opacity-70 hover:bg-opacity-90 text-[#60A5FA] p-2 rounded-full shadow transition-all z-30"
         aria-label="Previous Slide"
       >
         <ChevronLeft className="h-7 w-7" />
       </button>
       <button
         onClick={goToNext}
-        className="absolute right-6 top-1/2 -translate-y-1/2 bg-white bg-opacity-30 hover:bg-opacity-60 text-black p-2 rounded-full shadow transition-all z-30"
+        className="absolute right-6 top-1/2 -translate-y-1/2 bg-[#19223a] bg-opacity-70 hover:bg-opacity-90 text-[#60A5FA] p-2 rounded-full shadow transition-all z-30"
         aria-label="Next Slide"
       >
         <ChevronRight className="h-7 w-7" />
@@ -109,7 +108,7 @@ function ImageSlider() {
             <button
               key={index}
               onClick={() => goToSlide(index)}
-              className={`w-2.5 h-2.5 rounded-full border border-white transition-all ${index === currentSlide ? 'bg-white' : 'bg-white bg-opacity-40'}`}
+              className={`w-2.5 h-2.5 rounded-full border border-[#60A5FA] transition-all ${index === currentSlide ? 'bg-[#60A5FA]' : 'bg-[#60A5FA] bg-opacity-40'}`}
               aria-label={`Go to slide ${index + 1}`}
             />
           ))}
@@ -160,10 +159,9 @@ export default function DPTOneFashion() {
 
   return (
     <>
-      <WelcomeCard />
-      <div className="min-h-screen bg-[#101828] text-[#60A5FA]">
+      <div className="min-h-screen bg-[#101828] text-[#60A5FA] flex flex-col">
         {/* Main Content Container */}
-        <div className="w-full">
+        <div className="w-full flex-grow">
           {/* Hero / Slider Section */}
           <ImageSlider />
           {/* Featured Products Section */}
