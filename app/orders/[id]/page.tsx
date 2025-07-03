@@ -312,6 +312,47 @@ export default function OrderDetailsPage() {
     setReturnReason('');
   };
 
+  // Cancel Order handler
+  const handleCancelOrder = async () => {
+    if (!user || !order) return;
+    if (order.status !== 'pending') {
+      alert('Order cannot be canceled. It is already being processed or shipped.');
+      return;
+    }
+    try {
+      // Update user's order status
+      const userOrderRef = doc(db, 'users', user.uid, 'orders', order.id);
+      await updateDoc(userOrderRef, { status: 'cancelled' });
+      // Update admin's order status
+      // Find globalOrderId (admin order id) from user order
+      const userOrderSnap = await getDoc(userOrderRef);
+      const globalOrderId = userOrderSnap.data()?.globalOrderId;
+      if (globalOrderId) {
+        // Find the adminProductId for this order
+        // Try to get it from user order if available
+        const adminProductId = userOrderSnap.data()?.adminProductId;
+        if (adminProductId) {
+          const adminOrderRef = doc(db, 'adminProducts', adminProductId, 'productsOrder', globalOrderId);
+          await updateDoc(adminOrderRef, { status: 'cancelled' });
+        } else {
+          // Fallback: search all adminProducts for the order
+          const adminProductsSnap = await getDocs(collection(db, 'adminProducts'));
+          for (const productDoc of adminProductsSnap.docs) {
+            const adminOrderRef = doc(db, 'adminProducts', productDoc.id, 'productsOrder', globalOrderId);
+            const adminOrderSnap = await getDoc(adminOrderRef);
+            if (adminOrderSnap.exists()) {
+              await updateDoc(adminOrderRef, { status: 'cancelled' });
+              break;
+            }
+          }
+        }
+      }
+      setOrder({ ...order, status: 'cancelled' });
+    } catch (err) {
+      alert('Failed to cancel order. Please try again.');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#101828] flex items-center justify-center text-[#60A5FA]">
@@ -482,6 +523,15 @@ export default function OrderDetailsPage() {
                     {order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)}
                   </Badge>
                 </div>
+                {/* Cancel Order button for all except cancelled/completed */}
+                {order.status !== 'cancelled' && order.status !== 'completed' && (
+                  <Button
+                    className="bg-red-600 hover:bg-red-700 text-white px-6 mt-4"
+                    onClick={handleCancelOrder}
+                  >
+                    Cancel Order
+                  </Button>
+                )}
                 {(order.status === 'delivered' || order.status === 'completed') && actionCompleted && (
                   <Button
                     className="bg-blue-600 hover:bg-blue-700 text-white px-6 mt-4"
