@@ -9,6 +9,9 @@ import { db } from "@/lib/firebase";
 import { collection, addDoc, serverTimestamp, doc, getDoc, updateDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
+import jsPDF from "jspdf";
+import { supabase } from '@/lib/supabase';
+import robotoFont from '@/components/roboto-regular.js';
 
 function deepCleanUndefined(obj: any): any {
   if (Array.isArray(obj)) {
@@ -26,6 +29,25 @@ function deepCleanUndefined(obj: any): any {
 function generateFakeQR(text: string) {
   // Use a free QR code API for demo (not real payment)
   return `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(text)}`;
+}
+
+// Helper to fetch and cache the logo as a data URL (no Supabase)
+let cachedLogoDataUrl: string | null = null;
+async function getLogoDataUrl() {
+  if (cachedLogoDataUrl) return cachedLogoDataUrl;
+  // Use the direct public URL for the logo
+  const logoUrl = "https://ltfzekatcjpltiighukw.supabase.co/storage/v1/object/public/product-images/RECIEPTLOGO/DPTONELOGO.png";
+  const response = await fetch(logoUrl);
+  const blob = await response.blob();
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      cachedLogoDataUrl = reader.result as string;
+      resolve(cachedLogoDataUrl);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
 }
 
 export default function GCashFakePage() {
@@ -174,6 +196,113 @@ export default function GCashFakePage() {
     }
   };
 
+  const handleDownloadReceipt = async () => {
+    if (!receipt) return;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    doc.setFont('Roboto');
+    // Set dark background
+    doc.setFillColor(30, 30, 30);
+    doc.rect(0, 0, 210, 297, 'F');
+    // FROM section
+    doc.setTextColor(100, 150, 255); // blue
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('FROM', 12, 18);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'normal');
+    doc.text('DPT ONE', 12, 24);
+    // TO section
+    doc.setTextColor(100, 150, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.text('TO', 12, 34);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'normal');
+    doc.text(receipt.user.name, 12, 40);
+    doc.text(receipt.shippingAddress.address1 || '', 12, 45);
+    doc.text(`${receipt.shippingAddress.city?.toUpperCase() || ''}, ${receipt.shippingAddress.region} ${receipt.shippingAddress.postalCode}`, 12, 50);
+    // RECEIPT title
+    doc.setTextColor(100, 150, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(22);
+    doc.text('RECEIPT', 198, 22, { align: 'right' });
+    // Receipt #: and Date
+    doc.setFontSize(10);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Receipt #:', 140, 32);
+    doc.text('Receipt Date:', 140, 38);
+    doc.setFont('helvetica', 'normal');
+    doc.text(receipt.orderNumber, 198, 32, { align: 'right' });
+    doc.text(formatDateMMDDYYYY(receipt.date), 198, 38, { align: 'right' });
+    // Table header
+    let y = 60;
+    doc.setFillColor(30, 30, 30);
+    doc.setDrawColor(100, 150, 255);
+    doc.setTextColor(100, 150, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.rect(12, y - 6, 186, 8, 'S');
+    doc.text('QTY', 16, y);
+    doc.text('Description', 36, y);
+    doc.text('Unit Price', 120, y, { align: 'right' });
+    doc.text('Amount', 196, y, { align: 'right' });
+    y += 6;
+    doc.setDrawColor(255, 255, 255);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'normal');
+    // Table rows
+    receipt.items.forEach((item: any) => {
+      doc.text(String(item.quantity), 16, y);
+      doc.text(item.name, 36, y);
+      doc.text(`PHP ${item.price.toFixed(2)}`, 120, y, { align: 'right' });
+      doc.text(`PHP ${(item.price * item.quantity).toFixed(2)}`, 196, y, { align: 'right' });
+      y += 7;
+    });
+    // Subtotal, Shipping Fee, Total
+    y += 8;
+    doc.setFont('helvetica', 'bold');
+    doc.text('Subtotal:', 150, y, { align: 'right' });
+    doc.text(`PHP ${receipt.subtotal.toFixed(2)}`, 196, y, { align: 'right' });
+    y += 7;
+    doc.text('Shipping Fee:', 150, y, { align: 'right' });
+    doc.text(`PHP ${receipt.shipping.toFixed(2)}`, 196, y, { align: 'right' });
+    y += 7;
+    doc.text('Total:', 150, y, { align: 'right' });
+    doc.text(`PHP ${(receipt.subtotal + receipt.shipping).toFixed(2)}`, 196, y, { align: 'right' });
+    // Terms and conditions
+    y += 15;
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(100, 150, 255);
+    doc.text('TERMS AND CONDITIONS', 12, y);
+    y += 6;
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(255, 255, 255);
+    doc.text('Payment is due within 14 days of project completion.', 12, y);
+    y += 5;
+    doc.text('All checks to be made out to DPT ONE.', 12, y);
+    y += 5;
+    doc.text('Thank you for your business!', 12, y);
+    // Footer - Contact Us
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(100, 150, 255);
+    doc.text('Contact Us', 12, 285);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(255, 255, 255);
+    doc.text('sisiglovers@gmail.com', 12, 290);
+    doc.text('+639828282612', 12, 295);
+    doc.text('Cebu, Philippines', 60, 295);
+    doc.save(`DPTONE_Receipt_${receipt.orderNumber}.pdf`);
+  };
+
+  // Format date as MM/DD/YYYY
+  function formatDateMMDDYYYY(dateString: string) {
+    const date = new Date(dateString);
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    const yyyy = date.getFullYear();
+    return `${mm}/${dd}/${yyyy}`;
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#101828] text-[#60A5FA] px-4">
       <div className="bg-[#19223a] p-0 rounded-xl shadow-lg max-w-md w-full text-center relative overflow-hidden">
@@ -189,7 +318,7 @@ export default function GCashFakePage() {
         <div className="p-8">
           <div className="mb-4">
             <div className="text-lg font-semibold mb-1">Amount to Pay</div>
-            <div className="text-3xl font-bold text-[#38bdf8]">₱{amount}</div>
+            <div className="text-3xl font-bold text-[#38bdf8]">PHP{amount}</div>
           </div>
           {/* QR Code */}
           <div className="flex flex-col items-center mb-4">
@@ -241,9 +370,15 @@ export default function GCashFakePage() {
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
             <div className="bg-white text-black rounded-lg shadow-lg p-8 max-w-2xl w-full relative">
               <button onClick={() => { setShowReceipt(false); router.push("/orders"); }} className="absolute top-2 right-2 text-gray-500 hover:text-gray-800">✕</button>
+              <div className="flex justify-end mb-2">
+                <button onClick={handleDownloadReceipt} className="flex items-center gap-1 px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">
+                  <svg xmlns='http://www.w3.org/2000/svg' className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5m0 0l5-5m-5 5V4" /></svg>
+                  Download Receipt
+                </button>
+              </div>
               <h2 className="text-2xl font-bold mb-4 text-center">Payment Receipt</h2>
               <div className="mb-2 text-sm">Order #: <b>{receipt.orderNumber}</b></div>
-              <div className="mb-2 text-sm">Date: <b>{receipt.date}</b></div>
+              <div className="mb-2 text-sm">Date: <b>{formatDateMMDDYYYY(receipt.date)}</b></div>
               <div className="mb-2 text-sm">Reference #: <b>{receipt.reference}</b></div>
               <div className="mb-2 text-sm">Name: <b>{receipt.user.name}</b></div>
               <div className="mb-2 text-sm">Email: <b>{receipt.user.email}</b></div>
@@ -265,16 +400,16 @@ export default function GCashFakePage() {
                     <TableRow key={item.id}>
                       <TableCell>{item.name}</TableCell>
                       <TableCell>{item.quantity}</TableCell>
-                      <TableCell>₱{item.price.toFixed(2)}</TableCell>
-                      <TableCell>₱{(item.price * item.quantity).toFixed(2)}</TableCell>
+                      <TableCell>PHP {item.price.toFixed(2)}</TableCell>
+                      <TableCell>PHP {(item.price * item.quantity).toFixed(2)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
               <div className="flex justify-end gap-8 text-lg font-semibold">
-                <div>Subtotal: ₱{receipt.subtotal.toFixed(2)}</div>
-                <div>Shipping: ₱{receipt.shipping.toFixed(2)}</div>
-                <div>Total: ₱{receipt.total.toFixed(2)}</div>
+                <div>Subtotal: PHP {receipt.subtotal.toFixed(2)}</div>
+                <div>Shipping: PHP {receipt.shipping.toFixed(2)}</div>
+                <div>Total: PHP {receipt.total.toFixed(2)}</div>
               </div>
             </div>
           </div>
