@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { collection, query, orderBy, getDocs, doc, updateDoc, getDoc, serverTimestamp } from "firebase/firestore";
+import { collection, query, orderBy, getDocs, doc, updateDoc, getDoc, serverTimestamp, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -150,9 +150,17 @@ export default function AdminOrdersPage() {
       filtered = filtered.filter(order => order.status === statusFilter);
     }
     if (sortBy === "date-desc") {
-      filtered.sort((a, b) => b.dateOrdered - a.dateOrdered);
+      filtered.sort((a, b) => {
+        const dateA = a.dateOrdered ? a.dateOrdered.getTime() : 0;
+        const dateB = b.dateOrdered ? b.dateOrdered.getTime() : 0;
+        return dateB - dateA;
+      });
     } else if (sortBy === "date-asc") {
-      filtered.sort((a, b) => a.dateOrdered - b.dateOrdered);
+      filtered.sort((a, b) => {
+        const dateA = a.dateOrdered ? a.dateOrdered.getTime() : 0;
+        const dateB = b.dateOrdered ? b.dateOrdered.getTime() : 0;
+        return dateA - dateB;
+      });
     } else if (sortBy === "total-desc") {
       filtered.sort((a, b) => (b.total || 0) - (a.total || 0));
     } else if (sortBy === "total-asc") {
@@ -280,13 +288,47 @@ export default function AdminOrdersPage() {
     optimisticDeliveredAt?: Date | null
   }) {
     try {
-      // Instead, update in adminProducts/*/productsOrder (requires knowing adminProductId)
-      // TODO: Implement logic to update in adminProducts/*/productsOrder
+      // Find the specific adminProductId for the order from the current state
+      const orderToUpdate = orders.find(o => o.id === orderId);
+      if (!orderToUpdate) {
+        console.error("Order not found for orderId:", orderId);
+        alert("Failed to update order status: Order not found.");
+        return;
+      }
+      const adminProductId = orderToUpdate.adminProductId;
+
+      // Optimistically update the UI
       setOrders(prev => prev.map(o =>
         o.id === orderId
           ? { ...o, status: newStatus, ...deliveredAtUpdate, deliveredAt: optimisticDeliveredAt !== undefined ? optimisticDeliveredAt : o.deliveredAt }
           : o
       ));
+
+      const orderRef = doc(db, 'adminProducts', adminProductId, 'productsOrder', orderId);
+      await updateDoc(orderRef, {
+        status: newStatus,
+        ...deliveredAtUpdate,
+      });
+
+      // Update the user's order as well
+      // First, find the user's order document using the globalOrderId (which is orderId here)
+      const userOrdersCollectionRef = collection(db, 'users', userId, 'orders');
+      const q = query(userOrdersCollectionRef, where('globalOrderId', '==', orderId));
+      const userOrderSnapshot = await getDocs(q);
+
+      if (!userOrderSnapshot.empty) {
+        const userOrderIdToUpdate = userOrderSnapshot.docs[0].id;
+        const userOrderRef = doc(db, 'users', userId, 'orders', userOrderIdToUpdate);
+        await updateDoc(userOrderRef, {
+          status: newStatus,
+          ...deliveredAtUpdate,
+        });
+        console.log("User's order status updated successfully in Firestore!");
+      } else {
+        console.warn("User's order document not found with globalOrderId:", orderId, "for userId:", userId);
+      }
+
+      console.log("Order status updated successfully in Firestore!");
     } catch (err) {
       alert("Failed to update order status: " + (err instanceof Error ? err.message : String(err)));
     }
