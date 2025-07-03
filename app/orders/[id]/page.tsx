@@ -14,6 +14,7 @@ import { db } from "@/lib/firebase";
 import { useParams, useRouter } from 'next/navigation';
 import React from 'react';
 import { Star } from "lucide-react";
+import jsPDF from "jspdf";
 
 interface OrderItem {
   id: string;
@@ -355,6 +356,44 @@ export default function OrderDetailsPage() {
     }
   };
 
+  // PDF receipt download handler
+  const handleDownloadReceipt = () => {
+    if (!order) return;
+    const doc = new jsPDF();
+    doc.setFontSize(16);
+    doc.text("Sisig Lovers - Order Receipt", 10, 15);
+    doc.setFontSize(12);
+    doc.text(`Order #: ${order.orderNumber}`, 10, 30);
+    doc.text(`Order Date: ${order.orderDate ? formatDate(order.orderDate) : "-"}`, 10, 38);
+    doc.text(`Status: ${order.status}`, 10, 46);
+    doc.text(`Payment Method: ${order.paymentMethod}`, 10, 54);
+    doc.text(`Payment Status: ${order.paymentStatus}`, 10, 62);
+    doc.text(`Shipping Address:`, 10, 74);
+    doc.text(`${order.shippingAddress.firstName} ${order.shippingAddress.lastName}`, 14, 82);
+    doc.text(`${order.shippingAddress.address1 || ""} ${order.shippingAddress.address2 || ""}`, 14, 90);
+    doc.text(`${order.shippingAddress.city}, ${order.shippingAddress.region} ${order.shippingAddress.postalCode}`, 14, 98);
+    doc.text(`Phone: ${order.shippingAddress.phone}`, 14, 106);
+    doc.text(`\nItems:`, 10, 118);
+    let y = 126;
+    order.items.forEach((item, idx) => {
+      doc.text(
+        `${idx + 1}. ${item.name} x${item.quantity} - ${formatCurrency(item.price)}${item.size ? ` [${item.size}]` : ""}${item.color ? ` [${item.color}]` : ""}`,
+        14,
+        y
+      );
+      y += 8;
+    });
+    y += 4;
+    doc.text(`Subtotal: ${formatCurrency(order.subtotal)}`, 10, y);
+    y += 8;
+    doc.text(`Shipping: ${formatCurrency(order.shipping)}`, 10, y);
+    y += 8;
+    doc.text(`Tax: ${formatCurrency(order.tax)}`, 10, y);
+    y += 8;
+    doc.text(`Total: ${formatCurrency(order.total)}`, 10, y);
+    doc.save(`SisigLovers_Receipt_${order.orderNumber}.pdf`);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-[#101828] flex items-center justify-center text-[#60A5FA]">
@@ -694,6 +733,12 @@ export default function OrderDetailsPage() {
                   Call Us
                 </Button>
               </div>
+            </div>
+
+            <div className="flex items-center gap-2 mb-4">
+              <Button onClick={handleDownloadReceipt} variant="outline" size="sm" className="flex items-center gap-1">
+                <Download className="w-4 h-4 mr-1" /> Download Receipt
+              </Button>
             </div>
           </div>
         </div>
