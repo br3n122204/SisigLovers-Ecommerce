@@ -209,7 +209,7 @@ export default function GCashFakePage() {
   const handleDownloadReceipt = async () => {
     if (!receipt) return;
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-    doc.setFont('Roboto');
+    doc.setFont('helvetica', 'normal');
     // Set dark background
     doc.setFillColor(30, 30, 30);
     doc.rect(0, 0, 210, 297, 'F');
