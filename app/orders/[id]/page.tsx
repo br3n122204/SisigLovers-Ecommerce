@@ -714,24 +714,6 @@ export default function OrderDetailsPage() {
               </div>
             )}
 
-            {/* Need Help */}
-            <div className="bg-[#19223a] rounded-2xl shadow-lg p-4">
-              <div className="text-2xl font-semibold mb-4">Need Help?</div>
-              <p className="text-sm mb-4">
-                Questions about your order? We're here to help!
-              </p>
-              <div className="space-y-2">
-                <Button variant="outline" className="w-full justify-start">
-                  <Mail className="h-4 w-4 mr-2" />
-                  Contact Support
-                </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <Phone className="h-4 w-4 mr-2" />
-                  Call Us
-                </Button>
-              </div>
-            </div>
-
             <div className="flex items-center gap-2 mb-4">
               <Button onClick={handleDownloadReceipt} variant="outline" size="sm" className="flex items-center gap-1">
                 <Download className="w-4 h-4 mr-1" /> Download Receipt
