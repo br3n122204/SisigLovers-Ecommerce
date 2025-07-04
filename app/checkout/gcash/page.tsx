@@ -69,9 +69,11 @@ export default function GCashFakePage() {
   const [userOrderId, setUserOrderId] = useState<string | null>(null);
 
   // Use selected items and details from orderInfo if present
-  const selectedCartItems = orderInfo?.selectedIds
-    ? cartItems.filter(item => orderInfo.selectedIds.includes(item.id))
-    : cartItems;
+  const selectedCartItems = orderInfo?.items
+    ? orderInfo.items
+    : (orderInfo?.selectedIds
+        ? cartItems.filter(item => orderInfo.selectedIds.includes(item.id))
+        : cartItems);
   const deliveryDetails = orderInfo?.deliveryDetails || {
     firstName: user?.displayName?.split(" ")[0] || "",
     lastName: user?.displayName?.split(" ").slice(1).join(" ") || "",
@@ -95,20 +97,25 @@ export default function GCashFakePage() {
   }, []);
 
   const handlePay = async () => {
+    console.log("Pay button clicked");
     if (!user) {
+      console.log("No user logged in");
       toast({ title: "Error", description: "Please log in to place an order" });
       return;
     }
     if (selectedCartItems.length === 0) {
+      console.log("Cart is empty");
       toast({ title: "Error", description: "Your cart is empty" });
       return;
     }
     setIsProcessing(true);
     try {
-      const subtotal = selectedCartItems.reduce((total, item) => {
+      console.log("Starting payment process");
+      const subtotal = selectedCartItems.reduce((total: number, item: any) => {
         let price = typeof item.price === 'string' ? parseFloat(item.price.replace(/[^\d.]/g, '')) : Number(item.price);
         return total + (price * item.quantity);
       }, 0);
+      console.log("Subtotal calculated:", subtotal);
       const orderData = {
         userId: user.uid,
         userEmail: user.email,
@@ -119,7 +126,7 @@ export default function GCashFakePage() {
         subtotal,
         shipping: getShippingPrice(),
         tax: 0,
-        items: selectedCartItems.map(item => ({
+        items: selectedCartItems.map((item: any) => ({
           id: item.id,
           name: item.name,
           price: typeof item.price === "string"
@@ -141,28 +148,32 @@ export default function GCashFakePage() {
       cleanOrderData.dateOrdered = serverTimestamp();
       const adminProductId = cleanOrderData.items[0]?.id;
       if (!adminProductId) throw new Error('No adminProductId found in order items');
+      console.log("adminProductId:", adminProductId);
       const productsOrderRef = collection(db, 'adminProducts', adminProductId, 'productsOrder');
       const globalOrderDoc = await addDoc(productsOrderRef, {
         ...cleanOrderData,
         userId: user.uid,
       });
+      console.log("globalOrderDoc.id:", globalOrderDoc.id);
       for (const item of cleanOrderData.items) {
         await addDoc(collection(db, 'adminProducts', adminProductId, 'productsOrder', globalOrderDoc.id, 'orderDetails'), {
           ...item,
           dateOrdered: cleanOrderData.dateOrdered,
         });
+        console.log("Added order detail for item:", item.id);
       }
       const userOrdersRef = collection(db, 'users', user.uid, 'orders');
       const userOrderDoc = await addDoc(userOrdersRef, {
         ...cleanOrderData,
         globalOrderId: globalOrderDoc.id,
       });
+      console.log("userOrderDoc.id:", userOrderDoc.id);
       await updateDoc(doc(db, 'adminProducts', adminProductId, 'productsOrder', globalOrderDoc.id), {
         userOrderId: userOrderDoc.id,
       });
-      // Remove only checked-out items from cart
+      console.log("Updated global order with userOrderId");
       removeFromCartByIds(selectedCartItems.map(item => item.id));
-      // --- RECEIPT LOGIC ---
+      console.log("Removed checked-out items from cart");
       const receiptData = {
         orderNumber: cleanOrderData.orderNumber,
         date: new Date().toLocaleString(),
@@ -183,13 +194,12 @@ export default function GCashFakePage() {
       setReceipt(receiptData);
       setShowReceipt(true);
       setUserOrderId(userOrderDoc.id);
-      // Store receipt in Firebase under user's order
       await addDoc(collection(db, 'users', user.uid, 'orders', userOrderDoc.id, 'receipts'), receiptData);
-      setShowSuccess(true); // keep for legacy, but will not show overlay if receipt is open
-      // setTimeout(() => {
-      //   router.push("/orders");
-      // }, 1800);
+      console.log("Receipt saved to Firebase");
+      setShowSuccess(true);
+      console.log("Payment process complete, showing receipt");
     } catch (error) {
+      console.log("Error occurred:", error);
       toast({ title: "Error", description: "Error saving order: " + (error instanceof Error ? error.message : String(error)) });
     } finally {
       setIsProcessing(false);
