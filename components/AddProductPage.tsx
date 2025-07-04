@@ -17,6 +17,7 @@ export default function AddProductPage() {
     price: "",
     category: "",
     imageUrl: "",
+    color: "",
     sizes: {
       S: 0,
       M: 0,
@@ -73,6 +74,7 @@ export default function AddProductPage() {
         price: "",
         category: "",
         imageUrl: "",
+        color: "",
         sizes: {
           S: 0,
           M: 0,
@@ -160,6 +162,20 @@ export default function AddProductPage() {
               placeholder="https://example.com/image.jpg"
             />
           </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="color" className="text-[#8ec0ff]">Color</Label>
+            <Input
+              id="color"
+              name="color"
+              type="text"
+              required
+              value={formData.color}
+              onChange={handleInputChange}
+              className="bg-[#22304a] border-[#22304a] text-white placeholder-[#8ec0ff] focus:border-[#3390ff]"
+              placeholder="Enter product color (e.g. Black, Red)"
+            />
+          </div>
         </div>
 
         <div className="space-y-2">
@@ -213,6 +229,7 @@ export default function AddProductPage() {
                 price: "",
                 category: "",
                 imageUrl: "",
+                color: "",
                 sizes: {
                   S: 0,
                   M: 0,

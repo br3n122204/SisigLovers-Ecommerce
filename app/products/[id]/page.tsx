@@ -40,6 +40,7 @@ export default function ProductDetailPage() {
   const imageContainerRef = useRef<HTMLDivElement>(null);
   const [ratings, setRatings] = useState<any[]>([]);
   const [selectedStarFilter, setSelectedStarFilter] = useState<number | 'all' | 'comments' | 'media' | 'local'>('all');
+  const [selectedColor, setSelectedColor] = useState<string | undefined>(undefined);
 
   // Calculate average rating and total reviews
   const totalRatings = ratings.length;
@@ -93,6 +94,18 @@ export default function ProductDetailPage() {
         alert('Please select a size.');
         return;
       }
+      let colorToUse = selectedColor;
+      if (product.color && !selectedColor) {
+        // If only one color, auto-select it
+        const colorOptions = product.color.split(',').map((c: string) => c.trim()).filter(Boolean);
+        if (colorOptions.length === 1) {
+          colorToUse = colorOptions[0];
+          setSelectedColor(colorToUse);
+        } else {
+          alert('Please select a color.');
+          return;
+        }
+      }
       // Always use the first image for cart
       const image = product?.imageUrls && product.imageUrls.length > 0
         ? product.imageUrls[0]
@@ -104,7 +117,19 @@ export default function ProductDetailPage() {
         price: String(product?.price),
         quantity: Number(quantity),
         selectedSize: String(selectedSize),
+        selectedColor: colorToUse ? String(colorToUse) : undefined,
+        color: product.color,
       }));
+      console.log('Adding to localStorage (pendingCartItem):', {
+        id: productId,
+        name: product?.name,
+        image,
+        price: String(product?.price),
+        quantity: Number(quantity),
+        selectedSize: String(selectedSize),
+        selectedColor: colorToUse ? String(colorToUse) : undefined,
+        color: product.color,
+      });
       router.push('/login');
       return;
     }
@@ -112,11 +137,32 @@ export default function ProductDetailPage() {
       alert('Please select a size.');
       return;
     }
+    let colorToUse = selectedColor;
+    if (product.color && !selectedColor) {
+      const colorOptions = product.color.split(',').map((c: string) => c.trim()).filter(Boolean);
+      if (colorOptions.length === 1) {
+        colorToUse = colorOptions[0];
+        setSelectedColor(colorToUse);
+      } else {
+        alert('Please select a color.');
+        return;
+      }
+    }
     if (product && selectedSize) {
       // Always use the first image for cart
       const image = product.imageUrls && product.imageUrls.length > 0
         ? product.imageUrls[0]
         : product.imageUrl || product.image || '/images/placeholder.jpg';
+      console.log('Adding to cart:', {
+        id: productId,
+        name: product.name,
+        image,
+        price: String(product.price),
+        quantity: Number(quantity),
+        selectedSize: String(selectedSize),
+        selectedColor: colorToUse ? String(colorToUse) : undefined,
+        color: product.color,
+      });
       addToCart({
         id: productId,
         name: product.name,
@@ -124,8 +170,10 @@ export default function ProductDetailPage() {
         price: String(product.price),
         quantity: Number(quantity),
         selectedSize: String(selectedSize),
+        selectedColor: colorToUse ? String(colorToUse) : undefined,
+        color: product.color,
       });
-      alert(`${quantity} ${product.name} (${selectedSize}) added to cart!`);
+      alert(`${quantity} ${product.name} (${selectedSize}${colorToUse ? ', ' + colorToUse : ''}) added to cart!`);
     }
   };
 
@@ -269,6 +317,9 @@ export default function ProductDetailPage() {
                 )}
               </h1>
               <p className="text-xl text-[#60A5FA] font-bold mb-4">₱{typeof product.price === 'number' ? product.price.toLocaleString() : Number(product.price).toLocaleString()}</p>
+              {product.color && (
+                <p className="text-md text-[#60A5FA] font-semibold mb-2">Color: {product.color}</p>
+              )}
               <p className="text-[#60A5FA] mb-6 leading-relaxed">{product.description}</p>
               {product.sizes && product.sizes.length > 0 && (
                 <div className="mb-6">
@@ -289,6 +340,29 @@ export default function ProductDetailPage() {
                           disabled={isOutOfStock}
                         >
                           <span className={isOutOfStock ? 'line-through' : ''}>{sizeLabel}</span>
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              {/* Color Selection */}
+              {product.color && (
+                <div className="mb-6">
+                  <h3 className="text-md font-semibold text-[#60A5FA] mb-2">COLOR{product.color.includes(',') ? 'S' : ''}</h3>
+                  <div className="flex flex-wrap gap-2">
+                    {product.color.split(',').map((colorOption: string) => {
+                      const colorTrimmed = colorOption.trim();
+                      return (
+                        <Button
+                          key={colorTrimmed}
+                          variant="outline"
+                          onClick={() => setSelectedColor(colorTrimmed)}
+                          className={`border-[#60A5FA] text-[#60A5FA] transition-colors
+                            ${selectedColor === colorTrimmed ? 'bg-[#60A5FA] text-[#101828]' : 'hover:bg-[#60A5FA] hover:text-[#101828]'}
+                          `}
+                        >
+                          {colorTrimmed}
                         </Button>
                       );
                     })}
@@ -328,6 +402,17 @@ export default function ProductDetailPage() {
                             alert('Please select a size.');
                             return;
                           }
+                          let colorToUse = selectedColor;
+                          if (product.color && !selectedColor) {
+                            const colorOptions = product.color.split(',').map((c: string) => c.trim()).filter(Boolean);
+                            if (colorOptions.length === 1) {
+                              colorToUse = colorOptions[0];
+                              setSelectedColor(colorToUse);
+                            } else {
+                              alert('Please select a color.');
+                              return;
+                            }
+                          }
                           localStorage.setItem('pendingCartItem', JSON.stringify({
                             id: productId,
                             name: product?.name,
@@ -335,8 +420,19 @@ export default function ProductDetailPage() {
                             price: String(product?.price),
                             quantity: Number(quantity),
                             selectedSize: String(selectedSize),
-                            buyNow: true,
+                            selectedColor: colorToUse ? String(colorToUse) : undefined,
+                            color: product.color,
                           }));
+                          console.log('Adding to localStorage (pendingCartItem):', {
+                            id: productId,
+                            name: product?.name,
+                            image: mainImage,
+                            price: String(product?.price),
+                            quantity: Number(quantity),
+                            selectedSize: String(selectedSize),
+                            selectedColor: colorToUse ? String(colorToUse) : undefined,
+                            color: product.color,
+                          });
                           router.push('/login');
                           return;
                         }
@@ -344,16 +440,31 @@ export default function ProductDetailPage() {
                           alert('Please select a size.');
                           return;
                         }
+                        let colorToUse = selectedColor;
+                        if (product.color && !selectedColor) {
+                          const colorOptions = product.color.split(',').map((c: string) => c.trim()).filter(Boolean);
+                          if (colorOptions.length === 1) {
+                            colorToUse = colorOptions[0];
+                            setSelectedColor(colorToUse);
+                          } else {
+                            alert('Please select a color.');
+                            return;
+                          }
+                        }
                         if (product && selectedSize) {
-                          addToCart({
+                          // Do NOT add to cart. Instead, pass product info to checkout page (e.g., via localStorage or query string)
+                          localStorage.setItem('pendingBuyNowItem', JSON.stringify({
                             id: productId,
                             name: product.name,
                             image: mainImage,
                             price: String(product.price),
                             quantity: Number(quantity),
                             selectedSize: String(selectedSize),
-                          });
-                          router.push('/checkout');
+                            selectedColor: colorToUse ? String(colorToUse) : undefined,
+                            color: product.color,
+                            buyNow: true,
+                          }));
+                          router.push('/checkout?buyNow=1');
                         }
                       }}
                     >

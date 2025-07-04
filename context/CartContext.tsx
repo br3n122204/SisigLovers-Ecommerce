@@ -14,6 +14,7 @@ export interface CartItem {
   quantity: number;
   selectedSize?: string; // Optional, if products have sizes
   color?: string; // Optional, if products have colors
+  selectedColor?: string; // Optional, for user-selected color
 }
 
 // Define the shape of the CartContext
@@ -70,6 +71,14 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const addToCart = (productToAdd: CartItem) => {
+    // If productToAdd has color but not selectedColor, and only one color, set selectedColor
+    if (!productToAdd.selectedColor && productToAdd.color && typeof productToAdd.color === 'string') {
+      const colorOptions = productToAdd.color.split(',').map((c: string) => c.trim()).filter(Boolean);
+      if (colorOptions.length === 1) {
+        productToAdd.selectedColor = colorOptions[0];
+      }
+    }
+    console.log('[CartContext] addToCart:', productToAdd);
     setCartItems((prevItems) => {
       const existingItem = prevItems.find(item => item.id === productToAdd.id && item.selectedSize === productToAdd.selectedSize);
       let newItems;
@@ -86,8 +95,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       if (user) {
         const cartRef = collection(db, 'users', user.uid, 'cartProducts');
         const docRef = doc(cartRef, `${productToAdd.id}-${productToAdd.selectedSize || 'default'}`);
-        console.log('[addToCart] User:', user.uid, 'Adding:', productToAdd, 'To:', `users/${user.uid}/cartProducts/${productToAdd.id}-${productToAdd.selectedSize || 'default'}`);
-        setDoc(docRef, { ...productToAdd, quantity: existingItem ? (existingItem.quantity + productToAdd.quantity) : (productToAdd.quantity || 1) })
+        const firestoreItem = { ...productToAdd, quantity: existingItem ? (existingItem.quantity + productToAdd.quantity) : (productToAdd.quantity || 1) };
+        if (firestoreItem.selectedColor === undefined) {
+          delete firestoreItem.selectedColor;
+        }
+        setDoc(docRef, firestoreItem)
           .then(() => {
             console.log('[addToCart] Successfully added to Firestore');
           })

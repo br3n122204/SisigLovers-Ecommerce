@@ -21,6 +21,7 @@ export default function AddProductPage() {
   const [brand, setBrand] = useState("");
   const [isFeatured, setIsFeatured] = useState(false);
   const [sizes, setSizes] = useState([{ size: '', stock: '' }]);
+  const [color, setColor] = useState("");
   const brandOptions = ["Strap", "Richboyz", "Charlotte Folk", "MN+LA"];
   const router = useRouter();
   const { user } = useAuth();
@@ -81,6 +82,7 @@ export default function AddProductPage() {
         name,
         description,
         price: Number(price),
+        color,
         imageUrls: selectedImages.filter(Boolean),
         brand: brand || null,
         isFeatured,
@@ -98,6 +100,7 @@ export default function AddProductPage() {
       setDescription("");
       setPrice("");
       setStock("");
+      setColor("");
       setSelectedImages([]);
       setBrand("");
       setIsFeatured(false);
@@ -273,6 +276,18 @@ export default function AddProductPage() {
               </div>
             ))}
             <button type="button" onClick={() => setSizes([...sizes, { size: '', stock: '' }])} className="mt-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md font-semibold">+ Add Size</button>
+          </div>
+          <div className="mb-4">
+            <label htmlFor="color" className="block text-[#60A5FA] font-medium mb-2">Color</label>
+            <input
+              id="color"
+              type="text"
+              value={color}
+              onChange={e => setColor(e.target.value)}
+              className="w-full px-4 py-2 rounded-md bg-[#101828] text-[#60A5FA] border border-[#22304a] focus:outline-none focus:ring-2 focus:ring-[#60A5FA]"
+              placeholder="Enter product color (e.g. Black, Red)"
+              required
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-[#8ec0ff] mb-1">Brand</label>

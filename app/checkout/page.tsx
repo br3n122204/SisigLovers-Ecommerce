@@ -36,14 +36,31 @@ export default function CheckoutPage() {
 
   // Get selected item IDs from query string (treat as strings)
   const selectedIdsParam = searchParams.get('selected');
+  const buyNowParam = searchParams.get('buyNow');
   // Support composite key: id-selectedSize
   function getCartItemKey(item: CartItem) {
     return item.selectedSize ? `${item.id}-${item.selectedSize}` : String(item.id);
   }
-  const selectedIds = selectedIdsParam ? selectedIdsParam.split(',') : cartItems.map(getCartItemKey);
-  let selectedCartItems = cartItems.filter(item => selectedIds.includes(getCartItemKey(item)));
-  if (selectedCartItems.length === 0 && cartItems.length > 0) {
-    selectedCartItems = cartItems;
+  let selectedCartItems: CartItem[] = [];
+  if (buyNowParam === '1') {
+    // Load buy now item from localStorage
+    if (typeof window !== 'undefined') {
+      const buyNowItemRaw = localStorage.getItem('pendingBuyNowItem');
+      if (buyNowItemRaw) {
+        try {
+          const buyNowItem = JSON.parse(buyNowItemRaw);
+          selectedCartItems = [buyNowItem];
+        } catch (e) {
+          selectedCartItems = [];
+        }
+      }
+    }
+  } else {
+    const selectedIds = selectedIdsParam ? selectedIdsParam.split(',') : cartItems.map(getCartItemKey);
+    selectedCartItems = cartItems.filter(item => selectedIds.includes(getCartItemKey(item)));
+    if (selectedCartItems.length === 0 && cartItems.length > 0) {
+      selectedCartItems = cartItems;
+    }
   }
 
   const [addresses, setAddresses] = useState<any[]>([]);
@@ -199,6 +216,7 @@ export default function CheckoutPage() {
     }
 
     try {
+      console.log('[Checkout] selectedCartItems:', selectedCartItems);
       const subtotal = selectedCartItems.reduce((total, item) => {
         let price = typeof item.price === 'string' ? parseFloat(item.price.replace(/[^\d.]/g, '')) : Number(item.price);
         return total + (price * item.quantity);
@@ -213,17 +231,31 @@ export default function CheckoutPage() {
         subtotal,
         shipping: getShippingPrice(),
         tax: 0,
-        items: selectedCartItems.map(item => ({
-          id: item.id,
-          name: item.name,
-          price: typeof item.price === "string"
-            ? parseFloat(item.price.replace(/[^\d.]/g, ''))
-            : item.price,
-          quantity: item.quantity,
-          image: item.image,
-          size: item.selectedSize,
-          color: item.color || 'N/A'
-        })),
+        items: selectedCartItems.map(item => {
+          let color = item.selectedColor || item.color;
+          // Try to infer color from product if missing
+          if (!color && item.id) {
+            // Try to get the product from cartItems or selectedCartItems
+            const product = cartItems.find(p => p.id === item.id) || item;
+            if (product && product.color && typeof product.color === 'string') {
+              const colorOptions = product.color.split(',').map((c: string) => c.trim()).filter(Boolean);
+              if (colorOptions.length === 1) {
+                color = colorOptions[0];
+              }
+            }
+          }
+          return {
+            id: item.id,
+            name: item.name,
+            price: typeof item.price === "string"
+              ? parseFloat(item.price.replace(/[^\d.]/g, ''))
+              : item.price,
+            quantity: item.quantity,
+            image: item.image,
+            size: item.selectedSize,
+            color: color || 'N/A',
+          };
+        }),
         shippingAddress: deliveryDetails,
         billingAddress: billingDetailsArg || deliveryDetails,
         paymentMethod: paymentMethod,
@@ -791,9 +823,9 @@ export default function CheckoutPage() {
                 
                 {selectedCartItems.map((item) => (
                   <div key={`${item.id}-${item.selectedSize}`} className="flex items-center space-x-4">
-                    <div className="relative w-24 h-24 flex-shrink-0 rounded-md overflow-hidden border border-gray-200">
+                    <div className="relative w-24 h-24 flex-shrink-0 rounded-md overflow-hidden border border-gray-200 bg-white flex items-center justify-center">
                       {item.image ? (
-                        <Image src={item.image} alt={item.name} width={96} height={96} className="object-contain" />
+                        <Image src={item.image} alt={item.name} width={96} height={96} className="object-cover mx-auto" style={{ maxWidth: '100%', maxHeight: '100%' }} />
                       ) : (
                         <div className="w-24 h-24 flex items-center justify-center bg-[#19223a] text-[#60A5FA] text-xs">No Image</div>
                       )}
@@ -808,6 +840,11 @@ export default function CheckoutPage() {
                           Size: {typeof item.selectedSize === 'object' && item.selectedSize !== null && 'size' in item.selectedSize
                             ? (item.selectedSize as any).size
                             : item.selectedSize}
+                        </p>
+                      )}
+                      {item.selectedColor && (
+                        <p className="text-sm text-[#60A5FA]">
+                          Color: {item.selectedColor}
                         </p>
                       )}
                     </div>

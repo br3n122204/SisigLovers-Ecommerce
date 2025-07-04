@@ -38,6 +38,7 @@ interface OrderItem {
   image: string;
   size?: string;
   color?: string;
+  selectedColor?: string;
 }
 
 interface Address {
@@ -410,20 +411,15 @@ export default function OrdersPage() {
                                   <p className="font-medium text-[#60A5FA] truncate">{item.name}</p>
                                   <p className="text-sm text-[#60A5FA]">
                                     Qty: {item.quantity}
-                                    {item.size && (
-                                      <>
-                                        {typeof item.size === 'object' && item.size !== null && 'size' in item.size
-                                          ? (item.size as any).size
-                                          : item.size}
-                                      </>
-                                    )}
-                                    {item.color && (
-                                      <>
-                                        {typeof item.color === 'object' && item.color !== null && 'color' in item.color
-                                          ? (item.color as any).color
-                                          : item.color}
-                                      </>
-                                    )}
+                                    {item.size ? ` - Size: ${typeof item.size === 'object' && item.size !== null && 'size' in item.size ? (item.size as any).size : item.size}` : ''}
+                                    {(() => {
+                                      const colorVal = item.color || item.selectedColor;
+                                      if (!colorVal) return '';
+                                      if (typeof colorVal === 'object' && colorVal !== null && 'color' in colorVal) {
+                                        return ` - Color: ${(colorVal as any).color}`;
+                                      }
+                                      return ` - Color: ${colorVal}`;
+                                    })()}
                                   </p>
                                   <p className="text-sm font-medium text-[#60A5FA]">
                                     {formatCurrency(item.price)}
