@@ -424,13 +424,24 @@ export default function CheckoutPage() {
         }
       } else {
         // Pass full order info to GCash page via query string
-        const orderInfo = encodeURIComponent(JSON.stringify({
-          deliveryDetails,
-          billingDetails: billingDetails,
-          shippingMethod,
-          selectedIds: selectedCartItems.map(item => item.id),
-          amount: totalAmount
-        }));
+        let orderInfo;
+        if (buyNowParam === '1') {
+          orderInfo = encodeURIComponent(JSON.stringify({
+            deliveryDetails,
+            billingDetails: billingDetails,
+            shippingMethod,
+            items: selectedCartItems, // pass the full item for Buy Now
+            amount: totalAmount
+          }));
+        } else {
+          orderInfo = encodeURIComponent(JSON.stringify({
+            deliveryDetails,
+            billingDetails: billingDetails,
+            shippingMethod,
+            selectedIds: selectedCartItems.map(item => item.id),
+            amount: totalAmount
+          }));
+        }
         router.push(`/checkout/gcash?orderInfo=${orderInfo}`);
         return;
       }
