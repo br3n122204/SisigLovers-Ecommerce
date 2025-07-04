@@ -90,8 +90,8 @@ export default function Header() {
               alt="DPT ONE Logo"
               width={60}
               height={60}
-              className="h-auto"
               priority
+              style={{ width: "60px !important", height: "60px !important" }}
             />
           </Link>
           {/* Spacer to maximize space on mobile */}

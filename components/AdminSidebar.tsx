@@ -19,7 +19,10 @@ export default function AdminSidebar({ activeSection, onSectionChange, onLogout 
         <img
           src="https://ltfzekatcjpltiighukw.supabase.co/storage/v1/object/public/product-images/DPT%20ONE%20LOGO/DPTONELOGO.png"
           alt="DPT ONE Logo"
+          width="56"
+          height="56"
           className="w-14 h-14 object-contain mr-3 bg-transparent"
+          style={{ width: "56px", height: "56px" }}
         />
         <span className="text-lg font-bold text-[#8ec0ff] tracking-wide">DPT ONE</span>
       </div>
