@@ -186,7 +186,7 @@ export default function LoginPage() {
       <div className="w-full max-w-md p-10 space-y-6 bg-[#101828] rounded-2xl shadow-2xl border border-[#60A5FA] relative text-[#60A5FA]">
         <button onClick={() => router.push('/')} className="absolute top-4 right-4 text-[#60A5FA] hover:text-white text-2xl font-bold">&times;</button>
         <div className="flex justify-center mb-2">
-          <Image src="https://ltfzekatcjpltiighukw.supabase.co/storage/v1/object/public/product-images/DPT%20ONE%20LOGO/DPTONELOGO.png" alt="DPT ONE Logo" width={90} height={90} className="rounded-full shadow-lg" />
+          <Image src="https://ltfzekatcjpltiighukw.supabase.co/storage/v1/object/public/product-images/DPT%20ONE%20LOGO/DPTONELOGO.png" alt="DPT ONE Logo" width={90} height={90} className="rounded-full shadow-lg" priority style={{ width: "90px", height: "90px" }} />
         </div>
         <h2 className="text-3xl font-extrabold mb-2 text-center text-[#60A5FA] tracking-tight">{isRegistering ? "Sign Up" : "Sign In"}</h2>
         <p className="text-center text-[#60A5FA] mb-6 text-base">{isRegistering ? "Create your account to get started." : "Log in to your account."}</p>

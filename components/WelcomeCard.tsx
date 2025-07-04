@@ -57,6 +57,7 @@ export default function WelcomeCard() {
               height={80}
               className="rounded-full drop-shadow-lg bg-white"
               priority
+              style={{ width: "80px", height: "80px" }}
             />
           </div>
           <h2 className="text-3xl font-extrabold mb-2 text-center">Welcome to DPT ONE!</h2>

@@ -238,7 +238,7 @@ export default function BrandPage() {
               <div key={product.id} className="bg-[#19223a] rounded-2xl shadow-lg p-6 flex flex-col items-center w-full max-w-xs mx-auto">
                 <div className="relative w-[220px] h-[180px] flex items-center justify-center">
                   <Link href={`/products/${product.id}`}> 
-                    <Image src={product.imageUrls?.[0] || product.image || "/placeholder.jpg"} alt={product.name} width={200} height={160} className="object-contain rounded-lg bg-white" />
+                    <Image src={product.imageUrls?.[0] || product.image || "/placeholder.jpg"} alt={product.name} width={200} height={160} className="object-contain rounded-lg bg-white" priority style={{ width: "200px", height: "160px" }} />
                   </Link>
                   {(
                     (typeof product.totalStock === 'number' && product.totalStock === 0) ||

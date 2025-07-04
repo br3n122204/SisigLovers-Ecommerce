@@ -30,7 +30,7 @@ export default function WelcomeAnimation() {
         {/* Right: Welcome Message */}
         <div className="flex flex-col items-center justify-center w-full md:w-1/2 p-8">
           <div className="mb-6 animate-bounce-slow">
-            <Image src="https://ltfzekatcjpltiighukw.supabase.co/storage/v1/object/public/product-images/DPT%20ONE%20LOGO/DPTONELOGO.png" alt="DPT ONE Logo" width={100} height={100} className="rounded-full shadow-lg" priority />
+            <Image src="https://ltfzekatcjpltiighukw.supabase.co/storage/v1/object/public/product-images/DPT%20ONE%20LOGO/DPTONELOGO.png" alt="DPT ONE Logo" width={100} height={100} className="rounded-full shadow-lg" priority style={{ width: "100px", height: "100px" }} />
           </div>
           <DialogTitle asChild>
             <h1 className="text-3xl font-extrabold text-[#001F3F] mb-2 text-center drop-shadow-lg">Welcome to DPT ONE!</h1>
