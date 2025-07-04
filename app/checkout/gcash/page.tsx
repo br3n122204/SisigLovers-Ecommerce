@@ -367,7 +367,7 @@ export default function GCashFakePage() {
             <ol className="list-decimal list-inside text-sm text-[#93c5fd]">
               <li>Open your GCash app (this is a demo).</li>
               <li>Scan the QR or enter the reference number.</li>
-              <li>Enter the amount and confirm.</li>
+              <li>Press confirm to continue.</li>
             </ol>
           </div>
           {/* Pay Button */}
@@ -377,7 +377,7 @@ export default function GCashFakePage() {
             disabled={Boolean((showSuccess && !showReceipt) || isProcessing)}
             style={{ zIndex: 10, position: 'relative' }}
           >
-            {isProcessing ? "Processing..." : "Pay"}
+            {isProcessing ? "Processing..." : "Confirm"}
           </Button>
         </div>
         {/* Success Modal/Animation */}
