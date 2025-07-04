@@ -172,7 +172,7 @@ export default function GCashFakePage() {
         userOrderId: userOrderDoc.id,
       });
       console.log("Updated global order with userOrderId");
-      removeFromCartByIds(selectedCartItems.map(item => item.id));
+      removeFromCartByIds(selectedCartItems.map((item: any) => item.id));
       console.log("Removed checked-out items from cart");
       const receiptData = {
         orderNumber: cleanOrderData.orderNumber,
@@ -313,6 +313,16 @@ export default function GCashFakePage() {
     return `${mm}/${dd}/${yyyy}`;
   }
 
+  // Redirect to orders after payment success
+  useEffect(() => {
+    if (showSuccess && !showReceipt) {
+      const timeout = setTimeout(() => {
+        router.push("/orders");
+      }, 2000); // 2 seconds
+      return () => clearTimeout(timeout);
+    }
+  }, [showSuccess, showReceipt, router]);
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#101828] text-[#60A5FA] px-4">
       <div className="bg-[#19223a] p-0 rounded-xl shadow-lg max-w-md w-full text-center relative overflow-hidden">
@@ -361,13 +371,18 @@ export default function GCashFakePage() {
             </ol>
           </div>
           {/* Pay Button */}
-          <Button className="w-full text-base font-bold py-2 rounded-lg bg-[#60A5FA] text-[#101828] hover:bg-[#38bdf8] transition" onClick={handlePay} disabled={showSuccess || isProcessing}>
+          <Button
+            className="w-full text-base font-bold py-2 rounded-lg bg-[#60A5FA] text-[#101828] hover:bg-[#38bdf8] transition"
+            onClick={handlePay}
+            disabled={Boolean((showSuccess && !showReceipt) || isProcessing)}
+            style={{ zIndex: 10, position: 'relative' }}
+          >
             {isProcessing ? "Processing..." : "Pay"}
           </Button>
         </div>
         {/* Success Modal/Animation */}
         {showSuccess && !showReceipt && (
-          <div className="absolute inset-0 bg-[#101828cc] flex flex-col items-center justify-center z-10 animate-fade-in">
+          <div className="absolute inset-0 bg-[#101828cc] flex flex-col items-center justify-center z-10 animate-fade-in pointer-events-auto">
             <div className="bg-white rounded-full p-4 mb-4 shadow-lg">
               <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="24" fill="#60A5FA"/><path d="M16 25l6 6 10-12" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </div>
@@ -377,7 +392,7 @@ export default function GCashFakePage() {
         )}
         {/* Receipt Modal */}
         {showReceipt && receipt && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 pointer-events-auto">
             <div className="bg-white text-black rounded-lg shadow-lg p-8 max-w-2xl w-full relative">
               <button onClick={() => { setShowReceipt(false); router.push("/orders"); }} className="absolute top-2 right-2 text-gray-500 hover:text-gray-800">✕</button>
               <div className="flex justify-end mb-2">
