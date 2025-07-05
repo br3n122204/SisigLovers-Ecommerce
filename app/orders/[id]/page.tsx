@@ -360,40 +360,118 @@ export default function OrderDetailsPage() {
   // PDF receipt download handler
   const handleDownloadReceipt = () => {
     if (!order) return;
-    const doc = new jsPDF();
-    doc.setFontSize(16);
-    doc.text("Sisig Lovers - Order Receipt", 10, 15);
-    doc.setFontSize(12);
-    doc.text(`Order #: ${order.orderNumber}`, 10, 30);
-    doc.text(`Order Date: ${order.orderDate ? formatDate(order.orderDate) : "-"}`, 10, 38);
-    doc.text(`Status: ${order.status}`, 10, 46);
-    doc.text(`Payment Method: ${order.paymentMethod}`, 10, 54);
-    doc.text(`Payment Status: ${order.paymentStatus}`, 10, 62);
-    doc.text(`Shipping Address:`, 10, 74);
-    doc.text(`${order.shippingAddress.firstName} ${order.shippingAddress.lastName}`, 14, 82);
-    doc.text(`${order.shippingAddress.address1 || ""} ${order.shippingAddress.address2 || ""}`, 14, 90);
-    doc.text(`${order.shippingAddress.city}, ${order.shippingAddress.region} ${order.shippingAddress.postalCode}`, 14, 98);
-    doc.text(`Phone: ${order.shippingAddress.phone}`, 14, 106);
-    doc.text(`\nItems:`, 10, 118);
-    let y = 126;
-    order.items.forEach((item, idx) => {
-      doc.text(
-        `${idx + 1}. ${item.name} x${item.quantity} - ${formatCurrency(item.price)}${item.size ? ` [${item.size}]` : ""}${item.color ? ` [${item.color}]` : ""}`,
-        14,
-        y
-      );
-      y += 8;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    doc.setFont('helvetica', 'normal');
+    // Set dark background
+    doc.setFillColor(30, 30, 30);
+    doc.rect(0, 0, 210, 297, 'F');
+
+    // FROM section
+    doc.setTextColor(100, 150, 255); // blue
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.text('FROM', 12, 18);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'normal');
+    doc.text('DPT ONE', 12, 24);
+
+    // TO section
+    doc.setTextColor(100, 150, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.text('TO', 12, 34);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'normal');
+    doc.text(`${order.shippingAddress.firstName} ${order.shippingAddress.lastName}`, 12, 40);
+    doc.text(order.shippingAddress.address1 || '', 12, 45);
+    doc.text(`${order.shippingAddress.city?.toUpperCase() || ''}, ${order.shippingAddress.region} ${order.shippingAddress.postalCode}`, 12, 50);
+
+    // RECEIPT title
+    doc.setTextColor(100, 150, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(22);
+    doc.text('RECEIPT', 198, 22, { align: 'right' });
+
+    // Receipt #: and Date
+    doc.setFontSize(10);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Receipt #:', 140, 32);
+    doc.text('Receipt Date:', 140, 38);
+    doc.setFont('helvetica', 'normal');
+    doc.text(order.orderNumber, 198, 32, { align: 'right' });
+    doc.text(formatDateMMDDYYYY(new Date()), 198, 38, { align: 'right' });
+
+    // Table header
+    let y = 60;
+    doc.setFillColor(30, 30, 30);
+    doc.setDrawColor(100, 150, 255);
+    doc.setTextColor(100, 150, 255);
+    doc.setFont('helvetica', 'bold');
+    doc.rect(12, y - 6, 186, 8, 'S');
+    doc.text('QTY', 16, y);
+    doc.text('Description', 36, y);
+    doc.text('Unit Price', 120, y, { align: 'right' });
+    doc.text('Amount', 196, y, { align: 'right' });
+    y += 6;
+    doc.setDrawColor(255, 255, 255);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont('helvetica', 'normal');
+    // Table rows
+    order.items.forEach((item) => {
+      doc.text(String(item.quantity), 16, y);
+      doc.text(item.name, 36, y);
+      doc.text(`PHP ${item.price.toFixed(2)}`, 120, y, { align: 'right' });
+      doc.text(`PHP ${(item.price * item.quantity).toFixed(2)}`, 196, y, { align: 'right' });
+      y += 7;
     });
-    y += 4;
-    doc.text(`Subtotal: ${formatCurrency(order.subtotal)}`, 10, y);
+    // Subtotal, Shipping Fee, Total
     y += 8;
-    doc.text(`Shipping: ${formatCurrency(order.shipping)}`, 10, y);
-    y += 8;
-    doc.text(`Tax: ${formatCurrency(order.tax)}`, 10, y);
-    y += 8;
-    doc.text(`Total: ${formatCurrency(order.total)}`, 10, y);
-    doc.save(`SisigLovers_Receipt_${order.orderNumber}.pdf`);
-  };
+    doc.setFont('helvetica', 'bold');
+    doc.text('Subtotal:', 150, y, { align: 'right' });
+    doc.text(`PHP ${order.subtotal.toFixed(2)}`, 196, y, { align: 'right' });
+    y += 7;
+    doc.text('Shipping Fee:', 150, y, { align: 'right' });
+    doc.text(`PHP ${order.shipping.toFixed(2)}`, 196, y, { align: 'right' });
+    y += 7;
+    doc.text('Total:', 150, y, { align: 'right' });
+    doc.text(`PHP ${order.total.toFixed(2)}`, 196, y, { align: 'right' });
+
+    // Terms and conditions
+    y += 15;
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(100, 150, 255);
+    doc.text('TERMS AND CONDITIONS', 12, y);
+    y += 6;
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(255, 255, 255);
+    doc.text('Payment is due within 14 days of project completion.', 12, y);
+    y += 5;
+    doc.text('All checks to be made out to DPT ONE.', 12, y);
+    y += 5;
+    doc.text('Thank you for your business!', 12, y);
+
+    // Footer - Contact Us
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(100, 150, 255);
+    doc.text('Contact Us', 12, 285);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(255, 255, 255);
+    doc.text('sisiglovers@gmail.com', 12, 290);
+    doc.text('+639670095657', 12, 295);
+    doc.text('Cebu, Philippines', 60, 295);
+    doc.save(`DPTONE_Receipt_${order.orderNumber}.pdf`);
+  }
+
+  // Helper to format date as MM/DD/YYYY
+  function formatDateMMDDYYYY(date: Date | undefined) {
+    if (!date) return '-';
+    const d = new Date(date);
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const yyyy = d.getFullYear();
+    return `${mm}/${dd}/${yyyy}`;
+  }
 
   if (loading) {
     return (
