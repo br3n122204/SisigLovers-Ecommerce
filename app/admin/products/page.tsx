@@ -4,6 +4,7 @@ import { db } from "@/lib/firebase";
 import { collection, getDocs, doc, updateDoc, deleteDoc } from "firebase/firestore";
 import { Button } from "@/components/ui/button";
 
+
 interface Product {
   id: string;
   name: string;

@@ -13,7 +13,7 @@ import { collection, query, where, orderBy, getDocs, onSnapshot, addDoc, updateD
 import { db } from "@/lib/firebase";
 import { Calendar, Package, Search, Filter, Eye, Download } from "lucide-react";
 import { useRouter } from 'next/navigation';
-import { toast } from '@/hooks/use-toast';
+
 
 interface Order {
   id: string;
@@ -245,7 +245,6 @@ export default function OrdersPage() {
         // TODO: Implement logic to add to adminProducts/*/productsOrder/{orderId}/orderDetails
       }
       setActionCompleted(prev => ({ ...prev, [order.id]: true }));
-      toast && toast({ title: 'Return/Refund submitted', description: 'Your request has been recorded.' });
     } catch (err) {
       alert('Failed to update order status. Please try again.');
     }
@@ -264,7 +263,6 @@ export default function OrdersPage() {
         // TODO: Implement logic to update in adminProducts/*/productsOrder
       }
       setActionCompleted(prev => ({ ...prev, [order.id]: true }));
-      toast && toast({ title: 'Thank you for your rating!', description: 'Your feedback has been recorded.' });
     } catch (err) {
       alert('Failed to update order status. Please try again.');
     }
@@ -354,7 +352,7 @@ export default function OrdersPage() {
             </p>
             {!searchTerm && statusFilter === "all" && (
               <div className="mt-6">
-                <Link href="/products">
+                <Link href="/#featured">
                   <Button className="bg-[#60A5FA] text-[#101828] hover:bg-[#3380c0]">Browse Products</Button>
                 </Link>
               </div>

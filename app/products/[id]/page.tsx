@@ -11,6 +11,8 @@ import { doc, getDoc, collection, query, orderBy, getDocs } from 'firebase/fires
 import '../../../styles/slide-animations.css';
 import { useAuth } from '@/context/AuthContext';
 import { Star } from 'lucide-react';
+import { toast } from "@/components/ui/use-toast";
+
 
 // Black and white style for navigation buttons
 const navBtnStyles = `
@@ -173,7 +175,11 @@ export default function ProductDetailPage() {
         selectedColor: colorToUse ? String(colorToUse) : undefined,
         color: product.color,
       });
-      alert(`${quantity} ${product.name} (${selectedSize}${colorToUse ? ', ' + colorToUse : ''}) added to cart!`);
+      toast({
+        title: "Added to Cart!",
+        description: `${quantity} ${product.name} (${selectedSize}${colorToUse ? ', ' + colorToUse : ''}) added to cart!`,
+        variant: "success",
+      });
     }
   };
 

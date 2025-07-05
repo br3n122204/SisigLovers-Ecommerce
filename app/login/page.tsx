@@ -34,6 +34,9 @@ export default function LoginPage() {
   const [pendingCartItem, setPendingCartItem] = useState<CartItem | null>(null);
   const retryCount = useRef(0);
   const [pendingAdded, setPendingAdded] = useState(false);
+  const [emailError, setEmailError] = useState<string>("");
+  const [passwordError, setPasswordError] = useState<string>("");
+  const [confirmPasswordError, setConfirmPasswordError] = useState<string>("");
 
   useEffect(() => {
     console.log('[Login Effect] user:', user, 'loading:', loading, 'cartItems:', cartItems, 'cartLoading:', cartLoading, 'pendingAdded:', pendingAdded);
@@ -91,13 +94,38 @@ export default function LoginPage() {
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (!email || !password) {
-      setError("Please enter both email and password.");
-      return;
-    }
-    if (isRegistering && password !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
+    setEmailError("");
+    setPasswordError("");
+    setConfirmPasswordError("");
+    if (isRegistering) {
+      let hasError = false;
+      if (!email) {
+        setEmailError("Email can't be blank");
+        hasError = true;
+      } else if (!/^\S+@\S+\.\S+$/.test(email)) {
+        setEmailError("Email is invalid");
+        hasError = true;
+      }
+      if (!password) {
+        setPasswordError("Password can't be blank");
+        hasError = true;
+      } else if (password.length < 6) {
+        setPasswordError("Password is too short (minimum is 6 characters)");
+        hasError = true;
+      }
+      if (!confirmPassword) {
+        setConfirmPasswordError("Confirm Password can't be blank");
+        hasError = true;
+      } else if (password !== confirmPassword) {
+        setConfirmPasswordError("Passwords do not match");
+        hasError = true;
+      }
+      if (hasError) return;
+    } else {
+      if (!email || !password) {
+        setError("Please enter both email and password.");
+        return;
+      }
     }
     setIsLoading(true);
     try {
@@ -201,6 +229,9 @@ export default function LoginPage() {
             onChange={(e) => setEmail(e.target.value)}
             disabled={isLoading}
           />
+          {isRegistering && emailError && (
+            <div className="text-red-600 text-xs mt-1">{emailError}</div>
+          )}
           <input
             id="password"
             type="password"
@@ -211,19 +242,27 @@ export default function LoginPage() {
             onChange={(e) => setPassword(e.target.value)}
             disabled={isLoading}
           />
-          {isRegistering && (
-            <input
-              id="confirm-password"
-              type="password"
-              required
-              className="w-full px-4 py-3 border-2 border-[#60A5FA] rounded-lg focus:ring-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] bg-[#19223a] text-[#60A5FA] placeholder-[#60A5FA]"
-              placeholder="Confirm Password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              disabled={isLoading}
-            />
+          {isRegistering && passwordError && (
+            <div className="text-red-600 text-xs mt-1">{passwordError}</div>
           )}
-          {error && (
+          {isRegistering && (
+            <>
+              <input
+                id="confirm-password"
+                type="password"
+                required
+                className="w-full px-4 py-3 border-2 border-[#60A5FA] rounded-lg focus:ring-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] bg-[#19223a] text-[#60A5FA] placeholder-[#60A5FA]"
+                placeholder="Confirm Password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                disabled={isLoading}
+              />
+              {confirmPasswordError && (
+                <div className="text-red-600 text-xs mt-1">{confirmPasswordError}</div>
+              )}
+            </>
+          )}
+          {!isRegistering && error && (
             <div className="text-red-600 text-sm text-center p-2 bg-red-50 rounded-md">
               {error}
             </div>

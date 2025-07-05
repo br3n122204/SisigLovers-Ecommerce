@@ -1,9 +1,10 @@
 "use client"
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useRef } from 'react';
 import { db } from '@/lib/firebase';
 import { useAuth } from './AuthContext';
 import { collection, doc, setDoc, getDocs, deleteDoc, onSnapshot } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
 
 // Define the shape of a product in the cart
 export interface CartItem {
@@ -39,6 +40,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [isCartSyncing, setIsCartSyncing] = useState(false);
   const [cartLoading, setCartLoading] = useState(true);
+  const { toast } = useToast();
+  const addedItemRef = useRef<CartItem | null>(null);
 
   // Load cart from Firestore on login
   React.useEffect(() => {
@@ -71,14 +74,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const addToCart = (productToAdd: CartItem) => {
-    // If productToAdd has color but not selectedColor, and only one color, set selectedColor
-    if (!productToAdd.selectedColor && productToAdd.color && typeof productToAdd.color === 'string') {
-      const colorOptions = productToAdd.color.split(',').map((c: string) => c.trim()).filter(Boolean);
-      if (colorOptions.length === 1) {
-        productToAdd.selectedColor = colorOptions[0];
-      }
-    }
-    console.log('[CartContext] addToCart:', productToAdd);
+    addedItemRef.current = null;
     setCartItems((prevItems) => {
       const existingItem = prevItems.find(item => item.id === productToAdd.id && item.selectedSize === productToAdd.selectedSize);
       let newItems;
@@ -88,8 +84,10 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
             ? { ...item, quantity: item.quantity + productToAdd.quantity }
             : item
         );
+        addedItemRef.current = { ...existingItem, quantity: productToAdd.quantity };
       } else {
         newItems = [...prevItems, { ...productToAdd, quantity: productToAdd.quantity || 1 }];
+        addedItemRef.current = { ...productToAdd, quantity: productToAdd.quantity || 1 };
       }
       // Only update the changed item in Firestore
       if (user) {
@@ -111,6 +109,17 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       }
       return newItems;
     });
+    // Show toast notification for add to cart (after state update)
+    setTimeout(() => {
+      const addedItem = addedItemRef.current;
+      if (addedItem) {
+        toast({
+          title: 'Added to cart',
+          description: `${addedItem.quantity} ${addedItem.name}${addedItem.selectedSize ? ` (${addedItem.selectedSize}` : ''}${addedItem.selectedColor ? `, ${addedItem.selectedColor}` : ''}${addedItem.selectedSize ? ')' : ''} added to cart!`,
+          variant: 'success',
+        });
+      }
+    }, 0);
   };
 
   const removeFromCart = (productId: string) => {

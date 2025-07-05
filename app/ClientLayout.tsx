@@ -2,6 +2,7 @@
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import FooterConditional from "@/components/FooterConditional";
+import { Toaster } from "@/components/ui/toaster";
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -19,6 +20,7 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         {children}
         <div className="border-t border-[#22304a] mt-16"></div>
         <FooterConditional />
+        <Toaster />
       </motion.div>
     </AnimatePresence>
   );

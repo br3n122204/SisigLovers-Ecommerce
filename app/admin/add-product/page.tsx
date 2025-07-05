@@ -9,6 +9,7 @@ import ReactCrop, { Crop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import Modal from 'react-modal';
 
+
 export default function AddProductPage() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
