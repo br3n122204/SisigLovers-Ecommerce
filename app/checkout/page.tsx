@@ -27,6 +27,31 @@ function deepCleanUndefined(obj: any): any {
   return obj;
 }
 
+// Helper function for Philippine phone validation
+function isValidPHPhone(phone: string) {
+  // Accepts only +639XXXXXXXXX
+  return /^\+639\d{9}$/.test(phone);
+}
+
+// Add this helper to get error message for a field
+function getFieldError(field: string, value: string, isPhone: boolean = false) {
+  if (!value || (isPhone && !isValidPHPhone(value))) {
+    if (isPhone && value && !isValidPHPhone(value)) {
+      return 'Please enter a valid Philippine phone number (e.g. +639XXXXXXXXX).';
+    }
+    switch (field) {
+      case 'firstName': return 'First name is required.';
+      case 'lastName': return 'Last name is required.';
+      case 'address1': return 'Address is required.';
+      case 'city': return 'City is required.';
+      case 'postalCode': return 'Postal code is required.';
+      case 'phone': return 'Phone number is required.';
+      default: return 'This field is required.';
+    }
+  }
+  return '';
+}
+
 export default function CheckoutPage() {
   const { user } = useAuth();
   const { cartItems, calculateTotal, clearCart, removeFromCartByIds } = useCart();
@@ -37,7 +62,8 @@ export default function CheckoutPage() {
   // Get selected item IDs from query string (treat as strings)
   const selectedIdsParam = searchParams.get('selected');
   const buyNowParam = searchParams.get('buyNow');
-  // Support composite key: id-selectedSize
+
+  // Revert to original selectedCartItems logic (not in useEffect/useState)
   function getCartItemKey(item: CartItem) {
     return item.selectedSize ? `${item.id}-${item.selectedSize}` : String(item.id);
   }
@@ -66,6 +92,7 @@ export default function CheckoutPage() {
   const [addresses, setAddresses] = useState<any[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showFieldErrors, setShowFieldErrors] = useState(false);
 
   const [deliveryDetails, setDeliveryDetails] = useState({
     firstName: user?.displayName?.split(" ")[0] || "",
@@ -355,7 +382,9 @@ export default function CheckoutPage() {
       });
 
       toast({
-        title: "Checkout successful",
+        title: "Successfully ordered.",
+        description: "Thank you for purchasing with DPT ONE.",
+        variant: "success"
       });
       return globalOrderDoc.id;
     } catch (error) {
@@ -388,16 +417,42 @@ export default function CheckoutPage() {
       return;
     }
 
-    // Validate required fields
-    if (!deliveryDetails.firstName || !deliveryDetails.lastName || !deliveryDetails.address1 || 
-        !deliveryDetails.city || !deliveryDetails.postalCode || !deliveryDetails.phone) {
+    // Validate required delivery fields
+    const requiredDeliveryFields = [
+      'firstName', 'lastName', 'address1', 'city', 'postalCode', 'phone'
+    ];
+    const missingDelivery = requiredDeliveryFields.filter(
+      (field) => !deliveryDetails[field as keyof typeof deliveryDetails]
+    );
+
+    // Validate required billing fields if not same as shipping
+    let missingBilling: string[] = [];
+    if (!sameAsShipping) {
+      const requiredBillingFields = [
+        'lastName', 'address1', 'city', 'postalCode', 'phone'
+      ];
+      missingBilling = requiredBillingFields.filter(
+        (field) => !billingDetails[field as keyof typeof billingDetails]
+      );
+    }
+
+    // Enhanced phone validation
+    const deliveryPhoneInvalid = !isValidPHPhone(deliveryDetails.phone || '');
+    const billingPhoneInvalid = !sameAsShipping && !isValidPHPhone(billingDetails.phone || '');
+
+    if (missingDelivery.length > 0 || missingBilling.length > 0 || deliveryPhoneInvalid || billingPhoneInvalid) {
+      setShowFieldErrors(true);
+      let errorMsg = "Please fill in all required fields in the form.";
+      if (deliveryPhoneInvalid || billingPhoneInvalid) {
+        errorMsg = "Please enter a valid Philippine phone number (e.g. +639XXXXXXXXX).";
+      }
       toast({
         title: "Error",
-        description: "Please fill in all required delivery information",
+        description: errorMsg,
       });
-      console.error("Missing delivery details", deliveryDetails);
       return;
     }
+    setShowFieldErrors(false);
 
     setIsProcessing(true);
     try {
@@ -407,10 +462,6 @@ export default function CheckoutPage() {
         // Save order to Firebase, passing billingToSend directly
         const orderId = await saveOrderToFirebase(billingToSend);
         if (orderId) {
-          // Show success message
-          toast({
-            title: "Checkout successful",
-          });
           // Remove only checked-out items from cart
           removeFromCartByIds(selectedCartItems.map(item => item.id));
           // Navigate to orders page
@@ -525,12 +576,15 @@ export default function CheckoutPage() {
                   type="text"
                   id="firstName"
                   name="firstName"
-                  className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]"
+                  className={`mt-1 block w-full border ${showFieldErrors && !deliveryDetails.firstName ? 'border-red-500' : 'border-[#60A5FA]'} rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]`}
                   value={deliveryDetails.firstName}
                   onChange={handleInputChange}
                   required
                   autoComplete="off"
                 />
+                {showFieldErrors && getFieldError('firstName', deliveryDetails.firstName) && (
+                  <p className="text-red-500 text-xs mt-1">{getFieldError('firstName', deliveryDetails.firstName)}</p>
+                )}
               </div>
               <div>
                 <label htmlFor="lastName" className="block text-sm font-medium text-[#60A5FA]">Last name</label>
@@ -538,12 +592,15 @@ export default function CheckoutPage() {
                   type="text"
                   id="lastName"
                   name="lastName"
-                  className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]"
+                  className={`mt-1 block w-full border ${showFieldErrors && !deliveryDetails.lastName ? 'border-red-500' : 'border-[#60A5FA]'} rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]`}
                   value={deliveryDetails.lastName}
                   onChange={handleInputChange}
                   required
                   autoComplete="off"
                 />
+                {showFieldErrors && getFieldError('lastName', deliveryDetails.lastName) && (
+                  <p className="text-red-500 text-xs mt-1">{getFieldError('lastName', deliveryDetails.lastName)}</p>
+                )}
               </div>
             </div>
             <div className="mb-4">
@@ -552,12 +609,15 @@ export default function CheckoutPage() {
                 type="text"
                 id="address1"
                 name="address1"
-                className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]"
+                className={`mt-1 block w-full border ${showFieldErrors && !deliveryDetails.address1 ? 'border-red-500' : 'border-[#60A5FA]'} rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]`}
                 value={deliveryDetails.address1}
                 onChange={handleInputChange}
                 required
                 autoComplete="off"
               />
+              {showFieldErrors && getFieldError('address1', deliveryDetails.address1) && (
+                <p className="text-red-500 text-xs mt-1">{getFieldError('address1', deliveryDetails.address1)}</p>
+              )}
             </div>
             <div className="mb-4">
               <label htmlFor="address2" className="block text-sm font-medium text-[#60A5FA]">Apartment, suite, etc. (optional)</label>
@@ -565,11 +625,14 @@ export default function CheckoutPage() {
                 type="text"
                 id="address2"
                 name="address2"
-                className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]"
+                className={`mt-1 block w-full border ${showFieldErrors && !deliveryDetails.address2 ? 'border-red-500' : 'border-[#60A5FA]'} rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]`}
                 value={deliveryDetails.address2}
                 onChange={handleInputChange}
                 autoComplete="off"
               />
+              {showFieldErrors && getFieldError('address2', deliveryDetails.address2) && (
+                <p className="text-red-500 text-xs mt-1">{getFieldError('address2', deliveryDetails.address2)}</p>
+              )}
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
               <div>
@@ -578,12 +641,15 @@ export default function CheckoutPage() {
                   type="text"
                   id="postalCode"
                   name="postalCode"
-                  className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]"
+                  className={`mt-1 block w-full border ${showFieldErrors && !deliveryDetails.postalCode ? 'border-red-500' : 'border-[#60A5FA]'} rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]`}
                   value={deliveryDetails.postalCode}
                   onChange={handleInputChange}
                   required
                   autoComplete="off"
                 />
+                {showFieldErrors && getFieldError('postalCode', deliveryDetails.postalCode) && (
+                  <p className="text-red-500 text-xs mt-1">{getFieldError('postalCode', deliveryDetails.postalCode)}</p>
+                )}
               </div>
               <div>
                 <label htmlFor="city" className="block text-sm font-medium text-[#60A5FA]">City</label>
@@ -591,12 +657,15 @@ export default function CheckoutPage() {
                   type="text"
                   id="city"
                   name="city"
-                  className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]"
+                  className={`mt-1 block w-full border ${showFieldErrors && !deliveryDetails.city ? 'border-red-500' : 'border-[#60A5FA]'} rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]`}
                   value={deliveryDetails.city}
                   onChange={handleInputChange}
                   required
                   autoComplete="off"
                 />
+                {showFieldErrors && getFieldError('city', deliveryDetails.city) && (
+                  <p className="text-red-500 text-xs mt-1">{getFieldError('city', deliveryDetails.city)}</p>
+                )}
               </div>
             </div>
             <div className="mb-4">
@@ -617,12 +686,15 @@ export default function CheckoutPage() {
                 type="text"
                 id="phone"
                 name="phone"
-                className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]"
+                className={`mt-1 block w-full border ${(showFieldErrors && (!deliveryDetails.phone || !isValidPHPhone(deliveryDetails.phone))) ? 'border-red-500' : 'border-[#60A5FA]'} rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]`}
                 value={deliveryDetails.phone}
                 onChange={handleInputChange}
                 required
                 autoComplete="off"
               />
+              {showFieldErrors && getFieldError('phone', deliveryDetails.phone, true) && (
+                <p className="text-red-500 text-xs mt-1">{getFieldError('phone', deliveryDetails.phone, true)}</p>
+              )}
             </div>
           </div>
 
@@ -713,11 +785,14 @@ export default function CheckoutPage() {
                     type="text"
                     id="firstNameBilling"
                     name="firstName"
-                    className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]"
+                    className={`mt-1 block w-full border ${showFieldErrors && !billingDetails.firstName ? 'border-red-500' : 'border-[#60A5FA]'} rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]`}
                     value={billingDetails.firstName}
                     onChange={handleBillingInputChange}
                     autoComplete="off"
                   />
+                  {showFieldErrors && getFieldError('firstName', billingDetails.firstName) && (
+                    <p className="text-red-500 text-xs mt-1">{getFieldError('firstName', billingDetails.firstName)}</p>
+                  )}
                 </div>
                 <div>
                   <label htmlFor="lastNameBilling" className="block text-sm font-medium text-[#60A5FA]">Last name</label>
@@ -725,12 +800,15 @@ export default function CheckoutPage() {
                     type="text"
                     id="lastNameBilling"
                     name="lastName"
-                    className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]"
+                    className={`mt-1 block w-full border ${showFieldErrors && !billingDetails.lastName ? 'border-red-500' : 'border-[#60A5FA]'} rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]`}
                     value={billingDetails.lastName}
                     onChange={handleBillingInputChange}
                     required
                     autoComplete="off"
                   />
+                  {showFieldErrors && getFieldError('lastName', billingDetails.lastName) && (
+                    <p className="text-red-500 text-xs mt-1">{getFieldError('lastName', billingDetails.lastName)}</p>
+                  )}
                 </div>
               </div>
               <div className="mb-4">
@@ -739,12 +817,15 @@ export default function CheckoutPage() {
                   type="text"
                   id="address1Billing"
                   name="address1"
-                  className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]"
+                  className={`mt-1 block w-full border ${showFieldErrors && !billingDetails.address1 ? 'border-red-500' : 'border-[#60A5FA]'} rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]`}
                   value={billingDetails.address1}
                   onChange={handleBillingInputChange}
                   required
                   autoComplete="off"
                 />
+                {showFieldErrors && getFieldError('address1', billingDetails.address1) && (
+                  <p className="text-red-500 text-xs mt-1">{getFieldError('address1', billingDetails.address1)}</p>
+                )}
               </div>
               <div className="mb-4">
                 <label htmlFor="address2Billing" className="block text-sm font-medium text-[#60A5FA]">Apartment, suite, etc. (optional)</label>
@@ -752,11 +833,14 @@ export default function CheckoutPage() {
                   type="text"
                   id="address2Billing"
                   name="address2"
-                  className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]"
+                  className={`mt-1 block w-full border ${showFieldErrors && !billingDetails.address2 ? 'border-red-500' : 'border-[#60A5FA]'} rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]`}
                   value={billingDetails.address2}
                   onChange={handleBillingInputChange}
                   autoComplete="off"
                 />
+                {showFieldErrors && getFieldError('address2', billingDetails.address2) && (
+                  <p className="text-red-500 text-xs mt-1">{getFieldError('address2', billingDetails.address2)}</p>
+                )}
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
                 <div>
@@ -765,12 +849,15 @@ export default function CheckoutPage() {
                     type="text"
                     id="postalCodeBilling"
                     name="postalCode"
-                    className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]"
+                    className={`mt-1 block w-full border ${showFieldErrors && !billingDetails.postalCode ? 'border-red-500' : 'border-[#60A5FA]'} rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]`}
                     value={billingDetails.postalCode}
                     onChange={handleBillingInputChange}
                     required
                     autoComplete="off"
                   />
+                  {showFieldErrors && getFieldError('postalCode', billingDetails.postalCode) && (
+                    <p className="text-red-500 text-xs mt-1">{getFieldError('postalCode', billingDetails.postalCode)}</p>
+                  )}
                 </div>
                 <div>
                   <label htmlFor="cityBilling" className="block text-sm font-medium text-[#60A5FA]">City</label>
@@ -778,12 +865,15 @@ export default function CheckoutPage() {
                     type="text"
                     id="cityBilling"
                     name="city"
-                    className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]"
+                    className={`mt-1 block w-full border ${showFieldErrors && !billingDetails.city ? 'border-red-500' : 'border-[#60A5FA]'} rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]`}
                     value={billingDetails.city}
                     onChange={handleBillingInputChange}
                     required
                     autoComplete="off"
                   />
+                  {showFieldErrors && getFieldError('city', billingDetails.city) && (
+                    <p className="text-red-500 text-xs mt-1">{getFieldError('city', billingDetails.city)}</p>
+                  )}
                 </div>
               </div>
               <div className="mb-4">
@@ -803,12 +893,15 @@ export default function CheckoutPage() {
                   type="text"
                   id="phoneBilling"
                   name="phone"
-                  className="mt-1 block w-full border border-[#60A5FA] rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]"
+                  className={`mt-1 block w-full border ${(showFieldErrors && (!billingDetails.phone || !isValidPHPhone(billingDetails.phone))) ? 'border-red-500' : 'border-[#60A5FA]'} rounded-md shadow-sm p-2 focus:ring-[#60A5FA] focus:border-[#60A5FA] sm:text-sm bg-[#101828] text-[#60A5FA]`}
                   value={billingDetails.phone}
                   onChange={handleBillingInputChange}
                   required
                   autoComplete="off"
                 />
+                {showFieldErrors && getFieldError('phone', billingDetails.phone, true) && (
+                  <p className="text-red-500 text-xs mt-1">{getFieldError('phone', billingDetails.phone, true)}</p>
+                )}
               </div>
             </div>
           )}
@@ -833,7 +926,7 @@ export default function CheckoutPage() {
               <div className="space-y-4 mb-6">
                 
                 {selectedCartItems.map((item) => (
-                  <div key={`${item.id}-${item.selectedSize}`} className="flex items-center space-x-4">
+                  <div key={typeof item.id === 'string' ? `${item.id}-${item.selectedSize || ''}` : String(item.id) + '-' + String(item.selectedSize || '')} className="flex items-center space-x-4">
                     <div className="relative w-24 h-24 flex-shrink-0 rounded-md overflow-hidden border border-gray-200 bg-white flex items-center justify-center">
                       {item.image ? (
                         <Image src={item.image} alt={item.name} width={96} height={96} className="object-cover mx-auto" style={{ maxWidth: '100%', maxHeight: '100%' }} />

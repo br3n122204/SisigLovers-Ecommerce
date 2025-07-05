@@ -164,6 +164,18 @@ export default function DPTOneFashion() {
     });
   }
 
+  // Smooth scroll to #featured if hash is present
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hash === '#featured') {
+      const el = document.getElementById('featured');
+      if (el) {
+        setTimeout(() => {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }, 100); // slight delay to ensure render
+      }
+    }
+  }, []);
+
   return (
     <>
       <div className="min-h-screen bg-[#101828] text-[#60A5FA] flex flex-col">
@@ -172,7 +184,7 @@ export default function DPTOneFashion() {
           {/* Hero / Slider Section */}
           <ImageSlider />
           {/* Featured Products Section */}
-          <section className="py-20 bg-[#101828]">
+          <section id="featured" className="py-20 bg-[#101828]">
             <div className="max-w-7xl mx-auto px-4 sm:px-8 lg:px-12">
               <h2 className="text-4xl font-extrabold text-center mb-12 tracking-tight text-[#60A5FA]">
                 Featured Products

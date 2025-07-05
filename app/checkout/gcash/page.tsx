@@ -197,6 +197,11 @@ export default function GCashFakePage() {
       await addDoc(collection(db, 'users', user.uid, 'orders', userOrderDoc.id, 'receipts'), receiptData);
       console.log("Receipt saved to Firebase");
       setShowSuccess(true);
+      toast({
+        title: "Successfully ordered.",
+        description: "Thank you for purchasing with DPT ONE.",
+        variant: "success"
+      });
       console.log("Payment process complete, showing receipt");
     } catch (error) {
       console.log("Error occurred:", error);
@@ -435,6 +440,15 @@ export default function GCashFakePage() {
                 <div>Subtotal: PHP {receipt.subtotal.toFixed(2)}</div>
                 <div>Shipping: PHP {receipt.shipping.toFixed(2)}</div>
                 <div>Total: PHP {receipt.total.toFixed(2)}</div>
+              </div>
+              <div className="mt-8 flex flex-col items-center">
+                <p className="mb-2 text-blue-600 font-semibold">You can view your order status in your orders page.</p>
+                <button
+                  onClick={() => router.push("/orders")}
+                  className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 font-bold shadow"
+                >
+                  Go to My Orders
+                </button>
               </div>
             </div>
           </div>
