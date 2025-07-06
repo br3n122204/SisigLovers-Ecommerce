@@ -10,6 +10,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
 import { db } from '@/lib/firebase'
 import { collection, getDocs } from 'firebase/firestore'
+import WelcomeCard from '@/components/WelcomeCard'
 
 // Sample slider images data
 const sliderImages = [
@@ -178,6 +179,7 @@ export default function DPTOneFashion() {
 
   return (
     <>
+      <WelcomeCard />
       <div className="min-h-screen bg-[#101828] text-[#60A5FA] flex flex-col">
         {/* Main Content Container */}
         <div className="w-full flex-grow">
@@ -202,7 +204,7 @@ export default function DPTOneFashion() {
                   <span className="ml-4 text-lg text-[#60A5FA]">Loading products...</span>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+                <div className="grid grid-cols-3 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-10 px-2 sm:px-4 md:px-0">
                   {products.length === 0 ? (
                     <div className="col-span-4 text-center text-[#60A5FA]">No products found.</div>
                   ) : (
@@ -213,7 +215,7 @@ export default function DPTOneFashion() {
                       return (
                         <Link key={product.id} href={`/products/${product.id}`} className="w-full">
                           <div
-                            className="bg-[#19223a] rounded-2xl shadow-lg p-4 flex flex-col items-center cursor-pointer hover:shadow-xl transition text-[#60A5FA] relative"
+                            className="bg-[#19223a] rounded-2xl shadow-lg p-3 sm:p-4 flex flex-col items-center cursor-pointer hover:shadow-xl transition text-[#60A5FA] relative max-w-[170px] sm:max-w-full mx-auto"
                             onMouseEnter={() => setHoveredProduct(product.id)}
                             onMouseLeave={() => setHoveredProduct(null)}
                           >
@@ -227,14 +229,14 @@ export default function DPTOneFashion() {
                                       : "/images/placeholder.jpg"
                                 }
                                 alt={product.name}
-                                className="w-48 h-48 object-contain mb-4"
+                                className="w-[90px] h-[75px] sm:w-48 sm:h-48 object-contain mb-2 sm:mb-4 rounded-lg bg-white"
                               />
                               {isSoldOut && (
-                                <span className="absolute top-2 right-2 bg-red-600 text-white text-xs font-semibold px-3 py-1 rounded-full z-10">Sold out</span>
+                                <span className="absolute top-1 right-1 bg-red-600 text-white text-xs sm:text-sm font-semibold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full z-10">Sold out</span>
                               )}
                             </div>
-                            <h3 className="font-bold text-lg text-center mb-1">{product.name}</h3>
-                            <p className="text-[#60A5FA] font-semibold mb-4">₱{product.price}</p>
+                            <h3 className="font-bold text-base sm:text-lg text-center mb-1">{product.name}</h3>
+                            <p className="text-[#60A5FA] font-semibold mb-2 sm:mb-4">₱{product.price}</p>
                           </div>
                         </Link>
                       );
@@ -246,6 +248,7 @@ export default function DPTOneFashion() {
           </section>
         </div>
       </div>
+      <WelcomeCard />
     </>
   )
 }

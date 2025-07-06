@@ -16,6 +16,7 @@ import AdminOrdersPage from "./orders/page";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Area } from 'recharts';
 import React from "react";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
+import { Menu, ChevronLeft } from "lucide-react";
 
 interface User {
   id: string;
@@ -308,6 +309,8 @@ export default function AdminDashboardSinglePage() {
   const router = useRouter();
   const { toast } = useToast();
   const [activeSection, setActiveSection] = useState("add-product");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const toggleSidebar = () => setSidebarOpen((open) => !open);
 
   const ADMIN_UID = "1BeqoY3h5gTa4LBUsAiaDLHHhnT2";
 
@@ -501,12 +504,33 @@ export default function AdminDashboardSinglePage() {
   const isAdmin = user && user.uid === ADMIN_UID;
   return isAdmin ? (
     <div className="flex min-h-screen w-full bg-black">
-      <AdminSidebar activeSection={activeSection} onSectionChange={setActiveSection} onLogout={handleLogout} />
-      <main className="flex-1 w-full h-screen bg-[#161e2e] px-8 py-10 flex flex-col">
+      {/* Sidebar */}
+      <AdminSidebar
+        activeSection={activeSection}
+        onSectionChange={(section) => {
+          setActiveSection(section);
+          setSidebarOpen(false); // close sidebar on mobile after navigation
+        }}
+        onLogout={handleLogout}
+        sidebarOpen={sidebarOpen}
+        toggleSidebar={toggleSidebar}
+      />
+      {/* Main content */}
+      <div className={`flex-1 w-full h-screen bg-[#161e2e] px-2 sm:px-8 py-10 flex flex-col transition-all duration-300`}>
+        {/* Mobile sidebar toggle button */}
+        {!sidebarOpen && (
+          <button
+            className="block sm:hidden mb-4 text-[#8ec0ff] self-start z-50"
+            onClick={toggleSidebar}
+            aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+          >
+            <Menu className="h-7 w-7" />
+          </button>
+        )}
         <AdminAnalyticsContext.Provider value={{ recentUsers, totalProducts, totalSalesAmount }}>
           {content}
         </AdminAnalyticsContext.Provider>
-      </main>
+      </div>
     </div>
   ) : <LoginForm onLogin={handleLogin} />;
 } 
