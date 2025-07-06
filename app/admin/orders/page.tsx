@@ -71,6 +71,7 @@ export default function AdminOrdersPage() {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [sortBy, setSortBy] = useState<string>("date-desc");
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
+  const [showMobileFilter, setShowMobileFilter] = useState(false);
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -369,41 +370,97 @@ export default function AdminOrdersPage() {
     <div className="w-full h-screen flex bg-black">
       <div className="w-full h-full bg-[#161e2e] px-8 py-10 flex flex-col">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
-          <div className="flex gap-2 items-center">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#8ec0ff] h-4 w-4" />
-              <input
-                type="text"
-                placeholder="Search orders, customer name, or email..."
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-[#22304a] rounded-md focus:outline-none focus:ring-2 focus:ring-[#3390ff] focus:border-transparent text-white bg-[#22304a] placeholder-[#8ec0ff]"
-              />
+          {/* Mobile Filter Button */}
+          <div className="flex gap-2 items-center w-full">
+            {/* Desktop: show all controls */}
+            <div className="hidden sm:flex gap-2 items-center w-full">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#8ec0ff] h-4 w-4" />
+                <input
+                  type="text"
+                  placeholder="Search orders, customer name, or email..."
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  className="pl-10 pr-4 py-2 border border-[#22304a] rounded-md focus:outline-none focus:ring-2 focus:ring-[#3390ff] focus:border-transparent text-white bg-[#22304a] placeholder-[#8ec0ff]"
+                />
+              </div>
+              <select
+                value={statusFilter}
+                onChange={e => setStatusFilter(e.target.value)}
+                className="border border-[#22304a] rounded-md px-3 py-2 text-white bg-[#22304a] focus:outline-none focus:ring-2 focus:ring-[#3390ff]"
+              >
+                <option value="all">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="processing">Processing</option>
+                <option value="shipped">Shipped</option>
+                <option value="delivered">Delivered</option>
+                <option value="cancelled">Cancelled</option>
+              </select>
+              <select
+                value={sortBy}
+                onChange={e => setSortBy(e.target.value)}
+                className="border border-[#22304a] rounded-md px-3 py-2 text-white bg-[#22304a] focus:outline-none focus:ring-2 focus:ring-[#3390ff]"
+              >
+                <option value="total-desc">Total: High to Low</option>
+                <option value="total-asc">Total: Low to High</option>
+              </select>
             </div>
-            <select
-              value={statusFilter}
-              onChange={e => setStatusFilter(e.target.value)}
-              className="border border-[#22304a] rounded-md px-3 py-2 text-white bg-[#22304a] focus:outline-none focus:ring-2 focus:ring-[#3390ff]"
+            {/* Mobile: show filter button */}
+            <button
+              className="sm:hidden flex items-center gap-2 px-4 py-2 bg-[#22304a] text-[#8ec0ff] rounded-md border border-[#22304a] w-full justify-center"
+              onClick={() => setShowMobileFilter(true)}
             >
-              <option value="all">All Statuses</option>
-              <option value="pending">Pending</option>
-              <option value="processing">Processing</option>
-              <option value="shipped">Shipped</option>
-              <option value="delivered">Delivered</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
-            <select
-              value={sortBy}
-              onChange={e => setSortBy(e.target.value)}
-              className="border border-[#22304a] rounded-md px-3 py-2 text-white bg-[#22304a] focus:outline-none focus:ring-2 focus:ring-[#3390ff]"
-            >
-              <option value="total-desc">Total: High to Low</option>
-              <option value="total-asc">Total: Low to High</option>
-            </select>
+              <Filter className="w-4 h-4" /> Filter
+            </button>
+            {/* Mobile Filter Dropdown/Modal */}
+            {showMobileFilter && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60">
+                <div className="bg-[#161e2e] rounded-lg p-6 w-11/12 max-w-sm mx-auto flex flex-col gap-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-lg font-semibold text-[#8ec0ff]">Filter Orders</span>
+                    <button onClick={() => setShowMobileFilter(false)} className="text-[#8ec0ff] text-2xl leading-none">&times;</button>
+                  </div>
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-[#8ec0ff] h-4 w-4" />
+                    <input
+                      type="text"
+                      placeholder="Search orders, customer name, or email..."
+                      value={searchTerm}
+                      onChange={e => setSearchTerm(e.target.value)}
+                      className="pl-10 pr-4 py-2 border border-[#22304a] rounded-md focus:outline-none focus:ring-2 focus:ring-[#3390ff] focus:border-transparent text-white bg-[#22304a] placeholder-[#8ec0ff] w-full"
+                    />
+                  </div>
+                  <select
+                    value={statusFilter}
+                    onChange={e => setStatusFilter(e.target.value)}
+                    className="border border-[#22304a] rounded-md px-3 py-2 text-white bg-[#22304a] focus:outline-none focus:ring-2 focus:ring-[#3390ff] w-full"
+                  >
+                    <option value="all">All Statuses</option>
+                    <option value="pending">Pending</option>
+                    <option value="processing">Processing</option>
+                    <option value="shipped">Shipped</option>
+                    <option value="delivered">Delivered</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                  <select
+                    value={sortBy}
+                    onChange={e => setSortBy(e.target.value)}
+                    className="border border-[#22304a] rounded-md px-3 py-2 text-white bg-[#22304a] focus:outline-none focus:ring-2 focus:ring-[#3390ff] w-full"
+                  >
+                    <option value="total-desc">Total: High to Low</option>
+                    <option value="total-asc">Total: Low to High</option>
+                  </select>
+                  <button
+                    className="mt-2 w-full bg-[#3390ff] text-white py-2 rounded-md font-semibold hover:bg-[#2360b7]"
+                    onClick={() => setShowMobileFilter(false)}
+                  >Apply Filters</button>
+                </div>
+              </div>
+            )}
           </div>
           <button
             onClick={exportToCSV}
-            className="flex items-center gap-2 px-4 py-2 bg-[#3390ff] text-white rounded-md hover:bg-[#2360b7]"
+            className="flex items-center justify-center gap-2 px-4 py-2 bg-[#3390ff] text-white rounded-md hover:bg-[#2360b7] w-full"
           >
             <Download className="w-4 h-4" /> Export CSV
           </button>
