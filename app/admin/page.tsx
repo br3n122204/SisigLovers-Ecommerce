@@ -75,7 +75,7 @@ function LoginForm({ onLogin }: { onLogin: (email: string, password: string) => 
   };
 
   return (
-    <div className="flex min-h-screen w-full bg-black">
+    <div className="flex min-h-screen w-full bg-[#161e2e]">
       <main className="flex-1 flex items-center justify-center">
         <div className="w-full max-w-md p-8 space-y-6 bg-[#161e2e] rounded-2xl shadow-2xl border border-[#22304a]">
           <div className="text-center">
@@ -473,6 +473,23 @@ export default function AdminDashboardSinglePage() {
     }
   }, [user]);
 
+  // Prevent background scroll when sidebar is open (mobile)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (sidebarOpen) {
+        document.body.classList.add('overflow-hidden');
+      } else {
+        document.body.classList.remove('overflow-hidden');
+      }
+    }
+    // Cleanup on unmount
+    return () => {
+      if (typeof window !== 'undefined') {
+        document.body.classList.remove('overflow-hidden');
+      }
+    };
+  }, [sidebarOpen]);
+
   let content;
   switch (activeSection) {
     case "add-product":
@@ -503,29 +520,46 @@ export default function AdminDashboardSinglePage() {
   }
   const isAdmin = user && user.uid === ADMIN_UID;
   return isAdmin ? (
-    <div className="flex min-h-screen w-full bg-black">
-      {/* Sidebar */}
-      <AdminSidebar
-        activeSection={activeSection}
-        onSectionChange={(section) => {
-          setActiveSection(section);
-          setSidebarOpen(false); // close sidebar on mobile after navigation
-        }}
-        onLogout={handleLogout}
-        sidebarOpen={sidebarOpen}
-        toggleSidebar={toggleSidebar}
-      />
-      {/* Main content */}
-      <div className={`flex-1 w-full h-screen bg-[#161e2e] px-2 sm:px-8 py-10 flex flex-col transition-all duration-300`}>
+    <div className="min-h-screen w-full bg-[#161e2e] flex sm:flex-row flex-col">
+      {/* Sidebar: Desktop only (flex child) */}
+      <div className="hidden sm:block">
+        <AdminSidebar
+          activeSection={activeSection}
+          onSectionChange={(section) => {
+            setActiveSection(section);
+            setSidebarOpen(false); // close sidebar on mobile after navigation
+          }}
+          onLogout={handleLogout}
+        />
+      </div>
+      {/* Main content: always full width on mobile */}
+      <div className="flex-1 w-full bg-[#161e2e] px-2 sm:px-8 py-10 flex flex-col transition-all duration-300">
         {/* Mobile sidebar toggle button */}
-        {!sidebarOpen && (
-          <button
-            className="block sm:hidden mb-4 text-[#8ec0ff] self-start z-50"
-            onClick={toggleSidebar}
-            aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
-          >
-            <Menu className="h-7 w-7" />
-          </button>
+        <button
+          className="block sm:hidden mb-4 text-[#8ec0ff] self-start z-50"
+          onClick={toggleSidebar}
+          aria-label={sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'}
+        >
+          <Menu className="h-7 w-7" />
+        </button>
+        {/* Mobile Sidebar Overlay */}
+        {sidebarOpen && (
+          <div className="fixed inset-0 z-50 flex">
+            <div className="h-full overflow-y-auto">
+              <AdminSidebar
+                activeSection={activeSection}
+                onSectionChange={(section) => {
+                  setActiveSection(section);
+                  setSidebarOpen(false);
+                }}
+                onLogout={handleLogout}
+                sidebarOpen={sidebarOpen}
+                toggleSidebar={toggleSidebar}
+              />
+            </div>
+            {/* Overlay background to close sidebar */}
+            <div className="flex-1 bg-black bg-opacity-40" onClick={toggleSidebar} />
+          </div>
         )}
         <AdminAnalyticsContext.Provider value={{ recentUsers, totalProducts, totalSalesAmount }}>
           {content}

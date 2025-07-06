@@ -5,7 +5,7 @@ import { AuthProvider } from "@/context/AuthContext";
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="bg-black h-screen w-full flex overflow-hidden">
+    <div className="min-h-screen w-full flex overflow-hidden">
       {children}
     </div>
   );
