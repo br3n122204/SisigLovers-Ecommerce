@@ -10,6 +10,8 @@ import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import { db } from '@/lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
+import { signOut } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 
 const ADMIN_UID = "1BeqoY3h5gTa4LBUsAiaDLHHhnT2";
 
@@ -76,6 +78,30 @@ export default function Header() {
       setSearchResults([]);
       setShowSuggestions(false);
     }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      setMobileMenuOpen(false);
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
+
+  // Helper to get initials from displayName
+  const getInitials = (displayName: string | null) => {
+    if (!displayName) return "?";
+    const nameParts = displayName.split(" ");
+    if (nameParts.length === 1) {
+      return nameParts[0].charAt(0).toUpperCase();
+    } else if (nameParts.length > 1) {
+      return (
+        nameParts[0].charAt(0) + nameParts[nameParts.length - 1].charAt(0)
+      ).toUpperCase();
+    }
+    return "?";
   };
 
   return (
@@ -277,6 +303,12 @@ export default function Header() {
                 )}
               </Link>
             )}
+            {/* Search icon for mobile */}
+            {!isAdminPage && !isAdmin && (
+              <button className="p-2 text-white" aria-label="Open search" onClick={toggleSearch}>
+                <Search className="h-7 w-7" />
+              </button>
+            )}
             {/* Hamburger menu icon */}
             <button className="p-2 text-white" aria-label="Open menu" onClick={() => setMobileMenuOpen(true)}>
               <Menu className="h-7 w-7" />
@@ -287,18 +319,91 @@ export default function Header() {
                 {/* Overlay */}
                 <div className="fixed inset-0 bg-black opacity-40" onClick={() => setMobileMenuOpen(false)} />
                 {/* Drawer */}
-                <div className="relative bg-[#101828] w-64 h-full shadow-lg z-50 p-6 flex flex-col">
-                  <button className="absolute top-4 right-4 text-white" onClick={() => setMobileMenuOpen(false)} aria-label="Close menu">
-                    <X className="h-6 w-6" />
-                  </button>
-                  <div className="mt-8">
-                    <div className="mb-4">
-                      <span className="text-[#60A5FA] font-semibold text-base">Shop by Brand</span>
-                      <div className="mt-2 flex flex-col gap-2">
-                        <Link href="/brands/MN%2BLA" className="text-white hover:text-[#60A5FA]" onClick={() => setMobileMenuOpen(false)}>MN+LA</Link>
-                        <Link href="/brands/Charlotte%20Folk" className="text-white hover:text-[#60A5FA]" onClick={() => setMobileMenuOpen(false)}>Charlotte Folk</Link>
-                        <Link href="/brands/Strap" className="text-white hover:text-[#60A5FA]" onClick={() => setMobileMenuOpen(false)}>Strap</Link>
-                        <Link href="/brands/Richboyz" className="text-white hover:text-[#60A5FA]" onClick={() => setMobileMenuOpen(false)}>Richboyz</Link>
+                <div className="fixed left-0 top-0 bg-[#101828] w-64 h-full shadow-lg z-50 flex flex-col">
+                  <div className="p-6 flex flex-col h-full">
+                    <button className="absolute top-4 right-4 text-white" onClick={() => setMobileMenuOpen(false)} aria-label="Close menu">
+                      <X className="h-6 w-6" />
+                    </button>
+                    {/* User info at the top */}
+                    {user && (
+                      <div className="flex items-center gap-3 mb-6 mt-2">
+                        <div className="w-12 h-12 rounded-full bg-[#22304a] flex items-center justify-center text-lg font-bold text-[#60A5FA]">
+                          {isAdmin ? 'SL' : getInitials(user.displayName)}
+                        </div>
+                        <div className="flex flex-col overflow-hidden">
+                          <span className="text-white font-semibold truncate">{isAdmin ? 'Sisig Lovers' : (user.displayName || 'Your Name')}</span>
+                          <span className="text-[#60A5FA] text-xs truncate">{user.email}</span>
+                        </div>
+                      </div>
+                    )}
+                    <div className="mt-2 flex flex-col h-full">
+                      {/* Shop by Brand Dropdown for logged-in users */}
+                      {user ? (
+                        <div className="mb-4">
+                          <button
+                            onClick={() => setIsBrandDropdownOpen(!isBrandDropdownOpen)}
+                            className="flex items-center w-full justify-between text-[#60A5FA] font-semibold text-base focus:outline-none hover:text-white"
+                          >
+                            <span>Shop by Brand</span>
+                            <ChevronDown className={`h-4 w-4 ml-2 transition-transform ${isBrandDropdownOpen ? 'rotate-180' : ''}`} />
+                          </button>
+                          <div className={`mt-2 flex flex-col gap-2 pl-2 ${isBrandDropdownOpen ? '' : 'hidden'}`}> 
+                            <Link href="/brands/MN%2BLA" className="text-white hover:text-[#60A5FA]" onClick={() => setMobileMenuOpen(false)}>MN+LA</Link>
+                            <Link href="/brands/Charlotte%20Folk" className="text-white hover:text-[#60A5FA]" onClick={() => setMobileMenuOpen(false)}>Charlotte Folk</Link>
+                            <Link href="/brands/Strap" className="text-white hover:text-[#60A5FA]" onClick={() => setMobileMenuOpen(false)}>Strap</Link>
+                            <Link href="/brands/Richboyz" className="text-white hover:text-[#60A5FA]" onClick={() => setMobileMenuOpen(false)}>Richboyz</Link>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="mb-4">
+                          <span className="text-[#60A5FA] font-semibold text-base">Shop by Brand</span>
+                          <div className="mt-2 flex flex-col gap-2">
+                            <Link href="/brands/MN%2BLA" className="text-white hover:text-[#60A5FA]" onClick={() => setMobileMenuOpen(false)}>MN+LA</Link>
+                            <Link href="/brands/Charlotte%20Folk" className="text-white hover:text-[#60A5FA]" onClick={() => setMobileMenuOpen(false)}>Charlotte Folk</Link>
+                            <Link href="/brands/Strap" className="text-white hover:text-[#60A5FA]" onClick={() => setMobileMenuOpen(false)}>Strap</Link>
+                            <Link href="/brands/Richboyz" className="text-white hover:text-[#60A5FA]" onClick={() => setMobileMenuOpen(false)}>Richboyz</Link>
+                          </div>
+                        </div>
+                      )}
+                      {/* Admin Dashboard link for admin */}
+                      {isAdmin && !isAdminPage && (
+                        <div className="mb-4">
+                          <Link href="/admin" className="text-[#60A5FA] font-semibold block py-2" onClick={() => setMobileMenuOpen(false)}>Admin Dashboard</Link>
+                        </div>
+                      )}
+                      {/* User-specific links */}
+                      {user && !isAdminPage && !isAdmin && (
+                        <div className="mb-4">
+                          <Link href="/orders" className="text-[#60A5FA] font-semibold hover:text-white block py-2" onClick={() => setMobileMenuOpen(false)}>Orders</Link>
+                        </div>
+                      )}
+                      {/* Auth buttons - positioned at bottom */}
+                      <div className="mt-auto pt-6 border-t border-[#22304a]">
+                        {!user ? (
+                          <div className="flex flex-col gap-3">
+                            <Link 
+                              href="/login" 
+                              className="w-full px-4 py-3 border border-[#60A5FA] rounded-md text-[#60A5FA] font-semibold hover:bg-[#60A5FA] hover:text-[#101828] transition-colors text-center"
+                              onClick={() => setMobileMenuOpen(false)}
+                            >
+                              Log In
+                            </Link>
+                            <Link 
+                              href="/signup" 
+                              className="w-full px-4 py-3 bg-[#60A5FA] border border-[#60A5FA] rounded-md text-[#101828] font-semibold hover:bg-[#3380c0] transition-colors text-center"
+                              onClick={() => setMobileMenuOpen(false)}
+                            >
+                              Sign Up
+                            </Link>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={handleLogout}
+                            className="w-full px-4 py-3 border border-[#60A5FA] rounded-md text-[#60A5FA] font-semibold hover:bg-[#60A5FA] hover:text-[#101828] transition-colors text-center"
+                          >
+                            Log Out
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>

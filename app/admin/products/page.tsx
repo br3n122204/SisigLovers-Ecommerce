@@ -114,28 +114,28 @@ export default function AdminProductsPage() {
           <table className="min-w-full bg-[#161e2e] border border-[#22304a] rounded-lg text-white">
             <thead>
               <tr className="bg-[#22304a] text-[#8ec0ff]">
-                <th className="p-3 border-b border-[#22304a] text-center">Image</th>
-                <th className="p-3 border-b border-[#22304a] text-left">Name</th>
-                <th className="p-3 border-b border-[#22304a] text-left">Brand</th>
-                <th className="p-3 border-b border-[#22304a] text-left">Price</th>
-                <th className="p-3 border-b border-[#22304a] text-left">Stock</th>
-                <th className="p-3 border-b border-[#22304a] text-center">Actions</th>
+                <th className="p-3 border-b border-[#22304a] text-center text-sm px-2 py-2">Image</th>
+                <th className="p-3 border-b border-[#22304a] text-left text-sm px-2 py-2">Name</th>
+                <th className="p-3 border-b border-[#22304a] text-left text-sm px-2 py-2">Brand</th>
+                <th className="p-3 border-b border-[#22304a] text-left text-sm px-2 py-2">Price</th>
+                <th className="p-3 border-b border-[#22304a] text-left text-sm px-2 py-2">Stock</th>
+                <th className="p-3 border-b border-[#22304a] text-center text-sm px-2 py-2">Actions</th>
               </tr>
             </thead>
             <tbody>
               {products.map((product) => (
                 <tr key={product.id} className="border-b border-[#22304a] hover:bg-[#1e293b] transition-colors">
-                  <td className="px-4 py-2 text-center">
+                  <td className="px-4 py-2 text-center text-sm px-2 py-1">
                     <img
                       src={Array.isArray(product.imageUrls) && product.imageUrls.length > 0 ? product.imageUrls[0] : '/images/placeholder.jpg'}
                       alt={product.name}
                       className="w-12 h-12 object-contain rounded bg-[#22304a]"
                     />
                   </td>
-                  <td className="p-3">
+                  <td className="p-3 text-sm px-2 py-1">
                     {editingId === product.id ? (
                       <input
-                        className="bg-[#22304a] border border-[#22304a] px-2 py-1 rounded w-32 text-white"
+                        className="bg-[#22304a] border border-[#22304a] px-2 py-1 rounded w-32 text-white text-xs px-1 py-1 h-7 w-20 sm:w-auto"
                         value={editValues.name || ""}
                         onChange={e => setEditValues(v => ({ ...v, name: e.target.value }))}
                       />
@@ -143,12 +143,12 @@ export default function AdminProductsPage() {
                       <span className="font-semibold text-white">{product.name}</span>
                     )}
                   </td>
-                  <td className="p-3 text-[#8ec0ff]">{product.brand || "-"}</td>
-                  <td className="p-3">
+                  <td className="p-3 text-[#8ec0ff] text-sm px-2 py-1">{product.brand || "-"}</td>
+                  <td className="p-3 text-sm px-2 py-1">
                     {editingId === product.id ? (
                       <input
                         type="number"
-                        className="bg-[#22304a] border border-[#22304a] px-2 py-1 rounded w-20 text-white"
+                        className="bg-[#22304a] border border-[#22304a] px-2 py-1 rounded w-20 text-white text-xs px-1 py-1 h-7 w-20 sm:w-auto"
                         value={editValues.price ?? ""}
                         onChange={e => setEditValues(v => ({ ...v, price: Number(e.target.value) }))}
                       />
@@ -156,7 +156,7 @@ export default function AdminProductsPage() {
                       <span className="font-semibold text-[#3390ff]">₱{product.price}</span>
                     )}
                   </td>
-                  <td className="p-3">
+                  <td className="p-3 text-sm px-2 py-1">
                     {editingId === product.id ? (
                       editValues.sizes && editValues.sizes.length > 0 ? (
                         <div className="flex flex-col gap-1">
@@ -165,7 +165,7 @@ export default function AdminProductsPage() {
                             return (
                               <div key={i} className="flex items-center gap-2">
                                 <select
-                                  className="bg-[#22304a] border border-[#22304a] px-2 py-1 rounded w-24 text-xs font-semibold text-center text-white"
+                                  className="bg-[#22304a] border border-[#22304a] px-2 py-1 rounded w-24 text-xs font-semibold text-center text-white text-xs px-1 py-1 h-7 w-20 sm:w-auto"
                                   value={s.size}
                                   onChange={e => {
                                     const newSizes = [...(editValues.sizes || [])];
@@ -183,7 +183,7 @@ export default function AdminProductsPage() {
                                 </select>
                                 <input
                                   type="number"
-                                  className="bg-[#22304a] border border-[#22304a] px-2 py-1 rounded w-24 text-xs text-white"
+                                  className="bg-[#22304a] border border-[#22304a] px-2 py-1 rounded w-24 text-xs text-white text-xs px-1 py-1 h-7 w-20 sm:w-auto"
                                   value={s.stock === 0 ? '' : s.stock}
                                   min={0}
                                   placeholder="Stock"
@@ -221,7 +221,7 @@ export default function AdminProductsPage() {
                       ) : (
                         <input
                           type="number"
-                          className="bg-[#22304a] border border-[#22304a] px-2 py-1 rounded w-16 text-white"
+                          className="bg-[#22304a] border border-[#22304a] px-2 py-1 rounded w-16 text-white text-xs px-1 py-1 h-7 w-20 sm:w-auto"
                           value={editValues.stock ?? ""}
                           onChange={e => setEditValues(v => ({ ...v, stock: Number(e.target.value) }))}
                         />
@@ -238,7 +238,7 @@ export default function AdminProductsPage() {
                       )
                     )}
                   </td>
-                  <td className="p-3">
+                  <td className="p-3 text-sm px-2 py-1">
                     {editingId === product.id ? (
                       <>
                         <Button
@@ -258,20 +258,20 @@ export default function AdminProductsPage() {
                         </Button>
                       </>
                     ) : (
-                      <>
+                      <div className="flex flex-row gap-2 justify-center items-center">
                         <Button
-                          className="bg-yellow-500 hover:bg-yellow-600 text-white mr-2"
+                          className="text-xs px-1 py-1 h-7 min-w-[36px] sm:text-sm sm:px-2 sm:py-1 sm:h-8 sm:min-w-[48px] bg-yellow-500 hover:bg-yellow-600 text-white"
                           onClick={() => startEdit(product)}
                         >
                           Edit
                         </Button>
                         <Button
-                          className="bg-red-600 hover:bg-red-700 text-white"
+                          className="text-xs px-1 py-1 h-7 min-w-[36px] sm:text-sm sm:px-2 sm:py-1 sm:h-8 sm:min-w-[48px] bg-red-600 hover:bg-red-700 text-white"
                           onClick={() => deleteProduct(product.id)}
                         >
                           Delete
                         </Button>
-                      </>
+                      </div>
                     )}
                   </td>
                 </tr>
