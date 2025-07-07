@@ -471,6 +471,32 @@ function AnalyticsSection() {
     fetchOrdersAndAOV();
   }, []);
 
+  React.useEffect(() => {
+    async function fetchReturnsAndRefunds() {
+      // Fetch all products
+      const adminProductsSnap = await getDocs(collection(db, 'adminProducts'));
+      let allReturns = [];
+      for (const productDoc of adminProductsSnap.docs) {
+        const returnReasonsSnap = await getDocs(collection(db, 'adminProducts', productDoc.id, 'returnRefundReasons'));
+        allReturns.push(...returnReasonsSnap.docs.map(doc => doc.data()));
+      }
+      // Filter for current month
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+      const returnsThisMonthArr = allReturns.filter(r => {
+        if (!r.timestamp || !r.timestamp.toDate) return false;
+        const d = r.timestamp.toDate();
+        return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+      });
+      setReturnsThisMonth(returnsThisMonthArr.length);
+      // Total refunded
+      const totalRefundedVal = returnsThisMonthArr.reduce((sum, r) => sum + (typeof r.price === 'number' ? r.price : 0), 0);
+      setTotalRefunded(totalRefundedVal);
+    }
+    fetchReturnsAndRefunds();
+  }, []);
+
   return (
     <div className="w-full h-full flex flex-col gap-8 text-[#8ec0ff]">
       {/* Top Stats */}
