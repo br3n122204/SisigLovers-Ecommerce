@@ -144,7 +144,7 @@ export default function Header() {
             </div>
             {/* Right: Profile & Cart */}
             <div className="flex items-center space-x-4 ml-4">
-              {user && <UserProfile />}
+              {user && user.uid !== ADMIN_UID && <UserProfile />}
               <Link href="/cart" className="relative flex items-center justify-center">
                 <ShoppingCart className="h-6 w-6 text-white hover:text-[#60A5FA] transition-colors" />
                 {cartItems.length > 0 && (
@@ -195,7 +195,7 @@ export default function Header() {
                 )}
                 {!isAdminPage && (
                   isAdmin && (
-                    <Link href="/admin" className="hover:text-[#fff9f3] text-[#001F3F] font-semibold">Admin Dashboard</Link>
+                    <Link href="/admin" className="hover:text-[#fff9f3] text-[#60A5FA] font-semibold">Admin Dashboard</Link>
                   )
                 )}
               </nav>
@@ -256,7 +256,7 @@ export default function Header() {
             )}
             {/* User Profile & Cart */}
             <div className="flex items-center space-x-4 ml-4">
-              {user && <UserProfile />}
+              {user && user.uid !== ADMIN_UID && <UserProfile />}
               {!isAdminPage && !isAdmin && (
                 <Link href="/cart" className="relative flex items-center justify-center">
                   <ShoppingCart className="h-6 w-6 text-white hover:text-[#60A5FA] transition-colors" />
