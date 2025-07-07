@@ -108,6 +108,17 @@ function ImageSlider() {
               />
               <div className="absolute inset-0 bg-black bg-opacity-40" />
             </div>
+            {/* Blurred Background - DESKTOP ONLY */}
+            <div className="hidden sm:block absolute inset-0 w-full h-full z-0">
+              <Image
+                src={slide.image}
+                alt={slide.title}
+                fill
+                className="object-cover w-full h-full scale-110 blur-2xl brightness-75"
+                priority={slide.id === 1}
+              />
+              <div className="absolute inset-0 bg-black bg-opacity-40" />
+            </div>
             {/* Foreground Image */}
             <div className="relative z-20 flex flex-col items-center justify-center w-full h-full">
               <Image
