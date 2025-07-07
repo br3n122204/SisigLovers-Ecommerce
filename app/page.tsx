@@ -97,23 +97,25 @@ function ImageSlider() {
       >
         {sliderImages.map((slide) => (
           <div key={slide.id} className="relative w-full h-full flex-shrink-0 flex items-center justify-center overflow-hidden">
-            {/* Blurred Background */}
-            <Image
-              src={slide.image}
-              alt={slide.title}
-              fill
-              className="object-cover w-full h-full scale-105 blur-lg brightness-75 absolute inset-0 z-0"
-              priority={slide.id === 1}
-            />
-            <div className="absolute inset-0 bg-black bg-opacity-40 z-10" />
-            {/* Foreground Image and Button */}
-            <div className="relative z-20 flex flex-col items-center justify-center">
+            {/* Blurred Background - MOBILE ONLY */}
+            <div className="block sm:hidden absolute inset-0 w-full h-full z-0">
               <Image
                 src={slide.image}
                 alt={slide.title}
-                width={480}
-                height={480}
-                className="rounded-2xl shadow-2xl object-cover w-45 h-45 sm:w-[480px] sm:h-[480px]"
+                fill
+                className="object-cover w-full h-full scale-105 blur-lg brightness-75"
+                priority={slide.id === 1}
+              />
+              <div className="absolute inset-0 bg-black bg-opacity-40" />
+            </div>
+            {/* Foreground Image */}
+            <div className="relative z-20 flex flex-col items-center justify-center w-full h-full">
+              <Image
+                src={slide.image}
+                alt={slide.title}
+                width={320}
+                height={320}
+                className="rounded-2xl shadow-2xl object-cover w-44 h-44 sm:w-[480px] sm:h-[480px] mx-auto"
                 priority={slide.id === 1}
               />
             </div>
