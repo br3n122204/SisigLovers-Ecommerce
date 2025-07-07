@@ -401,6 +401,21 @@ export default function CheckoutPage() {
         console.error('Error updating AdminAnalytics monthly/weekly sales:', err);
       }
 
+      // Update purchasedCount for each purchased product
+      try {
+        for (const item of cleanOrderData.items) {
+          const productRef = doc(db, 'adminProducts', item.id);
+          const productSnap = await getDoc(productRef);
+          let currentCount = 0;
+          if (productSnap.exists()) {
+            currentCount = productSnap.data().purchasedCount || 0;
+          }
+          await updateDoc(productRef, { purchasedCount: currentCount + (item.quantity || 1) });
+        }
+      } catch (err) {
+        console.error('Failed to update purchasedCount in adminProducts:', err);
+      }
+
       toast({
         title: "Successfully ordered.",
         description: "Thank you for purchasing with DPT ONE.",
