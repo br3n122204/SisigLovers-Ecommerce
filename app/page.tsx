@@ -266,7 +266,7 @@ export default function DPTOneFashion() {
                         return (
                           <Link key={product.id} href={`/products/${product.id}`} className="w-full">
                             <div
-                              className="bg-[#19223a] rounded-2xl shadow-lg p-3 sm:p-4 flex flex-col items-center cursor-pointer hover:shadow-xl transition text-[#60A5FA] relative max-w-[170px] sm:max-w-full mx-auto h-[340px]"
+                              className="bg-[#19223a] rounded-2xl shadow-lg p-3 sm:p-4 flex flex-col items-center cursor-pointer hover:shadow-xl transition text-[#60A5FA] relative max-w-[170px] sm:max-w-full mx-auto h-[220px] sm:h-[340px]"
                               onMouseEnter={() => setHoveredProduct(product.id)}
                               onMouseLeave={() => setHoveredProduct(null)}
                             >
