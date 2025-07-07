@@ -248,7 +248,7 @@ export default function DPTOneFashion() {
                   <span className="ml-4 text-lg text-[#60A5FA]">Loading products...</span>
                 </div>
               ) : (
-                <div className="grid grid-cols-3 gap-4 px-2 sm:px-4 md:px-0">
+                <div className="grid grid-cols-3 md:grid-cols-4 gap-4 md:gap-x-8 md:gap-y-8 px-2 sm:px-4 md:px-0 max-w-4xl mx-auto">
                   {products.filter(product => product.isFeaturedProduct === true).length === 0 ? (
                     <div className="col-span-4 text-center text-[#60A5FA]">No featured products.</div>
                   ) : (
@@ -266,7 +266,7 @@ export default function DPTOneFashion() {
                         return (
                           <Link key={product.id} href={`/products/${product.id}`} className="w-full">
                             <div
-                              className="bg-[#19223a] rounded-2xl shadow-lg p-3 sm:p-4 flex flex-col justify-between items-center cursor-pointer hover:shadow-xl transition text-[#60A5FA] relative max-w-[170px] sm:max-w-full mx-auto h-[260px]"
+                              className="bg-[#19223a] rounded-2xl shadow-lg p-3 sm:p-4 flex flex-col justify-between items-center cursor-pointer hover:shadow-xl transition text-[#60A5FA] relative w-full h-[220px] md:w-[230px] md:h-[370px] mx-auto"
                               onMouseEnter={() => setHoveredProduct(product.id)}
                               onMouseLeave={() => setHoveredProduct(null)}
                             >
@@ -289,7 +289,7 @@ export default function DPTOneFashion() {
                                   <span className="absolute top-1 left-1 bg-orange-400 text-white text-xs sm:text-sm font-semibold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full z-10">Low stock</span>
                                 )}
                               </div>
-                              <h3 className="font-bold text-base sm:text-lg text-center mb-1">{product.name}</h3>
+                              <h3 className="font-bold text-sm md:text-lg text-[#60A5FA] text-center w-full break-words mb-1">{product.name}</h3>
                               <p className="text-[#60A5FA] font-semibold mb-2 sm:mb-4">₱{product.price}</p>
                             </div>
                           </Link>
