@@ -279,12 +279,12 @@ export default function ProductDetailPage() {
             {/* Image Gallery */}
             <div className="md:w-1/2 flex flex-col items-center min-w-[350px]">
               <div className="relative w-full max-w-xl mb-4 flex items-center justify-center">
-                {/* Navigation buttons outside the image area */}
+                {/* Hide navigation buttons on mobile, show on md+ */}
                 {product.imageUrls && product.imageUrls.length > 1 && (
                   <>
                     <button
                       onClick={handlePrevImage}
-                      className={navBtnStyles + ""}
+                      className={navBtnStyles + " hidden md:flex"}
                       style={{ position: 'absolute', left: '-56px', top: '50%', transform: 'translateY(-50%)' }}
                       aria-label="Previous image"
                     >
@@ -292,7 +292,7 @@ export default function ProductDetailPage() {
                     </button>
                     <button
                       onClick={handleNextImage}
-                      className={navBtnStyles + ""}
+                      className={navBtnStyles + " hidden md:flex"}
                       style={{ position: 'absolute', right: '-56px', top: '50%', transform: 'translateY(-50%)' }}
                       aria-label="Next image"
                     >
@@ -304,6 +304,25 @@ export default function ProductDetailPage() {
                   ref={imageContainerRef}
                   className="w-full max-w-xl h-auto rounded-lg border border-[#60A5FA] overflow-hidden relative bg-[#19223a]"
                   style={{ minHeight: 400 }}
+                  // Add swipe gesture handlers for mobile only
+                  onTouchStart={(e) => {
+                    if (window.innerWidth >= 768) return; // Only on mobile
+                    imageContainerRef.current && (imageContainerRef.current.dataset.touchStartX = e.touches[0].clientX);
+                  }}
+                  onTouchEnd={(e) => {
+                    if (window.innerWidth >= 768) return; // Only on mobile
+                    const touchStartX = imageContainerRef.current?.dataset.touchStartX;
+                    if (!touchStartX) return;
+                    const deltaX = e.changedTouches[0].clientX - parseFloat(touchStartX);
+                    if (Math.abs(deltaX) > 50) {
+                      if (deltaX > 0) {
+                        handlePrevImage();
+                      } else {
+                        handleNextImage();
+                      }
+                    }
+                    if (imageContainerRef.current) delete imageContainerRef.current.dataset.touchStartX;
+                  }}
                 >
                   {/* Current image always visible */}
                   {mainImage ? (
