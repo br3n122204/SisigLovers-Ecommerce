@@ -60,8 +60,9 @@ const ORDER_STATUSES = [
   "processing",
   "shipped",
   "delivered",
+  "completed",
   "cancelled",
-  "refunded"
+  "returned/refunded",
 ];
 
 export default function AdminOrdersPage() {
@@ -499,12 +500,12 @@ export default function AdminOrdersPage() {
                       <div className="flex items-center gap-4">
                         <span className="text-2xl">{getStatusIcon(order.status)}</span>
                         <Badge className={
-                          order.status === 'pending' ? 'bg-yellow-300 text-black' :
+                          (order.status === 'pending' ? 'bg-yellow-300 text-black' :
                           order.status === 'processing' ? 'bg-blue-400 text-white' :
                           order.status === 'shipped' ? 'bg-purple-400 text-white' :
                           order.status === 'delivered' ? 'bg-green-400 text-white' :
                           order.status === 'cancelled' ? 'bg-red-400 text-white' :
-                          'bg-[#8ec0ff] text-black'
+                          'bg-[#8ec0ff] text-black') + ' flex justify-center items-center'
                         }>
                           <select
                             value={order.status}
@@ -528,11 +529,11 @@ export default function AdminOrdersPage() {
                                 optimisticDeliveredAt
                               });
                             }}
-                            className="bg-transparent border-none text-inherit font-semibold focus:outline-none focus:ring-2 focus:ring-[#3390ff] rounded"
+                            className="bg-transparent border-none text-inherit font-semibold focus:outline-none focus:ring-2 focus:ring-[#3390ff] rounded text-center"
                           >
                             {ORDER_STATUSES.map(status => (
                               <option key={status} value={status} className="text-black">
-                                {status.charAt(0).toUpperCase() + status.slice(1)}
+                                {status === 'returned/refunded' ? 'Returned/Refunded' : status.charAt(0).toUpperCase() + status.slice(1)}
                               </option>
                             ))}
                           </select>
