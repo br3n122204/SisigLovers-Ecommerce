@@ -134,9 +134,21 @@ function LoginForm({ onLogin }: { onLogin: (email: string, password: string) => 
 }
 
 function AnalyticsSection() {
-  const [chartType, setChartType] = React.useState<'sales' | 'quantity'>('sales');
+  const [chartType, setChartType] = React.useState<'sales' | 'quantity' | 'inventory' | 'feedback' | 'weekly' | 'monthly'>('sales');
   const [salesData, setSalesData] = React.useState<{ month: string; sales: number; quantity: number }[]>([]);
+  const [products, setProducts] = React.useState<any[]>([]);
+  const [lowStockProducts, setLowStockProducts] = React.useState<any[]>([]);
+  const [outOfStockProducts, setOutOfStockProducts] = React.useState<any[]>([]);
+  const [bestSelling, setBestSelling] = React.useState<any | null>(null);
+  const [loadingInventory, setLoadingInventory] = React.useState(false);
   const { recentUsers = [], totalProducts = 0, totalSalesAmount = 0 } = React.useContext(AdminAnalyticsContext) || {};
+  const [weeklySalesData, setWeeklySalesData] = React.useState<{ day: string; sales: number }[]>([]);
+  const [selectedMonth, setSelectedMonth] = React.useState<{ month: number; year: number }>(() => {
+    const now = new Date();
+    return { month: now.getMonth(), year: now.getFullYear() };
+  });
+  const [monthlySalesData, setMonthlySalesData] = React.useState<{ day: string; sales: number }[]>([]);
+  const [availableMonths, setAvailableMonths] = React.useState<{ month: number; year: number }[]>([]);
 
   React.useEffect(() => {
     // Fetch sales data grouped by month from the 'sales' collection
@@ -147,17 +159,15 @@ function AnalyticsSection() {
       const salesByMonth: { [month: string]: { sales: number; quantity: number } } = {};
       querySnapshot.forEach(doc => {
         const data = doc.data();
-        console.log('Sales doc:', data);
         if (data.timestamp && (data.total || data.quantity || data.items)) {
           const date = data.timestamp.toDate();
           const month = date.toLocaleString('default', { month: 'short' });
           if (!salesByMonth[month]) salesByMonth[month] = { sales: 0, quantity: 0 };
           if (typeof data.total === 'number') salesByMonth[month].sales += data.total;
           else if (typeof data.total === 'string') {
-            const parsed = parseFloat(data.total.replace(/[^\d.]/g, ''));
+            const parsed = parseFloat(data.total.replace(/[^0-9.]/g, ''));
             if (!isNaN(parsed)) salesByMonth[month].sales += parsed;
           }
-          // Fix: If quantity is missing, sum from items array
           let quantity = 0;
           if (typeof data.quantity === 'number') {
             quantity = data.quantity;
@@ -167,7 +177,6 @@ function AnalyticsSection() {
           salesByMonth[month].quantity += quantity;
         }
       });
-      // Ensure all months are present for the chart
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       const salesArr = months.map(month => ({
         month,
@@ -178,6 +187,198 @@ function AnalyticsSection() {
     }
     fetchSalesData();
   }, []);
+
+  // Inventory analytics logic
+  React.useEffect(() => {
+    if (chartType !== 'inventory') return;
+    setLoadingInventory(true);
+    async function fetchInventoryAnalytics() {
+      // Fetch all products
+      const q = query(collection(db, 'adminProducts'));
+      const querySnapshot = await getDocs(q);
+      const allProducts: any[] = [];
+      querySnapshot.forEach((docSnap) => {
+        allProducts.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      setProducts(allProducts);
+      // Low stock: any size with stock > 0 and <= 5, or totalStock > 0 and <= 5
+      const lowStock = allProducts
+        .map(p => {
+          if (Array.isArray(p.sizes)) {
+            // Find all sizes with stock > 0 and <= 5
+            const lowSizes = p.sizes.filter((size: any) => Number(size.stock) > 0 && Number(size.stock) <= 5);
+            if (lowSizes.length > 0) {
+              return { ...p, lowStockSizes: lowSizes };
+            }
+            return null;
+          } else if (typeof p.totalStock === 'number') {
+            if (p.totalStock > 0 && p.totalStock <= 5) {
+              return { ...p, lowStockSizes: null };
+            }
+            return null;
+          } else if (typeof p.stock === 'number') {
+            if (p.stock > 0 && p.stock <= 5) {
+              return { ...p, lowStockSizes: null };
+            }
+            return null;
+          }
+          return null;
+        })
+        .filter(Boolean);
+      setLowStockProducts(lowStock);
+      // Out of stock: totalStock === 0, or all sizes stock === 0, or stock === 0
+      const outOfStock = allProducts.filter(p => {
+        if (typeof p.totalStock === 'number') {
+          return p.totalStock === 0;
+        } else if (Array.isArray(p.sizes)) {
+          return !p.sizes.some((size: any) => Number(size.stock) > 0);
+        } else {
+          return !p.stock || Number(p.stock) === 0;
+        }
+      });
+      setOutOfStockProducts(outOfStock);
+      // Best selling tshirt: aggregate sales by product id/name from 'sales' collection
+      const salesRef = collection(db, 'sales');
+      const salesSnap = await getDocs(salesRef);
+      const salesMap: Record<string, { name: string; quantity: number; imageUrl?: string }> = {};
+      salesSnap.forEach(doc => {
+        const data = doc.data();
+        if (Array.isArray(data.items)) {
+          data.items.forEach((item: any) => {
+            if (!item.name) return;
+            if (!salesMap[item.name]) {
+              salesMap[item.name] = { name: item.name, quantity: 0, imageUrl: item.imageUrl };
+            }
+            salesMap[item.name].quantity += Number(item.quantity) || 0;
+          });
+        }
+      });
+      // Only consider tshirts/shirts
+      const tshirtSales = Object.values(salesMap).filter(s => s.name.toLowerCase().includes('shirt'));
+      let best = null;
+      if (tshirtSales.length > 0) {
+        best = tshirtSales.reduce((a, b) => (a.quantity > b.quantity ? a : b));
+      }
+      setBestSelling(best);
+      setLoadingInventory(false);
+    }
+    fetchInventoryAnalytics();
+  }, [chartType]);
+
+  // Fetch weekly and monthly sales data
+  React.useEffect(() => {
+    async function fetchWeeklyAndMonthlySales() {
+      const salesRef = collection(db, 'sales');
+      const q = query(salesRef);
+      const querySnapshot = await getDocs(q);
+      const now = new Date();
+      // Weekly
+      const weekStart = new Date(now);
+      weekStart.setDate(now.getDate() - now.getDay()); // Sunday
+      weekStart.setHours(0, 0, 0, 0);
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+      weekEnd.setHours(23, 59, 59, 999);
+      const weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const weekly: { [day: string]: number } = {};
+      weekDays.forEach(day => (weekly[day] = 0));
+      // Monthly
+      const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      const daysInMonth = monthEnd.getDate();
+      const monthly: { [day: string]: number } = {};
+      for (let i = 1; i <= daysInMonth; i++) monthly[i] = 0;
+      querySnapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.timestamp && (data.total || data.quantity || data.items)) {
+          const date = data.timestamp.toDate();
+          // Weekly
+          if (date >= weekStart && date <= weekEnd) {
+            const day = weekDays[date.getDay()];
+            let sale = 0;
+            if (typeof data.total === 'number') sale = data.total;
+            else if (typeof data.total === 'string') {
+              const parsed = parseFloat(data.total.replace(/[^0-9.]/g, ''));
+              if (!isNaN(parsed)) sale = parsed;
+            }
+            weekly[day] += sale;
+          }
+          // Monthly
+          if (date >= monthStart && date <= monthEnd) {
+            const day = date.getDate();
+            let sale = 0;
+            if (typeof data.total === 'number') sale = data.total;
+            else if (typeof data.total === 'string') {
+              const parsed = parseFloat(data.total.replace(/[^0-9.]/g, ''));
+              if (!isNaN(parsed)) sale = parsed;
+            }
+            monthly[day] += sale;
+          }
+        }
+      });
+      setWeeklySalesData(weekDays.map(day => ({ day, sales: weekly[day] })));
+      setMonthlySalesData(Array.from({ length: daysInMonth }, (_, i) => ({ day: (i + 1).toString(), sales: monthly[i + 1] })));
+    }
+    fetchWeeklyAndMonthlySales();
+  }, []);
+
+  // Fetch available months and monthly sales data for the selected month
+  React.useEffect(() => {
+    async function fetchAvailableMonthsAndSales() {
+      const salesRef = collection(db, 'sales');
+      const q = query(salesRef);
+      const querySnapshot = await getDocs(q);
+      // Find all unique months with sales
+      const monthsSet = new Set<string>();
+      querySnapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.timestamp) {
+          const date = data.timestamp.toDate();
+          monthsSet.add(`${date.getFullYear()}-${date.getMonth()}`);
+        }
+      });
+      let monthsArr = Array.from(monthsSet).map(str => {
+        const [year, month] = str.split('-').map(Number);
+        return { month, year };
+      });
+      // Sort descending (latest first)
+      monthsArr = monthsArr.sort((a, b) => b.year !== a.year ? b.year - a.year : b.month - a.month);
+      // Limit to last 12 months
+      monthsArr = monthsArr.slice(0, 12);
+      setAvailableMonths(monthsArr);
+      // If current selectedMonth is not in available, default to latest
+      if (!monthsArr.some(m => m.month === selectedMonth.month && m.year === selectedMonth.year) && monthsArr.length > 0) {
+        setSelectedMonth(monthsArr[0]);
+      }
+      // Prepare monthly sales data for selected month
+      const { month, year } = monthsArr.find(m => m.month === selectedMonth.month && m.year === selectedMonth.year) || monthsArr[0] || { month: (new Date()).getMonth(), year: (new Date()).getFullYear() };
+      const monthStart = new Date(year, month, 1);
+      const monthEnd = new Date(year, month + 1, 0);
+      const daysInMonth = monthEnd.getDate();
+      const monthly: { [day: string]: number } = {};
+      for (let i = 1; i <= daysInMonth; i++) monthly[i] = 0;
+      querySnapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.timestamp && (data.total || data.quantity || data.items)) {
+          const date = data.timestamp.toDate();
+          if (date >= monthStart && date <= monthEnd) {
+            const day = date.getDate();
+            let sale = 0;
+            if (typeof data.total === 'number') sale = data.total;
+            else if (typeof data.total === 'string') {
+              const parsed = parseFloat(data.total.replace(/[^0-9.]/g, ''));
+              if (!isNaN(parsed)) sale = parsed;
+            }
+            monthly[day] += sale;
+          }
+        }
+      });
+      setMonthlySalesData(Array.from({ length: daysInMonth }, (_, i) => ({ day: (i + 1).toString(), sales: monthly[i + 1] })));
+    }
+    if (chartType === 'monthly') {
+      fetchAvailableMonthsAndSales();
+    }
+  }, [chartType, selectedMonth]);
 
   return (
     <div className="w-full h-full flex flex-col gap-8 text-[#8ec0ff]">
@@ -197,42 +398,246 @@ function AnalyticsSection() {
         </div>
       </div>
       {/* Chart Type Selector */}
-      <div className="flex justify-end max-w-3xl mx-auto mb-2">
-        <Select value={chartType} onValueChange={v => setChartType(v as 'sales' | 'quantity')}>
+      <div className="flex justify-end max-w-3xl mx-auto mb-2 gap-2">
+        <Select value={chartType} onValueChange={v => setChartType(v as 'sales' | 'quantity' | 'inventory' | 'feedback' | 'weekly' | 'monthly')}>
           <SelectTrigger className="w-56 bg-[#22304a] border border-[#60A5FA] text-[#8ec0ff]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="sales">Total Sales (₱)</SelectItem>
             <SelectItem value="quantity">Products Purchased</SelectItem>
+            <SelectItem value="weekly">Weekly Sales</SelectItem>
+            <SelectItem value="monthly">Monthly Sales</SelectItem>
+            <SelectItem value="inventory">Inventory</SelectItem>
+            <SelectItem value="feedback">Feedback</SelectItem>
           </SelectContent>
         </Select>
+        {/* Month selector, only show for Monthly Sales */}
+        {chartType === 'monthly' && (
+          <Select
+            value={`${selectedMonth.year}-${selectedMonth.month}`}
+            onValueChange={v => {
+              const [year, month] = v.split('-').map(Number);
+              setSelectedMonth({ year, month });
+            }}
+          >
+            <SelectTrigger className="w-40 bg-[#22304a] border border-[#60A5FA] text-[#8ec0ff]">
+              <SelectValue placeholder="Select Month" />
+            </SelectTrigger>
+            <SelectContent>
+              {availableMonths.map(m => (
+                <SelectItem key={`${m.year}-${m.month}`} value={`${m.year}-${m.month}`}>{`${new Date(m.year, m.month).toLocaleString('default', { month: 'short', year: 'numeric' })}`}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
-      {/* Sales Chart */}
-      <div className="bg-[#22304a] rounded-lg p-6 w-full max-w-3xl mx-auto shadow">
-        <div className="text-xl font-semibold mb-4">{chartType === 'sales' ? 'Sales Over Time' : 'Products Purchased Over Time'}</div>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={salesData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} />
-            <XAxis dataKey="month" stroke="#8ec0ff" />
-            <YAxis 
-              stroke="#8ec0ff" 
-              tickFormatter={v => {
-                if (chartType === 'sales') {
+      {/* Analytics Content */}
+      {chartType === 'inventory' ? (
+        <div className="bg-[#22304a] rounded-lg p-6 w-full max-w-3xl mx-auto shadow flex flex-col gap-6">
+          <div className="flex flex-col md:flex-row gap-6">
+            {/* Low Stock Alerts */}
+            <div className="flex-1 bg-[#19223a] rounded-lg p-4 shadow flex flex-col">
+              <div className="text-lg font-semibold mb-2 text-[#8ec0ff]">Low Stock Alerts (≤ 5)</div>
+              {loadingInventory ? (
+                <div className="text-[#8ec0ff]">Loading...</div>
+              ) : lowStockProducts.length === 0 ? (
+                <div className="text-[#8ec0ff]">No low stock products.</div>
+              ) : (
+                <ul className="list-disc pl-6 text-sm">
+                  {lowStockProducts.map((p: any) => (
+                    <li key={p.id} className="mb-1">
+                      <span className="font-semibold text-white">{p.name}</span>
+                      {Array.isArray(p.lowStockSizes) && p.lowStockSizes.length > 0 ? (
+                        <span className="text-[#60A5FA]"> [
+                          {p.lowStockSizes.map((s: any) => `${s.size}: ${s.stock}`).join(', ')}
+                        ]</span>
+                      ) : p.lowStockSizes === null ? (
+                        <span className="text-[#60A5FA]"> ({p.totalStock ?? p.stock} left)</span>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            {/* Out of Stock Products */}
+            <div className="flex-1 bg-[#19223a] rounded-lg p-4 shadow flex flex-col">
+              <div className="text-lg font-semibold mb-2 text-[#8ec0ff]">Out of Stock Products</div>
+              {loadingInventory ? (
+                <div className="text-[#8ec0ff]">Loading...</div>
+              ) : outOfStockProducts.length === 0 ? (
+                <div className="text-[#8ec0ff]">No out of stock products.</div>
+              ) : (
+                <ul className="list-disc pl-6 text-sm">
+                  {outOfStockProducts.map((p: any) => (
+                    <li key={p.id} className="mb-1 font-semibold text-white">{p.name}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+          {/* Best Selling T-shirt (full width) */}
+          <div className="bg-[#19223a] rounded-lg p-4 shadow flex flex-col items-center">
+            <div className="text-lg font-semibold mb-2 text-[#8ec0ff]">Best Selling T-shirt</div>
+            {loadingInventory ? (
+              <div className="text-[#8ec0ff]">Loading...</div>
+            ) : bestSelling ? (
+              <div className="flex flex-col md:flex-row items-center gap-4 mt-2 w-full justify-center">
+                {bestSelling.imageUrl && <img src={bestSelling.imageUrl} alt={bestSelling.name} className="w-16 h-16 object-contain rounded bg-[#161e2e]" />}
+                <div className="flex flex-col items-center md:items-start">
+                  <span className="font-semibold text-lg text-white text-center md:text-left">{bestSelling.name}</span>
+                  <span className="text-[#60A5FA] text-base">{bestSelling.quantity} sold</span>
+                  {/* Show best selling sizes if available */}
+                  {bestSelling.sizes && Array.isArray(bestSelling.sizes) && bestSelling.sizes.length > 0 && (
+                    <div className="mt-2 text-sm text-[#8ec0ff]">
+                      Best Selling Sizes: {bestSelling.sizes.map((s: any) => `${s.size}: ${s.quantity}`).join(', ')}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ) : <div className="text-[#8ec0ff]">No t-shirt sales data.</div>}
+          </div>
+        </div>
+      ) : chartType === 'feedback' ? (
+        <div className="w-full max-w-3xl mx-auto flex flex-col gap-6">
+          {/* Top Row: Ratings and Returns */}
+          <div className="flex flex-col md:flex-row gap-6">
+            {/* Average Product Ratings */}
+            <div className="flex-1 bg-[#19223a] rounded-lg p-6 shadow flex flex-col">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-2xl text-[#ffe066]">★</span>
+                <span className="text-xl font-semibold text-white">Average Product Ratings</span>
+              </div>
+              <div className="flex flex-col gap-2">
+                {/* Mock data */}
+                <div className="flex items-center gap-2">
+                  <span className="text-[#cbd5e1] font-medium">Premium T-Shirt</span>
+                  <span className="text-[#ffe066] flex items-center">{'★'.repeat(5)}</span>
+                  <span className="text-white font-semibold ml-1">4.8</span>
+                  <span className="text-[#8ec0ff] text-sm">(24 reviews)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[#cbd5e1] font-medium">Classic Hoodie</span>
+                  <span className="text-[#ffe066] flex items-center">{'★'.repeat(4)}<span className="text-[#334155]">★</span></span>
+                  <span className="text-white font-semibold ml-1">4.2</span>
+                  <span className="text-[#8ec0ff] text-sm">(18 reviews)</span>
+                </div>
+              </div>
+            </div>
+            {/* Returns & Refunds */}
+            <div className="flex-1 bg-[#19223a] rounded-lg p-6 shadow flex flex-col">
+              <div className="flex items-center gap-2 mb-4">
+                <span className="text-xl text-[#8ec0ff]">↻</span>
+                <span className="text-xl font-semibold text-white">Returns & Refunds</span>
+              </div>
+              <div className="flex flex-col gap-2 mt-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-[#cbd5e1]">Returns This Month</span>
+                  <span className="text-2xl font-bold text-[#f87171]">3</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-[#cbd5e1]">Refund Rate</span>
+                  <span className="text-xl font-bold text-[#fb7185]">0.8%</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-[#cbd5e1]">Total Refunded</span>
+                  <span className="text-2xl font-bold text-[#f87171]">₱1,200</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          {/* Recent Reviews */}
+          <div className="bg-[#19223a] rounded-lg p-6 shadow flex flex-col">
+            <div className="text-2xl font-semibold text-white mb-4">Recent Reviews</div>
+            {/* Mock reviews */}
+            <div className="flex flex-col gap-4">
+              <div className="bg-[#22304a] rounded p-4 flex flex-col gap-2">
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold text-white">Maria S. <span className="text-[#ffe066]">{'★'.repeat(5)}</span></span>
+                  <span className="text-[#8ec0ff] text-sm">2 days ago</span>
+                </div>
+                <div className="text-white">Great quality t-shirt! The fabric is soft and the fit is perfect.</div>
+                <div className="text-[#8ec0ff] text-sm">Premium T-Shirt</div>
+              </div>
+              <div className="bg-[#22304a] rounded p-4 flex flex-col gap-2">
+                <div className="flex justify-between items-center">
+                  <span className="font-semibold text-white">John D. <span className="text-[#ffe066]">{'★'.repeat(4)}<span className="text-[#334155]">★</span></span></span>
+                  <span className="text-[#8ec0ff] text-sm">1 week ago</span>
+                </div>
+                <div className="text-white">Good hoodie but runs a bit small. Consider sizing up.</div>
+                <div className="text-[#8ec0ff] text-sm">Classic Hoodie</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : chartType === 'weekly' ? (
+        <div className="bg-[#22304a] rounded-lg p-6 w-full max-w-3xl mx-auto shadow">
+          <div className="text-xl font-semibold mb-4">Weekly Sales</div>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={weeklySalesData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <XAxis dataKey="day" stroke="#8ec0ff" />
+              <YAxis 
+                stroke="#8ec0ff" 
+                tickFormatter={v => {
                   if (v >= 1000) return `₱${v / 1000}K`;
                   if (v === 0) return '₱0';
                   return `₱${v.toLocaleString()}`;
-                } else {
-                  return v;
-                }
-              }}
-            />
-            <Tooltip />
-            <Area type="monotone" dataKey={chartType} stroke="#60A5FA" fill="rgba(96,165,250,0.1)" />
-            <Line type="monotone" dataKey={chartType} stroke="#60A5FA" strokeWidth={3} dot={false} />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
+                }}
+              />
+              <Tooltip />
+              <Area type="monotone" dataKey="sales" stroke="#60A5FA" fill="rgba(96,165,250,0.1)" />
+              <Line type="monotone" dataKey="sales" stroke="#60A5FA" strokeWidth={3} dot={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      ) : chartType === 'monthly' ? (
+        <div className="bg-[#22304a] rounded-lg p-6 w-full max-w-3xl mx-auto shadow">
+          <div className="text-xl font-semibold mb-4">Monthly Sales</div>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={monthlySalesData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <XAxis dataKey="day" stroke="#8ec0ff" />
+              <YAxis 
+                stroke="#8ec0ff" 
+                tickFormatter={v => {
+                  if (v >= 1000) return `₱${v / 1000}K`;
+                  if (v === 0) return '₱0';
+                  return `₱${v.toLocaleString()}`;
+                }}
+              />
+              <Tooltip />
+              <Area type="monotone" dataKey="sales" stroke="#60A5FA" fill="rgba(96,165,250,0.1)" />
+              <Line type="monotone" dataKey="sales" stroke="#60A5FA" strokeWidth={3} dot={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      ) : (
+        <div className="bg-[#22304a] rounded-lg p-6 w-full max-w-3xl mx-auto shadow">
+          <div className="text-xl font-semibold mb-4">{chartType === 'sales' ? 'Sales Over Time' : 'Products Purchased Over Time'}</div>
+          <ResponsiveContainer width="100%" height={300}>
+            <LineChart data={salesData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} />
+              <XAxis dataKey="month" stroke="#8ec0ff" />
+              <YAxis 
+                stroke="#8ec0ff" 
+                tickFormatter={v => {
+                  if (chartType === 'sales') {
+                    if (v >= 1000) return `₱${v / 1000}K`;
+                    if (v === 0) return '₱0';
+                    return `₱${v.toLocaleString()}`;
+                  } else {
+                    return v;
+                  }
+                }}
+              />
+              <Tooltip />
+              <Area type="monotone" dataKey={chartType} stroke="#60A5FA" fill="rgba(96,165,250,0.1)" />
+              <Line type="monotone" dataKey={chartType} stroke="#60A5FA" strokeWidth={3} dot={false} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )}
     </div>
   );
 }
