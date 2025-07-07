@@ -43,7 +43,14 @@ export default function LoginPage() {
     if (loading) return; // Wait for loading to finish
 
     if (user) {
-      // Only run this block when user is set
+      // 1. Handle Buy It Now flow
+      const pendingBuyNow = typeof window !== 'undefined' ? localStorage.getItem('pendingBuyNowItem') : null;
+      if (pendingBuyNow) {
+        localStorage.removeItem('pendingBuyNowItem');
+        router.push('/checkout?buyNow=1');
+        return;
+      }
+      // 2. Handle Add to Cart flow
       const pending = typeof window !== 'undefined' ? localStorage.getItem('pendingCartItem') : null;
       if (pending) {
         try {

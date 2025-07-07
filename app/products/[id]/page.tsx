@@ -415,16 +415,24 @@ export default function ProductDetailPage() {
                   <div className="flex flex-wrap gap-2">
                     {product.color.split(',').map((colorOption: string) => {
                       const colorTrimmed = colorOption.trim();
+                      // If the product is sold out, mark all colors as out of stock
+                      const isOutOfStock = isSoldOut;
+                      const isSelected = selectedColor === colorTrimmed;
                       return (
                         <Button
                           key={colorTrimmed}
                           variant="outline"
-                          onClick={() => setSelectedColor(colorTrimmed)}
+                          onClick={() => {
+                            if (isOutOfStock) return;
+                            setSelectedColor(colorTrimmed);
+                          }}
                           className={`border-[#60A5FA] text-[#60A5FA] transition-colors
-                            ${selectedColor === colorTrimmed ? 'bg-[#60A5FA] text-[#101828]' : 'hover:bg-[#60A5FA] hover:text-[#101828]'}
+                            ${isSelected ? 'bg-[#60A5FA] text-[#101828]' : ''}
+                            ${isOutOfStock ? 'opacity-50 cursor-not-allowed bg-gray-700 text-[#60A5FA]' : 'hover:bg-[#60A5FA] hover:text-[#101828]'}
                           `}
+                          disabled={isOutOfStock}
                         >
-                          {colorTrimmed}
+                          <span className={isOutOfStock ? 'line-through' : ''}>{colorTrimmed}</span>
                         </Button>
                       );
                     })}
@@ -485,6 +493,7 @@ export default function ProductDetailPage() {
                             selectedSize: String(selectedSize),
                             selectedColor: colorToUse ? String(colorToUse) : undefined,
                             color: product.color,
+                            buyNow: true
                           }));
                           console.log('Adding to localStorage (pendingCartItem):', {
                             id: productId,
@@ -495,6 +504,7 @@ export default function ProductDetailPage() {
                             selectedSize: String(selectedSize),
                             selectedColor: colorToUse ? String(colorToUse) : undefined,
                             color: product.color,
+                            buyNow: true
                           });
                           router.push('/login');
                           return;
