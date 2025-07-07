@@ -560,6 +560,33 @@ export default function ProductDetailPage() {
               </div>
               {/* Filter Buttons and reviews would go here */}
             </div>
+            {/* Reviews List */}
+            <div className="mt-6">
+              {ratings.length === 0 ? (
+                <div className="text-[#60A5FA] text-center">No reviews yet.</div>
+              ) : (
+                <div className="flex flex-col gap-6">
+                  {ratings.map((review) => (
+                    <div key={review.id} className="bg-[#19223a] rounded-lg p-4 shadow flex flex-col md:flex-row md:items-center gap-2">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="font-semibold text-[#60A5FA] text-sm">
+                            {review.email ? review.email.replace(/(.{2}).+(@.*)/, '$1***$2') : 'Anonymous'}
+                          </span>
+                          <span className="flex items-center ml-2">
+                            {[...Array(5)].map((_, i) => (
+                              <Star key={i} className={`h-4 w-4 ${i < review.rating ? 'text-orange-400 fill-orange-400' : 'text-gray-400'}`} />
+                            ))}
+                          </span>
+                        </div>
+                        <div className="text-[#cbd5e1] text-sm mb-1">{review.feedback || <span className="italic text-[#64748b]">No comment</span>}</div>
+                        <div className="text-xs text-[#64748b]">{review.timestamp && review.timestamp.toDate ? review.timestamp.toDate().toLocaleString() : ''}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
