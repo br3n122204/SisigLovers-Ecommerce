@@ -156,7 +156,7 @@ function AnalyticsSection() {
   const [loadingAverageReviews, setLoadingAverageReviews] = React.useState(true);
   const [returnsThisMonth, setReturnsThisMonth] = React.useState(0);
   const [totalRefunded, setTotalRefunded] = React.useState(0);
-  const [totalOrdersThisMonth, setTotalOrdersThisMonth] = React.useState(0);
+  const [totalOrders, setTotalOrders] = React.useState(0);
 
   React.useEffect(() => {
     // Fetch sales data grouped by month from the 'sales' collection
@@ -466,9 +466,41 @@ function AnalyticsSection() {
         if (!d) return false;
         return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
       });
-      setTotalOrdersThisMonth(ordersThisMonthArr.length);
+      setTotalOrders(ordersThisMonthArr.length);
     }
     fetchReturnsAndRefunds();
+  }, []);
+
+  React.useEffect(() => {
+    async function fetchTotalOrdersAndSales() {
+      // Fetch total orders
+      let orderCount = 0;
+      const adminProductsSnap = await getDocs(collection(db, 'adminProducts'));
+      for (const productDoc of adminProductsSnap.docs) {
+        const ordersSnap = await getDocs(collection(db, 'adminProducts', productDoc.id, 'productsOrder'));
+        orderCount += ordersSnap.size;
+        // Update totalOrders field in each productsOrder document for this product
+        for (const orderDoc of ordersSnap.docs) {
+          await updateDoc(orderDoc.ref, { totalOrders: ordersSnap.size });
+        }
+      }
+      setTotalOrders(orderCount);
+
+      // Fetch total sales amount
+      let salesSum = 0;
+      const salesSnap = await getDocs(collection(db, 'sales'));
+      salesSnap.forEach(doc => {
+        const data = doc.data();
+        if (typeof data.total === 'number') {
+          salesSum += data.total;
+        } else if (typeof data.total === 'string') {
+          const parsed = parseFloat(data.total.replace(/[^0-9.]/g, ''));
+          if (!isNaN(parsed)) salesSum += parsed;
+        }
+      });
+      setTotalSalesAmount(salesSum);
+    }
+    fetchTotalOrdersAndSales();
   }, []);
 
   return (
@@ -484,8 +516,16 @@ function AnalyticsSection() {
           <div className="text-3xl font-bold mt-2">{totalProducts}</div>
         </div>
         <div className="flex-1 min-w-0 bg-[#22304a] rounded-lg p-6 text-center shadow">
+          <div className="text-lg font-semibold">Total Orders</div>
+          <div className="text-3xl font-bold mt-2">{totalOrders}</div>
+        </div>
+        <div className="flex-1 min-w-0 bg-[#22304a] rounded-lg p-6 text-center shadow">
           <div className="text-lg font-semibold">Total Sales</div>
           <div className="text-xl md:text-3xl font-bold mt-2">₱{totalSalesAmount.toLocaleString()}</div>
+        </div>
+        <div className="flex-1 min-w-0 bg-[#22304a] rounded-lg p-6 text-center shadow">
+          <div className="text-lg font-semibold">Average Order Value</div>
+          <div className="text-xl md:text-3xl font-bold mt-2">₱{totalOrders > 0 ? (totalSalesAmount / totalOrders).toLocaleString(undefined, { maximumFractionDigits: 2 }) : '0.00'}</div>
         </div>
       </div>
       {/* Chart Type Selector */}
@@ -670,14 +710,20 @@ function AnalyticsSection() {
             </div>
           </div>
           {/* Recent Reviews */}
-          <div className="bg-[#19223a] rounded-lg p-6 shadow flex flex-col">
+          <div
+            className="bg-[#19223a] rounded-lg p-6 shadow flex flex-col"
+            style={{
+              height: '250px',
+              overflowY: 'auto',
+            }}
+          >
             <div className="text-2xl font-semibold text-white mb-4">Recent Reviews</div>
             {loadingReviews ? (
               <div className="text-[#8ec0ff]">Loading reviews...</div>
             ) : recentReviews.length === 0 ? (
               <div className="text-[#8ec0ff]">No reviews yet.</div>
             ) : (
-              <div className="flex flex-col gap-4 overflow-y-auto" style={{ maxHeight: '400px' }}>
+              <div className="flex flex-col gap-4 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 300px)' }}>
                 {recentReviews.map((review) => (
                   <div key={review.id} className="bg-[#22304a] rounded p-4 flex flex-col gap-2">
                     <div className="flex justify-between items-center">
