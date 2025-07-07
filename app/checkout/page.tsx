@@ -254,6 +254,8 @@ export default function CheckoutPage() {
         userEmail: user.email,
         orderNumber: `ORD-${Date.now()}`,
         dateOrdered: serverTimestamp(),
+        dateOrderedClient: Date.now(),
+        createdAt: serverTimestamp(),
         status: 'pending',
         total: subtotal + getShippingPrice(),
         subtotal,
@@ -295,8 +297,10 @@ export default function CheckoutPage() {
       // Clean undefined values deeply
       console.log('orderData before cleaning:', orderData);
       const cleanOrderData = deepCleanUndefined(orderData);
-      // Guarantee dateOrdered is always set after cleaning
+      // Guarantee dateOrdered, dateOrderedClient, and createdAt are set after cleaning
       cleanOrderData.dateOrdered = serverTimestamp();
+      cleanOrderData.dateOrderedClient = cleanOrderData.dateOrderedClient || Date.now();
+      cleanOrderData.createdAt = serverTimestamp();
       console.log('orderData after cleaning:', cleanOrderData);
 
       // Save to global productsOrder collection (for admin/global view)
