@@ -288,6 +288,21 @@ export default function GCashFakePage() {
         }
       }
 
+      // Update purchasedCount for each purchased product
+      try {
+        for (const item of cleanOrderData.items) {
+          const productRef = doc(db, 'adminProducts', item.id);
+          const productSnap = await getDoc(productRef);
+          let currentCount = 0;
+          if (productSnap.exists()) {
+            currentCount = productSnap.data().purchasedCount || 0;
+          }
+          await updateDoc(productRef, { purchasedCount: currentCount + (item.quantity || 1) });
+        }
+      } catch (err) {
+        console.error('Failed to update purchasedCount in adminProducts:', err);
+      }
+
       // Log a 'purchase' activity to Firestore
       await addDoc(collection(db, "activities"), {
         type: "purchase",

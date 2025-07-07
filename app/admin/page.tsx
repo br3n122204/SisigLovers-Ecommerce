@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
-import { collection, query, orderBy, getDocs, Timestamp, where } from "firebase/firestore";
+import { collection, query, orderBy, getDocs, Timestamp, where, setDoc, doc, deleteDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
@@ -17,6 +17,7 @@ import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tool
 import React from "react";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 import { Menu, ChevronLeft } from "lucide-react";
+import { getDocs as fsGetDocs } from "firebase/firestore";
 
 interface User {
   id: string;
@@ -139,7 +140,7 @@ function AnalyticsSection() {
   const [products, setProducts] = React.useState<any[]>([]);
   const [lowStockProducts, setLowStockProducts] = React.useState<any[]>([]);
   const [outOfStockProducts, setOutOfStockProducts] = React.useState<any[]>([]);
-  const [bestSelling, setBestSelling] = React.useState<any | null>(null);
+  const [bestSellingTshirts, setBestSellingTshirts] = React.useState<any[]>([]);
   const [loadingInventory, setLoadingInventory] = React.useState(false);
   const { recentUsers = [], totalProducts = 0, totalSalesAmount = 0 } = React.useContext(AdminAnalyticsContext) || {};
   const [weeklySalesData, setWeeklySalesData] = React.useState<{ day: string; sales: number }[]>([]);
@@ -237,29 +238,68 @@ function AnalyticsSection() {
         }
       });
       setOutOfStockProducts(outOfStock);
-      // Best selling product: aggregate sales by product id/name from 'sales' collection
+      // Best selling t-shirts: aggregate sales by product name from 'sales' collection
       const salesRef = collection(db, 'sales');
       const salesSnap = await getDocs(salesRef);
-      const salesMap: Record<string, { name: string; quantity: number; imageUrl?: string }> = {};
+      const salesMap: Record<string, { name: string; quantity: number; imageUrl?: string; productId?: string }> = {};
       salesSnap.forEach(doc => {
         const data = doc.data();
         if (Array.isArray(data.items)) {
           data.items.forEach((item: any) => {
             if (!item.name) return;
             if (!salesMap[item.name]) {
-              salesMap[item.name] = { name: item.name, quantity: 0, imageUrl: item.imageUrl };
+              salesMap[item.name] = { name: item.name, quantity: 0, imageUrl: item.imageUrl, productId: item.productId };
             }
             salesMap[item.name].quantity += Number(item.quantity) || 0;
           });
         }
       });
-      // Only consider tshirts/shirts
-      const tshirtSales = Object.values(salesMap).filter(s => s.name.toLowerCase().includes('shirt'));
-      let best = null;
-      if (tshirtSales.length > 0) {
-        best = tshirtSales.reduce((a, b) => (a.quantity > b.quantity ? a : b));
+      // Only consider t-shirts/shirts from adminProducts that have been purchased more than 20 times
+      const tshirtSales = allProducts
+        .filter(p => p.name && p.name.toLowerCase().includes('shirt'))
+        .map(p => {
+          // Try to match by name (could be improved by productId if available in sales data)
+          const sales = salesMap[p.name];
+          return {
+            name: p.name,
+            quantity: sales ? sales.quantity : 0,
+            imageUrl: Array.isArray(p.imageUrls) && p.imageUrls.length > 0 ? p.imageUrls[0] : (p.imageUrl || p.image || null),
+            productId: p.id
+          };
+        })
+        .filter(t => t.quantity > 20)
+        .sort((a, b) => b.quantity - a.quantity)
+        .slice(0, 5);
+      setBestSellingTshirts(tshirtSales);
+
+      // Update AdminAnalytics/bestSellingShirts subcollection
+      try {
+        const analyticsDocRef = doc(db, "AdminAnalytics", "main");
+        const bestSellingShirtsColRef = collection(analyticsDocRef, "bestSellingShirts");
+        // Remove previous docs in the subcollection
+        const prevDocs = await fsGetDocs(bestSellingShirtsColRef);
+        for (const d of prevDocs.docs) {
+          await deleteDoc(d.ref);
+        }
+        // Add new top t-shirts
+        for (const shirt of tshirtSales) {
+          await setDoc(doc(bestSellingShirtsColRef, shirt.productId), shirt);
+        }
+      } catch (err) {
+        console.error("Failed to update bestSellingShirts subcollection:", err);
       }
-      setBestSelling(best);
+
+      // Update purchasedCount for all products in adminProducts
+      try {
+        for (const product of allProducts) {
+          const sales = salesMap[product.name];
+          const purchasedCount = sales ? sales.quantity : 0;
+          const productRef = doc(db, "adminProducts", product.id);
+          await updateDoc(productRef, { purchasedCount });
+        }
+      } catch (err) {
+        console.error("Failed to update purchasedCount in adminProducts:", err);
+      }
       setLoadingInventory(false);
     }
     fetchInventoryAnalytics();
@@ -514,24 +554,23 @@ function AnalyticsSection() {
           </div>
           {/* Best Selling T-shirt (full width) */}
           <div className="bg-[#19223a] rounded-lg p-4 shadow flex flex-col items-center">
-            <div className="text-lg font-semibold mb-2 text-[#8ec0ff]">Best Selling T-shirt</div>
+            <div className="text-lg font-semibold mb-2 text-[#8ec0ff]">Top 5 Best Selling T-shirts</div>
             {loadingInventory ? (
               <div className="text-[#8ec0ff]">Loading...</div>
-            ) : bestSelling ? (
-              <div className="flex flex-col md:flex-row items-center gap-4 mt-2 w-full justify-center">
-                {bestSelling.imageUrl && <img src={bestSelling.imageUrl} alt={bestSelling.name} className="w-16 h-16 object-contain rounded bg-[#161e2e]" />}
-                <div className="flex flex-col items-center md:items-start">
-                  <span className="font-semibold text-lg text-white text-center md:text-left">{bestSelling.name}</span>
-                  <span className="text-[#60A5FA] text-base">{bestSelling.quantity} sold</span>
-                  {/* Show best selling sizes if available */}
-                  {bestSelling.sizes && Array.isArray(bestSelling.sizes) && bestSelling.sizes.length > 0 && (
-                    <div className="mt-2 text-sm text-[#8ec0ff]">
-                      Best Selling Sizes: {bestSelling.sizes.map((s: any) => `${s.size}: ${s.quantity}`).join(', ')}
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : <div className="text-[#8ec0ff]">No t-shirt sales data.</div>}
+            ) : bestSellingTshirts.length > 0 ? (
+              <ul className="w-full max-w-md mx-auto">
+                {bestSellingTshirts.map((t, idx) => (
+                  <li key={t.name} className="flex items-center gap-4 mb-2 p-2 rounded bg-[#22304a]">
+                    <span className="font-bold text-xl text-[#60A5FA]">{idx + 1}.</span>
+                    {t.imageUrl && <img src={t.imageUrl} alt={t.name} className="w-10 h-10 object-contain rounded bg-[#161e2e]" />}
+                    <span className="font-semibold text-white">{t.name}</span>
+                    <span className="text-[#60A5FA] ml-auto">{t.quantity} sold</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="text-[#8ec0ff]">No t-shirt sales data.</div>
+            )}
           </div>
         </div>
       ) : chartType === 'feedback' ? (
