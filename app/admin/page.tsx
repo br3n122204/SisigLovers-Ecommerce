@@ -237,7 +237,7 @@ function AnalyticsSection() {
         }
       });
       setOutOfStockProducts(outOfStock);
-      // Best selling tshirt: aggregate sales by product id/name from 'sales' collection
+      // Best selling product: aggregate sales by product id/name from 'sales' collection
       const salesRef = collection(db, 'sales');
       const salesSnap = await getDocs(salesRef);
       const salesMap: Record<string, { name: string; quantity: number; imageUrl?: string }> = {};
@@ -486,9 +486,28 @@ function AnalyticsSection() {
                 <div className="text-[#8ec0ff]">No out of stock products.</div>
               ) : (
                 <ul className="list-disc pl-6 text-sm">
-                  {outOfStockProducts.map((p: any) => (
-                    <li key={p.id} className="mb-1 font-semibold text-white">{p.name}</li>
-                  ))}
+                  {outOfStockProducts.map((p: any) => {
+                    const imgSrc = (Array.isArray(p.imageUrls) && p.imageUrls.length > 0)
+                      ? p.imageUrls[0]
+                      : (p.image || p.imageUrl || (Array.isArray(p.images) && p.images.length > 0 ? p.images[0] : null));
+                    return (
+                      <li key={p.id} className="mb-1 flex items-center gap-2 font-semibold text-white">
+                        {imgSrc ? (
+                          <img
+                            src={imgSrc}
+                            alt={p.name}
+                            className="w-8 h-8 object-cover rounded bg-[#161e2e] border border-[#22304a]"
+                            style={{ minWidth: 32, minHeight: 32 }}
+                          />
+                        ) : (
+                          <div className="w-8 h-8 rounded bg-[#22304a] flex items-center justify-center text-xs text-[#8ec0ff] border border-[#22304a]" style={{ minWidth: 32, minHeight: 32 }}>
+                            N/A
+                          </div>
+                        )}
+                        <span>{p.name}</span>
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </div>
