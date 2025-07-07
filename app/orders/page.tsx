@@ -119,7 +119,7 @@ export default function OrdersPage() {
                 id: doc.id,
                 orderNumber: data.orderNumber,
                 dateOrdered: dateOrderedValue,
-                status: (data.status === 'rated' || data.status === 'returned') ? 'completed' : data.status,
+                status: data.status,
                 total: data.total,
                 items: data.items || [],
                 shippingAddress: data.shippingAddress,

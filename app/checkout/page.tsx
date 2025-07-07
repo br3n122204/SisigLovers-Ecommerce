@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { useToast } from "@/hooks/use-toast";
-import { collection, getDocs, query, addDoc, serverTimestamp, doc, getDoc, updateDoc, setDoc } from "firebase/firestore";
+import { collection, getDocs, query, addDoc, serverTimestamp, doc, getDoc, updateDoc, setDoc, runTransaction } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -303,38 +303,43 @@ export default function CheckoutPage() {
       cleanOrderData.createdAt = serverTimestamp();
       console.log('orderData after cleaning:', cleanOrderData);
 
-      // Save to global productsOrder collection (for admin/global view)
       const adminProductId = cleanOrderData.items[0]?.id;
       if (!adminProductId) throw new Error('No adminProductId found in order items');
       const productsOrderRef = collection(db, 'adminProducts', adminProductId, 'productsOrder');
-      // Always include userId in the global order
-      const globalOrderDoc = await addDoc(productsOrderRef, {
-        ...cleanOrderData,
-        userId: user.uid, // <-- ensure userId is always present
-      });
-      console.log("Order saved to adminProducts/" + adminProductId + "/productsOrder with ID:", globalOrderDoc.id);
+      const userOrdersRef = collection(db, 'users', user.uid, 'orders');
 
-      // Save each cart item as a document in the orderDetails subcollection
+      // Prepare refs to capture IDs
+      let adminOrderId = '';
+      let userOrderId = '';
+
+      // Use a transaction to create both orders atomically
+      await runTransaction(db, async (transaction) => {
+        // Create admin order
+        const adminOrderRef = doc(productsOrderRef);
+        adminOrderId = adminOrderRef.id;
+        transaction.set(adminOrderRef, {
+          ...cleanOrderData,
+          userId: user.uid,
+        });
+        // Create user order with globalOrderId
+        const userOrderRef = doc(userOrdersRef);
+        userOrderId = userOrderRef.id;
+        transaction.set(userOrderRef, {
+          ...cleanOrderData,
+          globalOrderId: adminOrderRef.id,
+          adminProductId: adminProductId,
+        });
+        // Link userOrderId in admin order
+        transaction.update(adminOrderRef, { userOrderId: userOrderRef.id });
+      });
+
+      // Save each cart item as a document in the orderDetails subcollection (not in transaction)
       for (const item of cleanOrderData.items) {
-        await addDoc(collection(db, 'adminProducts', adminProductId, 'productsOrder', globalOrderDoc.id, 'orderDetails'), {
+        await addDoc(collection(db, 'adminProducts', adminProductId, 'productsOrder', adminOrderId, 'orderDetails'), {
           ...item,
           dateOrdered: cleanOrderData.dateOrdered,
         });
       }
-
-      // Save to per-user users/{userId}/orders/{orderId} (append order to subcollection, do not create new user doc)
-      const userOrdersRef = collection(db, 'users', user.uid, 'orders');
-      // Always include globalOrderId in the user order
-      const userOrderDoc = await addDoc(userOrdersRef, {
-        ...cleanOrderData,
-        globalOrderId: globalOrderDoc.id, // <-- ensure globalOrderId is always present
-      });
-      console.log("Order saved to users/{userId}/orders with ID:", userOrderDoc.id);
-
-      // Update the global order with the userOrderId
-      await updateDoc(doc(db, 'adminProducts', adminProductId, 'productsOrder', globalOrderDoc.id), {
-        userOrderId: userOrderDoc.id,
-      });
 
       // Calculate total quantity purchased
       const totalQuantity = Array.isArray(cleanOrderData.items)
@@ -346,7 +351,7 @@ export default function CheckoutPage() {
         total: cleanOrderData.total,
         quantity: totalQuantity,
         userId: user.uid,
-        orderId: globalOrderDoc.id,
+        orderId: adminOrderId,
       });
       // --- AdminAnalytics Monthly and Weekly Aggregation ---
       try {
@@ -425,7 +430,7 @@ export default function CheckoutPage() {
         description: "Thank you for purchasing with DPT ONE.",
         variant: "success"
       });
-      return globalOrderDoc.id;
+      return adminOrderId;
     } catch (error) {
       toast({
         title: "Error",
