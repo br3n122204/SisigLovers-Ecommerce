@@ -86,11 +86,11 @@ export default function AddProductPage() {
         color,
         imageUrls: selectedImages.filter(Boolean),
         brand: brand || null,
-        isFeatured,
         createdAt: new Date(),
         sizes: filteredSizes,
         totalStock,
       };
+      if (isFeatured) productData.isFeatured = true;
       Object.keys(productData).forEach(
         (key) => productData[key] === undefined && delete productData[key]
       );
