@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/context/AuthContext";
 import { ArrowLeft, Package, Truck, CheckCircle, Clock, MapPin, Phone, Mail, CreditCard, Download, Share2 } from "lucide-react";
-import { doc, getDoc, collection, getDocs, onSnapshot, updateDoc, serverTimestamp, addDoc, query, where } from "firebase/firestore";
+import { doc, getDoc, collection, getDocs, onSnapshot, updateDoc, serverTimestamp, addDoc, query, where, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useParams, useRouter } from 'next/navigation';
 import React from 'react';
@@ -269,6 +269,33 @@ export default function OrderDetailsPage() {
             productName: item.name,
             productId: productId
           });
+
+          // --- Add review to AdminAnalytics/reviews ---
+          await addDoc(collection(db, "AdminAnalytics", "main", "reviews"), {
+            userId: user.uid,
+            userEmail: user.email || null,
+            productId: productId,
+            productName: item.name,
+            rating,
+            feedback,
+            timestamp: serverTimestamp(),
+            orderId: order.id,
+            orderNumber: order.orderNumber
+          });
+
+          // --- Update average rating in AdminAnalytics/averageRating/averageRating/{productId} ---
+          // Fetch all ratings for this product
+          const ratingsSnapshot = await getDocs(collection(db, "adminProducts", productId, "ratings"));
+          const ratingsList = ratingsSnapshot.docs.map(doc => doc.data().rating).filter(r => typeof r === 'number');
+          const reviewCount = ratingsList.length;
+          const averageRating = reviewCount > 0 ? (ratingsList.reduce((a, b) => a + b, 0) / reviewCount) : 0;
+          const avgDocRef = doc(db, 'AdminAnalytics', 'averageRating', 'averageRating', productId);
+          await setDoc(avgDocRef, {
+            averageRating,
+            reviewCount,
+            productId,
+            productName: item.name
+          });
         }
       }
       setActionCompleted(true);
@@ -295,6 +322,7 @@ export default function OrderDetailsPage() {
             userId: user.uid,
             orderId: order.id,
             reason: returnReason,
+            price: item.price,
             timestamp: serverTimestamp(),
             orderNumber: order.orderNumber,
             email: user.email || null,

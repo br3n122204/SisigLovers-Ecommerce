@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
-import { collection, query, orderBy, getDocs, Timestamp, where, setDoc, doc, deleteDoc, updateDoc } from "firebase/firestore";
+import { collection, query, orderBy, getDocs, Timestamp, where, setDoc, doc, deleteDoc, updateDoc, limit } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
@@ -150,6 +150,13 @@ function AnalyticsSection() {
   });
   const [monthlySalesData, setMonthlySalesData] = React.useState<{ day: string; sales: number }[]>([]);
   const [availableMonths, setAvailableMonths] = React.useState<{ month: number; year: number }[]>([]);
+  const [recentReviews, setRecentReviews] = React.useState<any[]>([]);
+  const [loadingReviews, setLoadingReviews] = React.useState(true);
+  const [averageReviews, setAverageReviews] = React.useState<any[]>([]);
+  const [loadingAverageReviews, setLoadingAverageReviews] = React.useState(true);
+  const [returnsThisMonth, setReturnsThisMonth] = React.useState(0);
+  const [totalRefunded, setTotalRefunded] = React.useState(0);
+  const [totalOrdersThisMonth, setTotalOrdersThisMonth] = React.useState(0);
 
   React.useEffect(() => {
     // Fetch sales data grouped by month from the 'sales' collection
@@ -388,6 +395,82 @@ function AnalyticsSection() {
     }
   }, [chartType, selectedMonth]);
 
+  React.useEffect(() => {
+    // Fetch all reviews from AdminAnalytics/main/reviews
+    async function fetchRecentReviews() {
+      setLoadingReviews(true);
+      try {
+        const reviewsRef = collection(db, 'AdminAnalytics', 'main', 'reviews');
+        const q = query(reviewsRef, orderBy('timestamp', 'desc'));
+        const querySnapshot = await getDocs(q);
+        const reviews = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setRecentReviews(reviews);
+      } catch (err) {
+        setRecentReviews([]);
+      }
+      setLoadingReviews(false);
+    }
+    fetchRecentReviews();
+  }, []);
+
+  React.useEffect(() => {
+    // Fetch average product ratings from AdminAnalytics/averageRating/averageRating
+    async function fetchAverageReviews() {
+      setLoadingAverageReviews(true);
+      try {
+        const avgRef = collection(db, 'AdminAnalytics', 'averageRating', 'averageRating');
+        const q = query(avgRef, orderBy('averageRating', 'desc'));
+        const querySnapshot = await getDocs(q);
+        const reviews = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setAverageReviews(reviews);
+      } catch (err) {
+        setAverageReviews([]);
+      }
+      setLoadingAverageReviews(false);
+    }
+    fetchAverageReviews();
+  }, []);
+
+  React.useEffect(() => {
+    async function fetchReturnsAndRefunds() {
+      // Fetch all returnRefundReasons from all products
+      const adminProductsSnap = await getDocs(collection(db, 'adminProducts'));
+      let allReturns = [];
+      for (const productDoc of adminProductsSnap.docs) {
+        const returnReasonsSnap = await getDocs(collection(db, 'adminProducts', productDoc.id, 'returnRefundReasons'));
+        allReturns.push(...returnReasonsSnap.docs.map(doc => doc.data()));
+      }
+      // Filter for current month
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+      const returnsThisMonthArr = allReturns.filter(r => {
+        if (!r.timestamp || !r.timestamp.toDate) return false;
+        const d = r.timestamp.toDate();
+        return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+      });
+      setReturnsThisMonth(returnsThisMonthArr.length);
+      // Total refunded
+      const totalRefundedVal = returnsThisMonthArr.reduce((sum, r) => sum + (typeof r.price === 'number' ? r.price : 0), 0);
+      setTotalRefunded(totalRefundedVal);
+
+      // Fetch total orders this month
+      let allOrders = [];
+      for (const productDoc of adminProductsSnap.docs) {
+        const ordersSnap = await getDocs(collection(db, 'adminProducts', productDoc.id, 'productsOrder'));
+        allOrders.push(...ordersSnap.docs.map(doc => doc.data()));
+      }
+      const ordersThisMonthArr = allOrders.filter(o => {
+        if (!o.timestamp && !o.orderDate) return false;
+        const d = o.timestamp && o.timestamp.toDate ? o.timestamp.toDate() : (o.orderDate && o.orderDate.toDate ? o.orderDate.toDate() : null);
+        if (!d) return false;
+        return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+      });
+      setTotalOrdersThisMonth(ordersThisMonthArr.length);
+    }
+    fetchReturnsAndRefunds();
+  }, []);
+
   return (
     <div className="w-full h-full flex flex-col gap-8 text-[#8ec0ff]">
       {/* Top Stats */}
@@ -552,19 +635,20 @@ function AnalyticsSection() {
                 <span className="text-xl font-semibold text-white">Average Product Ratings</span>
               </div>
               <div className="flex flex-col gap-2">
-                {/* Mock data */}
-                <div className="flex items-center gap-2">
-                  <span className="text-[#cbd5e1] font-medium">Premium T-Shirt</span>
-                  <span className="text-[#ffe066] flex items-center">{'★'.repeat(5)}</span>
-                  <span className="text-white font-semibold ml-1">4.8</span>
-                  <span className="text-[#8ec0ff] text-sm">(24 reviews)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="text-[#cbd5e1] font-medium">Classic Hoodie</span>
-                  <span className="text-[#ffe066] flex items-center">{'★'.repeat(4)}<span className="text-[#334155]">★</span></span>
-                  <span className="text-white font-semibold ml-1">4.2</span>
-                  <span className="text-[#8ec0ff] text-sm">(18 reviews)</span>
-                </div>
+                {loadingAverageReviews ? (
+                  <div className="text-[#8ec0ff]">Loading...</div>
+                ) : averageReviews.length === 0 ? (
+                  <div className="text-[#8ec0ff]">No ratings yet.</div>
+                ) : (
+                  averageReviews.map((product) => (
+                    <div key={product.id} className="flex items-center gap-2">
+                      <span className="text-[#cbd5e1] font-medium">{product.productName}</span>
+                      <span className="text-[#ffe066] flex items-center">{'★'.repeat(Math.round(product.averageRating))}<span className="text-[#334155]">{'★'.repeat(5 - Math.round(product.averageRating))}</span></span>
+                      <span className="text-white font-semibold ml-1">{Number(product.averageRating).toFixed(1)}</span>
+                      <span className="text-[#8ec0ff] text-sm">({product.reviewCount} reviews)</span>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
             {/* Returns & Refunds */}
@@ -576,15 +660,11 @@ function AnalyticsSection() {
               <div className="flex flex-col gap-2 mt-2">
                 <div className="flex justify-between items-center">
                   <span className="text-[#cbd5e1]">Returns This Month</span>
-                  <span className="text-2xl font-bold text-[#f87171]">3</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="text-[#cbd5e1]">Refund Rate</span>
-                  <span className="text-xl font-bold text-[#fb7185]">0.8%</span>
+                  <span className="text-2xl font-bold text-[#f87171]">{returnsThisMonth}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-[#cbd5e1]">Total Refunded</span>
-                  <span className="text-2xl font-bold text-[#f87171]">₱1,200</span>
+                  <span className="text-2xl font-bold text-[#f87171]">₱{totalRefunded.toLocaleString()}</span>
                 </div>
               </div>
             </div>
@@ -592,25 +672,27 @@ function AnalyticsSection() {
           {/* Recent Reviews */}
           <div className="bg-[#19223a] rounded-lg p-6 shadow flex flex-col">
             <div className="text-2xl font-semibold text-white mb-4">Recent Reviews</div>
-            {/* Mock reviews */}
-            <div className="flex flex-col gap-4">
-              <div className="bg-[#22304a] rounded p-4 flex flex-col gap-2">
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold text-white">Maria S. <span className="text-[#ffe066]">{'★'.repeat(5)}</span></span>
-                  <span className="text-[#8ec0ff] text-sm">2 days ago</span>
-                </div>
-                <div className="text-white">Great quality t-shirt! The fabric is soft and the fit is perfect.</div>
-                <div className="text-[#8ec0ff] text-sm">Premium T-Shirt</div>
+            {loadingReviews ? (
+              <div className="text-[#8ec0ff]">Loading reviews...</div>
+            ) : recentReviews.length === 0 ? (
+              <div className="text-[#8ec0ff]">No reviews yet.</div>
+            ) : (
+              <div className="flex flex-col gap-4 overflow-y-auto" style={{ maxHeight: '400px' }}>
+                {recentReviews.map((review) => (
+                  <div key={review.id} className="bg-[#22304a] rounded p-4 flex flex-col gap-2">
+                    <div className="flex justify-between items-center">
+                      <span className="font-semibold text-white">
+                        {review.userEmail ? review.userEmail.replace(/(.{1}).*(@.*)/, '$1*****$2') : 'Anonymous'}{' '}
+                        <span className="text-[#ffe066]">{'★'.repeat(review.rating)}<span className="text-[#334155]">{'★'.repeat(5 - review.rating)}</span></span>
+                      </span>
+                      <span className="text-[#8ec0ff] text-sm">{review.timestamp && review.timestamp.toDate ? review.timestamp.toDate().toLocaleDateString() : ''}</span>
+                    </div>
+                    <div className="text-white">{review.feedback}</div>
+                    <div className="text-[#8ec0ff] text-sm">{review.productName}</div>
+                  </div>
+                ))}
               </div>
-              <div className="bg-[#22304a] rounded p-4 flex flex-col gap-2">
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold text-white">John D. <span className="text-[#ffe066]">{'★'.repeat(4)}<span className="text-[#334155]">★</span></span></span>
-                  <span className="text-[#8ec0ff] text-sm">1 week ago</span>
-                </div>
-                <div className="text-white">Good hoodie but runs a bit small. Consider sizing up.</div>
-                <div className="text-[#8ec0ff] text-sm">Classic Hoodie</div>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       ) : chartType === 'weekly' ? (
