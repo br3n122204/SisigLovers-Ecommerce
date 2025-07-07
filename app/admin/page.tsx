@@ -268,17 +268,6 @@ function AnalyticsSection() {
         console.error("Failed to update bestSellingShirts subcollection:", err);
       }
 
-      // Update purchasedCount for all products in adminProducts
-      try {
-        for (const product of allProducts) {
-          const sales = salesMap[product.name];
-          const purchasedCount = sales ? sales.quantity : 0;
-          const productRef = doc(db, "adminProducts", product.id);
-          await updateDoc(productRef, { purchasedCount });
-        }
-      } catch (err) {
-        console.error("Failed to update purchasedCount in adminProducts:", err);
-      }
       setLoadingInventory(false);
     }
     fetchInventoryAnalytics();
