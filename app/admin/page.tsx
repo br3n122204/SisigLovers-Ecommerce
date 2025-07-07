@@ -391,18 +391,18 @@ function AnalyticsSection() {
   return (
     <div className="w-full h-full flex flex-col gap-8 text-[#8ec0ff]">
       {/* Top Stats */}
-      <div className="flex flex-wrap gap-6 justify-center mb-8">
-        <div className="bg-[#22304a] rounded-lg p-6 min-w-[180px] text-center shadow">
+      <div className="flex flex-row w-full gap-2 mb-8 md:flex-wrap md:gap-6 md:justify-center">
+        <div className="flex-1 min-w-0 bg-[#22304a] rounded-lg p-6 text-center shadow">
           <div className="text-lg font-semibold">Customers</div>
           <div className="text-3xl font-bold mt-2">{recentUsers.length}</div>
         </div>
-        <div className="bg-[#22304a] rounded-lg p-6 min-w-[180px] text-center shadow">
+        <div className="flex-1 min-w-0 bg-[#22304a] rounded-lg p-6 text-center shadow">
           <div className="text-lg font-semibold">Products</div>
           <div className="text-3xl font-bold mt-2">{totalProducts}</div>
         </div>
-        <div className="bg-[#22304a] rounded-lg p-6 min-w-[180px] text-center shadow">
+        <div className="flex-1 min-w-0 bg-[#22304a] rounded-lg p-6 text-center shadow">
           <div className="text-lg font-semibold">Total Sales</div>
-          <div className="text-3xl font-bold mt-2">₱{totalSalesAmount.toLocaleString()}</div>
+          <div className="text-xl md:text-3xl font-bold mt-2">₱{totalSalesAmount.toLocaleString()}</div>
         </div>
       </div>
       {/* Chart Type Selector */}
