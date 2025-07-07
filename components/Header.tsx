@@ -106,7 +106,7 @@ export default function Header() {
   return (
     <header className="bg-[#101828] border-b border-[#222f43] py-4">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row md:items-center md:justify-between">
-        {pathname === '/orders' ? (
+        {(pathname === '/orders' || pathname.startsWith('/orders/')) ? (
           <div className="hidden md:flex w-full items-center justify-between">
             {/* Left: Logo + Shop by Brand + Orders */}
             <div className="flex items-center">
@@ -200,7 +200,7 @@ export default function Header() {
               </nav>
             </div>
             {/* Centered Search Bar */}
-            {!isAdminPage && !(pathname === '/orders') && (
+            {!isAdminPage && !(pathname === '/orders') && !pathname.startsWith('/orders/') && (
               <div className="flex-1 flex justify-center mx-8">
                 <form onSubmit={handleSearch} className="relative w-full max-w-xl">
                   <input

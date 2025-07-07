@@ -19,7 +19,7 @@ interface Order {
   id: string;
   orderNumber: string;
   dateOrdered: Date | string | undefined;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'completed';
+  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'completed' | 'returned/refunded';
   total: number;
   items: OrderItem[];
   shippingAddress: Address;
@@ -72,6 +72,15 @@ export default function OrdersPage() {
   const [returnReasonInput, setReturnReasonInput] = useState<{ [orderId: string]: string }>({});
   const [showRatingPrompt, setShowRatingPrompt] = useState<{ [orderId: string]: boolean }>({});
   const [ratingInput, setRatingInput] = useState<{ [orderId: string]: number }>({});
+  const ORDER_STATUSES = [
+    "pending",
+    "processing",
+    "shipped",
+    "delivered",
+    "completed",
+    "cancelled",
+    "returned/refunded",
+  ];
 
   useEffect(() => {
     let unsubscribe: (() => void) | undefined;
@@ -190,7 +199,7 @@ export default function OrdersPage() {
       case 'delivered': return '✅';
       case 'cancelled': return '❌';
       case 'completed': return '✅';
-      default: return '';
+      default: return '📋';
     }
   };
 
@@ -322,17 +331,16 @@ export default function OrdersPage() {
             </div>
             <div className="sm:w-48">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="border-[#60A5FA] text-[#60A5FA] bg-[#101828]">
+                <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Filter by status" />
                 </SelectTrigger>
-                <SelectContent className="bg-[#19223a] text-[#60A5FA]">
+                <SelectContent>
                   <SelectItem value="all">All Orders</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="processing">Processing</SelectItem>
-                  <SelectItem value="shipped">Shipped</SelectItem>
-                  <SelectItem value="delivered">Delivered</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                  {ORDER_STATUSES.map(status => (
+                    <SelectItem key={status} value={status}>
+                      {status === 'returned/refunded' ? 'Returned/Refunded' : status.charAt(0).toUpperCase() + status.slice(1)}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -373,9 +381,9 @@ export default function OrdersPage() {
                         <div className="flex items-center gap-4">
                           <div className="flex items-center gap-2">
                             <span className="text-2xl">{getStatusIcon(order.status)}</span>
-                            <Badge className="bg-[#60A5FA] text-[#101828]">
-                              {order.status === 'completed' ? 'Completed' : order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                            </Badge>
+                            <span className={`ml-2 px-3 py-1 rounded-full font-semibold text-sm ${getStatusColor(order.status)} flex items-center gap-1`}>
+                              {order.status === 'returned/refunded' ? 'Returned/Refunded' : order.status === 'completed' ? 'Completed' : order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                            </span>
                           </div>
                           <div>
                             <p className="font-medium text-[#60A5FA]">{order.orderNumber}</p>
@@ -396,8 +404,8 @@ export default function OrdersPage() {
                         <div className="lg:col-span-2">
                           <h4 className="font-medium text-[#60A5FA] mb-3">Items</h4>
                           <div className="space-y-3">
-                            {order.items.map((item) => (
-                              <div key={item.id} className="flex items-center gap-3">
+                            {order.items.map((item, idx) => (
+                              <div key={`${item.id}-${idx}`} className="flex items-center gap-3">
                                 <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100">
                                   {item.image ? (
                                     <Image src={item.image} alt={item.name} fill className="object-cover" />

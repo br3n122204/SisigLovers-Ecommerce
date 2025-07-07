@@ -42,7 +42,7 @@ interface Order {
   id: string;
   orderNumber: string;
   orderDate: Date;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'completed';
+  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled' | 'completed' | 'returned/refunded';
   total: number;
   subtotal: number;
   shipping: number;
@@ -446,7 +446,7 @@ export default function OrderDetailsPage() {
     doc.setTextColor(255, 255, 255);
     doc.setFont('helvetica', 'normal');
     // Table rows
-    order.items.forEach((item) => {
+    order.items.forEach((item, idx) => {
       doc.text(String(item.quantity), 16, y);
       doc.text(item.name, 36, y);
       doc.text(`PHP ${item.price.toFixed(2)}`, 120, y, { align: 'right' });
@@ -559,7 +559,7 @@ export default function OrderDetailsPage() {
             {/* Order Status */}
             <div className="bg-[#19223a] rounded-2xl shadow-lg p-4">
               <div className="flex items-center gap-2 text-2xl font-semibold mb-4">
-                {getStatusIcon(order.status)}
+                {order.status === 'returned/refunded' && <span className="text-xl">📋</span>}
                 <span>Order Status</span>
               </div>
               <div className="flex items-center gap-3 mb-4">
@@ -596,8 +596,7 @@ export default function OrderDetailsPage() {
 
             {/* Status History */}
             <div className="bg-[#19223a] rounded-2xl shadow-lg p-4">
-              <div className="text-xl font-semibold mb-4 flex items-center gap-2">
-                <Clock className="h-5 w-5" />
+              <div className="text-2xl font-semibold mb-4 flex items-center gap-2">
                 <span>Status History</span>
               </div>
               <div className="flex flex-col gap-4 pl-2 border-l-2 border-blue-900">
@@ -606,7 +605,9 @@ export default function OrderDetailsPage() {
                     <div key={idx} className="flex items-start gap-3">
                       <div className="w-3 h-3 rounded-full bg-blue-400 mt-1" />
                       <div>
-                        <div className="font-medium">{entry.status.charAt(0).toUpperCase() + entry.status.slice(1)}</div>
+                        <div className="font-medium flex items-center gap-1">
+                          {entry.status.charAt(0).toUpperCase() + entry.status.slice(1)}
+                        </div>
                         <div className="text-xs text-[#93c5fd]">{formatDate(entry.timestamp?.toDate ? entry.timestamp.toDate() : entry.timestamp)}</div>
                       </div>
                     </div>
@@ -621,8 +622,8 @@ export default function OrderDetailsPage() {
             <div className="bg-[#19223a] rounded-2xl shadow-lg p-4">
               <div className="text-2xl font-semibold mb-4">Items ({orderItems.length})</div>
               <div className="space-y-4">
-                {orderItems.map((item) => (
-                  <div key={item.id} className="flex items-start gap-4 p-4 border border-[#22304a] rounded-lg bg-[#101828]">
+                {orderItems.map((item, idx) => (
+                  <div key={`${item.id}-${idx}`} className="flex items-start gap-4 p-4 border border-[#22304a] rounded-lg bg-[#101828]">
                     <div className="relative w-20 h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
                       <Image
                         src={item.image}
@@ -683,15 +684,23 @@ export default function OrderDetailsPage() {
             <div className="bg-[#19223a] rounded-2xl shadow-lg p-4">
               <div className="text-2xl font-semibold mb-4">Payment Information</div>
               <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <CreditCard className="h-4 w-4" />
-                  <span className="text-sm">{order.paymentMethod}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge className={order.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
-                    {order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)}
-                  </Badge>
-                </div>
+                {order.status === 'returned/refunded' ? (
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-red-100 text-red-800">Returned/Refunded</Badge>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex items-center gap-2">
+                      <CreditCard className="h-4 w-4" />
+                      <span className="text-sm">{order.paymentMethod}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge className={order.paymentStatus === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}>
+                        {order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)}
+                      </Badge>
+                    </div>
+                  </>
+                )}
                 {/* Cancel Order button for all except cancelled/completed */}
                 {order.status === 'pending' && (
                   <Button
