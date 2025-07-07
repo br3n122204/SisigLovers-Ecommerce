@@ -471,61 +471,30 @@ function AnalyticsSection() {
     fetchReturnsAndRefunds();
   }, []);
 
-  React.useEffect(() => {
-    async function fetchTotalOrdersAndSales() {
-      // Fetch total orders
-      let orderCount = 0;
-      const adminProductsSnap = await getDocs(collection(db, 'adminProducts'));
-      for (const productDoc of adminProductsSnap.docs) {
-        const ordersSnap = await getDocs(collection(db, 'adminProducts', productDoc.id, 'productsOrder'));
-        orderCount += ordersSnap.size;
-        // Update totalOrders field in each productsOrder document for this product
-        for (const orderDoc of ordersSnap.docs) {
-          await updateDoc(orderDoc.ref, { totalOrders: ordersSnap.size });
-        }
-      }
-      setTotalOrders(orderCount);
-
-      // Fetch total sales amount
-      let salesSum = 0;
-      const salesSnap = await getDocs(collection(db, 'sales'));
-      salesSnap.forEach(doc => {
-        const data = doc.data();
-        if (typeof data.total === 'number') {
-          salesSum += data.total;
-        } else if (typeof data.total === 'string') {
-          const parsed = parseFloat(data.total.replace(/[^0-9.]/g, ''));
-          if (!isNaN(parsed)) salesSum += parsed;
-        }
-      });
-      setTotalSalesAmount(salesSum);
-    }
-    fetchTotalOrdersAndSales();
-  }, []);
-
   return (
     <div className="w-full h-full flex flex-col gap-8 text-[#8ec0ff]">
       {/* Top Stats */}
-      <div className="flex flex-row w-full gap-2 mb-8 md:flex-wrap md:gap-6 md:justify-center">
-        <div className="flex-1 min-w-0 bg-[#22304a] rounded-lg p-6 text-center shadow">
-          <div className="text-lg font-semibold">Customers</div>
-          <div className="text-3xl font-bold mt-2">{recentUsers.length}</div>
+      <div className="w-full mb-8 flex flex-row gap-1 sm:gap-2 md:flex-wrap md:gap-6 md:justify-center">
+        {/* On mobile, use 5 columns, each 1/5 width, no wrap, allow wrapping text */}
+        <div className="w-1/5 bg-[#22304a] rounded-lg p-0.5 text-center shadow text-[10px] sm:flex-1 sm:min-w-0 sm:p-6 sm:text-lg">
+          <div className="font-semibold leading-tight">Customers</div>
+          <div className="font-bold mt-0.5 text-sm sm:text-3xl">{recentUsers.length}</div>
         </div>
-        <div className="flex-1 min-w-0 bg-[#22304a] rounded-lg p-6 text-center shadow">
-          <div className="text-lg font-semibold">Products</div>
-          <div className="text-3xl font-bold mt-2">{totalProducts}</div>
+        <div className="w-1/5 bg-[#22304a] rounded-lg p-0.5 text-center shadow text-[10px] sm:flex-1 sm:min-w-0 sm:p-6 sm:text-lg">
+          <div className="font-semibold leading-tight">Products</div>
+          <div className="font-bold mt-0.5 text-sm sm:text-3xl">{totalProducts}</div>
         </div>
-        <div className="flex-1 min-w-0 bg-[#22304a] rounded-lg p-6 text-center shadow">
-          <div className="text-lg font-semibold">Total Orders</div>
-          <div className="text-3xl font-bold mt-2">{totalOrders}</div>
+        <div className="w-1/5 bg-[#22304a] rounded-lg p-0.5 text-center shadow text-[10px] sm:flex-1 sm:min-w-0 sm:p-6 sm:text-lg">
+          <div className="font-semibold leading-tight">Total Orders</div>
+          <div className="font-bold mt-0.5 text-sm sm:text-3xl">{totalOrders}</div>
         </div>
-        <div className="flex-1 min-w-0 bg-[#22304a] rounded-lg p-6 text-center shadow">
-          <div className="text-lg font-semibold">Total Sales</div>
-          <div className="text-xl md:text-3xl font-bold mt-2">₱{totalSalesAmount.toLocaleString()}</div>
+        <div className="w-1/5 bg-[#22304a] rounded-lg p-0.5 text-center shadow text-[10px] sm:flex-1 sm:min-w-0 sm:p-6 sm:text-lg">
+          <div className="font-semibold leading-tight">Total Sales</div>
+          <div className="font-bold mt-0.5 text-sm sm:text-xl md:text-3xl">₱{totalSalesAmount.toLocaleString()}</div>
         </div>
-        <div className="flex-1 min-w-0 bg-[#22304a] rounded-lg p-6 text-center shadow">
-          <div className="text-lg font-semibold">Average Order Value</div>
-          <div className="text-xl md:text-3xl font-bold mt-2">₱{totalOrders > 0 ? (totalSalesAmount / totalOrders).toLocaleString(undefined, { maximumFractionDigits: 2 }) : '0.00'}</div>
+        <div className="w-1/5 bg-[#22304a] rounded-lg p-0.5 text-center shadow text-[10px] sm:flex-1 sm:min-w-0 sm:p-6 sm:text-lg">
+          <div className="font-semibold leading-tight">Average Order Value</div>
+          <div className="font-bold mt-0.5 text-sm sm:text-xl md:text-3xl">₱{totalOrders > 0 ? (totalSalesAmount / totalOrders).toLocaleString(undefined, { maximumFractionDigits: 2 }) : '0.00'}</div>
         </div>
       </div>
       {/* Chart Type Selector */}
