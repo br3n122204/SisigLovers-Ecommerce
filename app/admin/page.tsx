@@ -445,18 +445,35 @@ function AnalyticsSection() {
                 <div className="text-[#8ec0ff]">No low stock products.</div>
               ) : (
                 <ul className="list-disc pl-6 text-sm">
-                  {lowStockProducts.map((p: any) => (
-                    <li key={p.id} className="mb-1">
-                      <span className="font-semibold text-white">{p.name}</span>
-                      {Array.isArray(p.lowStockSizes) && p.lowStockSizes.length > 0 ? (
-                        <span className="text-[#60A5FA]"> [
-                          {p.lowStockSizes.map((s: any) => `${s.size}: ${s.stock}`).join(', ')}
-                        ]</span>
-                      ) : p.lowStockSizes === null ? (
-                        <span className="text-[#60A5FA]"> ({p.totalStock ?? p.stock} left)</span>
-                      ) : null}
-                    </li>
-                  ))}
+                  {lowStockProducts.map((p: any) => {
+                    const imgSrc = (Array.isArray(p.imageUrls) && p.imageUrls.length > 0)
+                      ? p.imageUrls[0]
+                      : (p.image || p.imageUrl || (Array.isArray(p.images) && p.images.length > 0 ? p.images[0] : null));
+                    return (
+                      <li key={p.id} className="mb-1 flex items-center gap-2">
+                        {imgSrc ? (
+                          <img
+                            src={imgSrc}
+                            alt={p.name}
+                            className="w-8 h-8 object-cover rounded bg-[#161e2e] border border-[#22304a]"
+                            style={{ minWidth: 32, minHeight: 32 }}
+                          />
+                        ) : (
+                          <div className="w-8 h-8 rounded bg-[#22304a] flex items-center justify-center text-xs text-[#8ec0ff] border border-[#22304a]" style={{ minWidth: 32, minHeight: 32 }}>
+                            N/A
+                          </div>
+                        )}
+                        <span className="font-semibold text-white">{p.name}</span>
+                        {Array.isArray(p.lowStockSizes) && p.lowStockSizes.length > 0 ? (
+                          <span className="text-[#60A5FA]"> [
+                            {p.lowStockSizes.map((s: any) => `${s.size}: ${s.stock}`).join(', ')}
+                          ]</span>
+                        ) : p.lowStockSizes === null ? (
+                          <span className="text-[#60A5FA]"> ({p.totalStock ?? p.stock} left)</span>
+                        ) : null}
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </div>

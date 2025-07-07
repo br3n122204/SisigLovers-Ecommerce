@@ -8,11 +8,12 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { useToast } from "@/hooks/use-toast";
-import { collection, getDocs, query, addDoc, serverTimestamp, doc, getDoc, updateDoc } from "firebase/firestore";
+import { collection, getDocs, query, addDoc, serverTimestamp, doc, getDoc, updateDoc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import type { CartItem } from "@/context/CartContext";
+import { getMonthKey, getWeekKey } from '@/lib/utils';
 
 function deepCleanUndefined(obj: any): any {
   if (Array.isArray(obj)) {
@@ -343,43 +344,62 @@ export default function CheckoutPage() {
         userId: user.uid,
         orderId: globalOrderDoc.id,
       });
-
-      // Update product stock (totalStock and sizes) for each item
-      for (const item of cleanOrderData.items) {
-        const productRef = doc(db, 'adminProducts', item.id);
-        const productSnap = await getDoc(productRef);
-        if (productSnap.exists()) {
-          const productData = productSnap.data();
-          let updatedSizes = Array.isArray(productData.sizes) ? [...productData.sizes] : [];
-          let updatedTotalStock = typeof productData.totalStock === 'number' ? productData.totalStock : null;
-          // Update the size stock
-          if (item.size) {
-            updatedSizes = updatedSizes.map((size: any) => {
-              if (size.size === item.size) {
-                return { ...size, stock: Math.max(0, Number(size.stock) - Number(item.quantity)) };
-              }
-              return size;
-            });
-            // Recalculate totalStock
-            updatedTotalStock = updatedSizes.reduce((sum: number, s: any) => sum + Number(s.stock), 0);
-          }
-          await updateDoc(productRef, {
-            sizes: updatedSizes,
-            totalStock: updatedTotalStock,
-          });
+      // --- AdminAnalytics Monthly and Weekly Aggregation ---
+      try {
+        const now = new Date();
+        const monthKey = getMonthKey(now);
+        const weekKey = getWeekKey(now);
+        const dayOfWeek = now.toLocaleString('en-US', { weekday: 'short' }); // 'Sun', 'Mon', ...
+        const dayOfMonth = String(now.getDate()); // '1', '2', ...
+        // --- Weekly ---
+        const weeklyRef = doc(db, 'AdminAnalytics', 'weekly_' + weekKey);
+        const weeklySnap = await getDoc(weeklyRef);
+        const allWeekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        let weeklyDays = Object.fromEntries(allWeekDays.map(d => [d, 0]));
+        let weeklyTotal = cleanOrderData.total;
+        let weeklyQuantity = totalQuantity;
+        if (weeklySnap.exists()) {
+          const data = weeklySnap.data();
+          weeklyDays = { ...weeklyDays, ...(data.days || {}) };
+          weeklyDays[dayOfWeek] = (weeklyDays[dayOfWeek] || 0) + cleanOrderData.total;
+          weeklyTotal = (data.total || 0) + cleanOrderData.total;
+          weeklyQuantity = (data.quantity || 0) + totalQuantity;
+        } else {
+          weeklyDays[dayOfWeek] = cleanOrderData.total;
         }
+        await setDoc(weeklyRef, {
+          days: weeklyDays,
+          total: weeklyTotal,
+          quantity: weeklyQuantity,
+          updatedAt: serverTimestamp(),
+        });
+        // --- Monthly ---
+        const monthlyRef = doc(db, 'AdminAnalytics', 'monthly_' + monthKey);
+        const monthlySnap = await getDoc(monthlyRef);
+        const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+        let monthlyDays = Object.fromEntries(Array.from({length: 31}, (_, i) => [String(i+1), 0]));
+        let monthlyTotal = cleanOrderData.total;
+        let monthlyQuantity = totalQuantity;
+        if (monthlySnap.exists()) {
+          const data = monthlySnap.data();
+          monthlyDays = { ...monthlyDays, ...(data.days || {}) };
+          monthlyDays[dayOfMonth] = (monthlyDays[dayOfMonth] || 0) + cleanOrderData.total;
+          monthlyTotal = (data.total || 0) + cleanOrderData.total;
+          monthlyQuantity = (data.quantity || 0) + totalQuantity;
+        } else {
+          monthlyDays[dayOfMonth] = cleanOrderData.total;
+        }
+        // Zero out days not in this month
+        for (let d = daysInMonth + 1; d <= 31; d++) monthlyDays[String(d)] = 0;
+        await setDoc(monthlyRef, {
+          days: monthlyDays,
+          total: monthlyTotal,
+          quantity: monthlyQuantity,
+          updatedAt: serverTimestamp(),
+        });
+      } catch (err) {
+        console.error('Error updating AdminAnalytics monthly/weekly sales:', err);
       }
-
-      // Log a 'purchase' activity to Firestore
-      await addDoc(collection(db, "activities"), {
-        type: "purchase",
-        email: user.email,
-        uid: user.uid,
-        orderId: globalOrderDoc.id,
-        timestamp: serverTimestamp(),
-        items: cleanOrderData.items,
-        total: cleanOrderData.total,
-      });
 
       toast({
         title: "Successfully ordered.",
