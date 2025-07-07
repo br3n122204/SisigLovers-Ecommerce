@@ -84,12 +84,38 @@ export default function AdminOrdersPage() {
           const ordersSnapshot = await getDocs(collection(db, 'adminProducts', productId, 'productsOrder'));
           ordersSnapshot.forEach(orderDoc => {
             const data = orderDoc.data();
+            // Debug: log all date fields for this order
+            console.log('OrderDoc', orderDoc.id, {
+              dateOrdered: data.dateOrdered,
+              dateOrderedClient: data.dateOrderedClient,
+              createdAt: data.createdAt,
+              orderNumber: data.orderNumber,
+              status: data.status,
+              userEmail: data.userEmail,
+              shippingAddress: data.shippingAddress,
+              billingAddress: data.billingAddress,
+              items: data.items,
+            });
             let dateOrderedValue: Date | null = null;
             if (data.dateOrdered && typeof data.dateOrdered.toDate === "function") {
               dateOrderedValue = data.dateOrdered.toDate();
             } else if (data.dateOrdered) {
               const d = new Date(data.dateOrdered);
               dateOrderedValue = isNaN(d.getTime()) ? null : d;
+            }
+            // Fallback: use dateOrderedClient if available
+            if (!dateOrderedValue && data.dateOrderedClient) {
+              const clientDate = new Date(data.dateOrderedClient);
+              if (!isNaN(clientDate.getTime())) dateOrderedValue = clientDate;
+            }
+            // Fallback: use createdAt if available
+            if (!dateOrderedValue && data.createdAt) {
+              if (typeof data.createdAt.toDate === 'function') {
+                dateOrderedValue = data.createdAt.toDate();
+              } else {
+                const createdAtDate = new Date(data.createdAt);
+                if (!isNaN(createdAtDate.getTime())) dateOrderedValue = createdAtDate;
+              }
             }
             let deliveredAtValue;
             if (data.deliveredAt && typeof data.deliveredAt.toDate === "function") {
@@ -310,13 +336,40 @@ export default function AdminOrdersPage() {
 
   // Helper to get a valid date from order (robust for Firestore Timestamp, string, number, or serverTimestamp placeholder)
   const getOrderDate = (order: any) => {
-    const d = order.dateOrdered;
-    if (!d) return undefined;
-    if (typeof d.toDate === 'function') return d.toDate(); // Firestore Timestamp
-    if (typeof d === 'object' && d._methodName === 'serverTimestamp') return 'pending'; // Pending server timestamp
-    if (typeof d === 'string' || typeof d === 'number') {
-      const dateObj = new Date(d);
-      if (!isNaN(dateObj.getTime())) return dateObj;
+    // Debug log
+    console.log('getOrderDate called for order:', order.orderNumber, 'dateOrdered:', order.dateOrdered);
+    if (order.dateOrdered && order.dateOrdered instanceof Date && !isNaN(order.dateOrdered.getTime())) {
+      return order.dateOrdered;
+    }
+    // Fallback: use earliest statusHistory timestamp if available
+    if (order.statusHistory && Array.isArray(order.statusHistory) && order.statusHistory.length > 0) {
+      const timestamps = order.statusHistory
+        .map((h: any) => {
+          if (h.timestamp && typeof h.timestamp.toDate === 'function') return h.timestamp.toDate();
+          if (typeof h.timestamp === 'string' || typeof h.timestamp === 'number') {
+            const t = new Date(h.timestamp);
+            if (!isNaN(t.getTime())) return t;
+          }
+          return null;
+        })
+        .filter((t: Date | null) => t !== null) as Date[];
+      if (timestamps.length > 0) {
+        return new Date(Math.min(...timestamps.map(t => t.getTime())));
+      }
+    }
+    // Fallback: use dateOrderedClient if available
+    if (order.dateOrderedClient) {
+      const clientDate = new Date(order.dateOrderedClient);
+      if (!isNaN(clientDate.getTime())) return clientDate;
+    }
+    // Fallback: use createdAt if available
+    if (order.createdAt) {
+      if (typeof order.createdAt.toDate === 'function') {
+        return order.createdAt.toDate();
+      } else {
+        const createdAtDate = new Date(order.createdAt);
+        if (!isNaN(createdAtDate.getTime())) return createdAtDate;
+      }
     }
     return undefined;
   };
