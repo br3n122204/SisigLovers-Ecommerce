@@ -81,6 +81,7 @@ export default function OrderDetailsPage() {
   const [showReturnForm, setShowReturnForm] = useState(false);
   const [returnReason, setReturnReason] = useState('');
   const [feedback, setFeedback] = useState('');
+  const [showRatingSection, setShowRatingSection] = useState(false);
 
   const params = useParams();
   const orderId = params.id as string;
@@ -692,7 +693,7 @@ export default function OrderDetailsPage() {
                   </Badge>
                 </div>
                 {/* Cancel Order button for all except cancelled/completed */}
-                {order.status !== 'cancelled' && order.status !== 'completed' && (
+                {order.status === 'pending' && (
                   <Button
                     className="bg-red-600 hover:bg-red-700 text-white px-6 mt-4"
                     onClick={handleCancelOrder}
@@ -724,7 +725,8 @@ export default function OrderDetailsPage() {
                     </Button>
                   </div>
                 ) : order.status === 'delivered' && orderReceived && !actionCompleted ? (
-                  <div className="space-y-4 mt-4">
+                  <div className="flex flex-col gap-2 mt-4">
+                    {/* Return/Refund button or form */}
                     {!showReturnForm ? (
                       <Button
                         className="bg-red-600 hover:bg-red-700 text-white px-6"
@@ -749,29 +751,41 @@ export default function OrderDetailsPage() {
                         <Button type="button" variant="outline" className="px-6" onClick={() => setShowReturnForm(false)}>Cancel</Button>
                       </form>
                     )}
-                    <div className="flex items-center gap-1 mb-2 mt-4">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`h-6 w-6 cursor-pointer ${i < selectedRating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-400'}`}
-                          onClick={() => setSelectedRating(i + 1)}
+                    {/* Rating Section: Show Rate button first, then stars/feedback after click, always below Return/Refund */}
+                    {!showRatingSection ? (
+                      <Button
+                        className="bg-yellow-500 hover:bg-yellow-600 text-white px-6 mt-2"
+                        onClick={() => setShowRatingSection(true)}
+                      >
+                        Rate
+                      </Button>
+                    ) : (
+                      <>
+                        <div className="flex items-center gap-1 mb-2 mt-4">
+                          {[...Array(5)].map((_, i) => (
+                            <Star
+                              key={i}
+                              className={`h-6 w-6 cursor-pointer ${i < selectedRating ? 'text-yellow-400 fill-yellow-400' : 'text-gray-400'}`}
+                              onClick={() => setSelectedRating(i + 1)}
+                            />
+                          ))}
+                        </div>
+                        <textarea
+                          className="w-full border border-gray-300 rounded p-2 mb-2 text-black"
+                          rows={3}
+                          value={feedback}
+                          onChange={e => setFeedback(e.target.value)}
+                          placeholder="Share your feedback..."
                         />
-                      ))}
-                    </div>
-                    <textarea
-                      className="w-full border border-gray-300 rounded p-2 mb-2 text-black"
-                      rows={3}
-                      value={feedback}
-                      onChange={e => setFeedback(e.target.value)}
-                      placeholder="Share your feedback..."
-                    />
-                    <Button
-                      className="bg-yellow-500 hover:bg-yellow-600 text-white px-6 mt-2"
-                      onClick={() => handleRateOrder(selectedRating, feedback)}
-                      disabled={selectedRating === 0}
-                    >
-                      Submit Rating
-                    </Button>
+                        <Button
+                          className="bg-yellow-500 hover:bg-yellow-600 text-white px-6 mt-2"
+                          onClick={() => handleRateOrder(selectedRating, feedback)}
+                          disabled={selectedRating === 0}
+                        >
+                          Submit Rating
+                        </Button>
+                      </>
+                    )}
                   </div>
                 ) : null /* Render nothing for other statuses */}
               </div>

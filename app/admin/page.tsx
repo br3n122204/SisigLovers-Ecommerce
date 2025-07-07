@@ -16,7 +16,7 @@ import AdminOrdersPage from "./orders/page";
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Area } from 'recharts';
 import React from "react";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
-import { Menu, ChevronLeft } from "lucide-react";
+import { Menu, ChevronLeft, Eye, EyeOff } from "lucide-react";
 import { getDocs as fsGetDocs } from "firebase/firestore";
 
 interface User {
@@ -48,6 +48,7 @@ function LoginForm({ onLogin }: { onLogin: (email: string, password: string) => 
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -95,16 +96,25 @@ function LoginForm({ onLogin }: { onLogin: (email: string, password: string) => 
                 autoComplete="email"
               />
             </div>
-            <div>
+            <div className="relative">
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 required
-                className="w-full px-4 py-2 bg-[#22304a] border border-[#22304a] rounded-md focus:outline-none focus:ring-2 focus:ring-[#3390ff] text-white placeholder-[#8ec0ff]"
+                className="w-full px-4 py-2 bg-[#22304a] border border-[#22304a] rounded-md focus:outline-none focus:ring-2 focus:ring-[#3390ff] text-white placeholder-[#8ec0ff] pr-10"
                 placeholder="Admin Password"
                 value={password}
                 onChange={handlePasswordChange}
                 autoComplete="current-password"
               />
+              <button
+                type="button"
+                tabIndex={-1}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-[#8ec0ff] hover:text-[#3390ff] focus:outline-none"
+                onClick={() => setShowPassword((v) => !v)}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
             </div>
             {error && (
               <div className="text-red-400 text-sm text-center p-2 bg-[#2a1a1a] rounded-md">
@@ -142,7 +152,7 @@ function AnalyticsSection() {
   const [outOfStockProducts, setOutOfStockProducts] = React.useState<any[]>([]);
   const [bestSellingTshirts, setBestSellingTshirts] = React.useState<any[]>([]);
   const [loadingInventory, setLoadingInventory] = React.useState(false);
-  const { recentUsers = [], totalProducts = 0, totalSalesAmount = 0 } = React.useContext(AdminAnalyticsContext) || {};
+  const { recentUsers = [], totalProducts = 0 } = React.useContext(AdminAnalyticsContext) || {};
   const [weeklySalesData, setWeeklySalesData] = React.useState<{ day: string; sales: number }[]>([]);
   const [selectedMonth, setSelectedMonth] = React.useState<{ month: number; year: number }>(() => {
     const now = new Date();
@@ -157,6 +167,7 @@ function AnalyticsSection() {
   const [returnsThisMonth, setReturnsThisMonth] = React.useState(0);
   const [totalRefunded, setTotalRefunded] = React.useState(0);
   const [totalOrders, setTotalOrders] = React.useState(0);
+  const [totalSalesAmount, setTotalSalesAmount] = React.useState(0);
 
   React.useEffect(() => {
     // Fetch sales data grouped by month from the 'sales' collection
@@ -432,43 +443,32 @@ function AnalyticsSection() {
   }, []);
 
   React.useEffect(() => {
-    async function fetchReturnsAndRefunds() {
-      // Fetch all returnRefundReasons from all products
+    async function fetchOrdersAndAOV() {
+      // Fetch all products
       const adminProductsSnap = await getDocs(collection(db, 'adminProducts'));
-      let allReturns = [];
-      for (const productDoc of adminProductsSnap.docs) {
-        const returnReasonsSnap = await getDocs(collection(db, 'adminProducts', productDoc.id, 'returnRefundReasons'));
-        allReturns.push(...returnReasonsSnap.docs.map(doc => doc.data()));
-      }
-      // Filter for current month
-      const now = new Date();
-      const currentMonth = now.getMonth();
-      const currentYear = now.getFullYear();
-      const returnsThisMonthArr = allReturns.filter(r => {
-        if (!r.timestamp || !r.timestamp.toDate) return false;
-        const d = r.timestamp.toDate();
-        return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-      });
-      setReturnsThisMonth(returnsThisMonthArr.length);
-      // Total refunded
-      const totalRefundedVal = returnsThisMonthArr.reduce((sum, r) => sum + (typeof r.price === 'number' ? r.price : 0), 0);
-      setTotalRefunded(totalRefundedVal);
-
-      // Fetch total orders this month
-      let allOrders = [];
+      let totalOrdersCount = 0;
+      let totalSalesAmount = 0;
       for (const productDoc of adminProductsSnap.docs) {
         const ordersSnap = await getDocs(collection(db, 'adminProducts', productDoc.id, 'productsOrder'));
-        allOrders.push(...ordersSnap.docs.map(doc => doc.data()));
+        for (const orderDoc of ordersSnap.docs) {
+          const orderData = orderDoc.data();
+          if (typeof orderData.purchasedCount === 'number') {
+            totalOrdersCount += orderData.purchasedCount;
+          } else {
+            totalOrdersCount += 1; // fallback if purchasedCount is missing, count as 1
+          }
+          if (typeof orderData.total === 'number') {
+            totalSalesAmount += orderData.total;
+          } else if (typeof orderData.total === 'string') {
+            const parsed = parseFloat(orderData.total.replace(/[^0-9.]/g, ''));
+            if (!isNaN(parsed)) totalSalesAmount += parsed;
+          }
+        }
       }
-      const ordersThisMonthArr = allOrders.filter(o => {
-        if (!o.timestamp && !o.orderDate) return false;
-        const d = o.timestamp && o.timestamp.toDate ? o.timestamp.toDate() : (o.orderDate && o.orderDate.toDate ? o.orderDate.toDate() : null);
-        if (!d) return false;
-        return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-      });
-      setTotalOrders(ordersThisMonthArr.length);
+      setTotalOrders(totalOrdersCount);
+      setTotalSalesAmount(totalSalesAmount);
     }
-    fetchReturnsAndRefunds();
+    fetchOrdersAndAOV();
   }, []);
 
   return (
@@ -934,14 +934,6 @@ export default function AdminDashboardSinglePage() {
     }
   };
 
-  // Fetch total orders (purchase activities)
-  const fetchTotalOrders = async () => {
-    const activitiesRef = collection(db, "activities");
-    const q = query(activitiesRef, where("type", "==", "purchase"));
-    const querySnapshot = await getDocs(q);
-    setTotalOrders(querySnapshot.size);
-  };
-
   // Fetch recent activities from Firestore
   const fetchRecentActivities = async () => {
     setIsLoadingActivities(true);
@@ -1011,7 +1003,6 @@ export default function AdminDashboardSinglePage() {
     if (user && user.uid === ADMIN_UID) {
       fetchRecentUsers();
       fetchRecentActivities();
-      fetchTotalOrders();
       fetchTotalProducts();
       fetchTotalSales();
       fetchTotalSalesAmount();
@@ -1106,7 +1097,7 @@ export default function AdminDashboardSinglePage() {
             <div className="flex-1 bg-black bg-opacity-40" onClick={toggleSidebar} />
           </div>
         )}
-        <AdminAnalyticsContext.Provider value={{ recentUsers, totalProducts, totalSalesAmount }}>
+        <AdminAnalyticsContext.Provider value={{ recentUsers, totalProducts }}>
           {content}
         </AdminAnalyticsContext.Provider>
       </div>
