@@ -249,50 +249,52 @@ export default function DPTOneFashion() {
                 </div>
               ) : (
                 <div className="grid grid-cols-3 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-10 px-2 sm:px-4 md:px-0">
-                  {products.length === 0 ? (
-                    <div className="col-span-4 text-center text-[#60A5FA]">No products found.</div>
+                  {products.filter(product => product.isFeaturedProduct === true).length === 0 ? (
+                    <div className="col-span-4 text-center text-[#60A5FA]">No featured products.</div>
                   ) : (
-                    products.map((product) => {
-                      // Sold out logic
-                      const isSoldOut = (typeof product.totalStock === 'number' && product.totalStock === 0) ||
-                        (Array.isArray(product.sizes) && product.sizes.reduce((sum: number, s: { stock: number }) => sum + (s.stock || 0), 0) === 0);
-                      // Low stock logic
-                      const totalStock = Array.isArray(product.sizes)
-                        ? product.sizes.reduce((sum: number, s: { stock: number }) => sum + (s.stock || 0), 0)
-                        : (typeof product.totalStock === 'number' ? product.totalStock : 0);
-                      const isLowStock = !isSoldOut && totalStock > 0 && totalStock <= 5;
-                      return (
-                        <Link key={product.id} href={`/products/${product.id}`} className="w-full">
-                          <div
-                            className="bg-[#19223a] rounded-2xl shadow-lg p-3 sm:p-4 flex flex-col items-center cursor-pointer hover:shadow-xl transition text-[#60A5FA] relative max-w-[170px] sm:max-w-full mx-auto"
-                            onMouseEnter={() => setHoveredProduct(product.id)}
-                            onMouseLeave={() => setHoveredProduct(null)}
-                          >
-                            <div className="relative w-full flex justify-center">
-                              <img
-                                src={
-                                  hoveredProduct === product.id && product.imageUrls && product.imageUrls.length > 1
-                                    ? product.imageUrls[1]
-                                    : product.imageUrls && product.imageUrls.length > 0
-                                      ? product.imageUrls[0]
-                                      : "/images/placeholder.jpg"
-                                }
-                                alt={product.name}
-                                className="w-[90px] h-[75px] sm:w-48 sm:h-48 object-contain mb-2 sm:mb-4 rounded-lg bg-white"
-                              />
-                              {isSoldOut && (
-                                <span className="absolute top-1 right-1 bg-red-600 text-white text-xs sm:text-sm font-semibold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full z-10">Sold out</span>
-                              )}
-                              {isLowStock && !isSoldOut && (
-                                <span className="absolute top-1 left-1 bg-orange-400 text-white text-xs sm:text-sm font-semibold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full z-10">Low stock</span>
-                              )}
+                    products
+                      .filter(product => product.isFeaturedProduct === true)
+                      .map((product) => {
+                        // Sold out logic
+                        const isSoldOut = (typeof product.totalStock === 'number' && product.totalStock === 0) ||
+                          (Array.isArray(product.sizes) && product.sizes.reduce((sum: number, s: { stock: number }) => sum + (s.stock || 0), 0) === 0);
+                        // Low stock logic
+                        const totalStock = Array.isArray(product.sizes)
+                          ? product.sizes.reduce((sum: number, s: { stock: number }) => sum + (s.stock || 0), 0)
+                          : (typeof product.totalStock === 'number' ? product.totalStock : 0);
+                        const isLowStock = !isSoldOut && totalStock > 0 && totalStock <= 5;
+                        return (
+                          <Link key={product.id} href={`/products/${product.id}`} className="w-full">
+                            <div
+                              className="bg-[#19223a] rounded-2xl shadow-lg p-3 sm:p-4 flex flex-col items-center cursor-pointer hover:shadow-xl transition text-[#60A5FA] relative max-w-[170px] sm:max-w-full mx-auto h-[340px]"
+                              onMouseEnter={() => setHoveredProduct(product.id)}
+                              onMouseLeave={() => setHoveredProduct(null)}
+                            >
+                              <div className="relative w-full flex justify-center">
+                                <img
+                                  src={
+                                    hoveredProduct === product.id && product.imageUrls && product.imageUrls.length > 1
+                                      ? product.imageUrls[1]
+                                      : product.imageUrls && product.imageUrls.length > 0
+                                        ? product.imageUrls[0]
+                                        : "/images/placeholder.jpg"
+                                  }
+                                  alt={product.name}
+                                  className="w-[90px] h-[75px] sm:w-48 sm:h-48 object-contain mb-2 sm:mb-4 rounded-lg bg-white"
+                                />
+                                {isSoldOut && (
+                                  <span className="absolute top-1 right-1 bg-red-600 text-white text-xs sm:text-sm font-semibold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full z-10">Sold out</span>
+                                )}
+                                {isLowStock && !isSoldOut && (
+                                  <span className="absolute top-1 left-1 bg-orange-400 text-white text-xs sm:text-sm font-semibold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full z-10">Low stock</span>
+                                )}
+                              </div>
+                              <h3 className="font-bold text-base sm:text-lg text-center mb-1">{product.name}</h3>
+                              <p className="text-[#60A5FA] font-semibold mb-2 sm:mb-4">₱{product.price}</p>
                             </div>
-                            <h3 className="font-bold text-base sm:text-lg text-center mb-1">{product.name}</h3>
-                            <p className="text-[#60A5FA] font-semibold mb-2 sm:mb-4">₱{product.price}</p>
-                          </div>
-                        </Link>
-                      );
-                    })
+                          </Link>
+                        );
+                      })
                   )}
                 </div>
               )}

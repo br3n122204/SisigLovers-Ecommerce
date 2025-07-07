@@ -15,6 +15,7 @@ interface Product {
   brand?: string;
   sizes?: { size: string; stock: number }[];
   totalStock?: number;
+  isFeaturedProduct?: boolean;
 }
 
 export default function AdminProductsPage() {
@@ -41,6 +42,7 @@ export default function AdminProductsPage() {
           brand: data.brand,
           sizes: data.sizes,
           totalStock: data.totalStock,
+          isFeaturedProduct: data.isFeaturedProduct === true,
         });
       });
       setProducts(items);
@@ -104,6 +106,11 @@ export default function AdminProductsPage() {
     setProducts((prev) => prev.filter((p) => p.id !== id));
   };
 
+  const toggleFeatured = async (id: string, value: boolean) => {
+    await updateDoc(doc(db, "adminProducts", id), { isFeaturedProduct: value });
+    setProducts((prev) => prev.map((p) => p.id === id ? { ...p, isFeaturedProduct: value } : p));
+  };
+
   if (loading) return <div className="p-8 text-[#8ec0ff]">Loading products...</div>;
 
   return (
@@ -119,6 +126,7 @@ export default function AdminProductsPage() {
                 <th className="p-3 border-b border-[#22304a] text-left text-sm px-2 py-2">Brand</th>
                 <th className="p-3 border-b border-[#22304a] text-left text-sm px-2 py-2">Price</th>
                 <th className="p-3 border-b border-[#22304a] text-left text-sm px-2 py-2">Stock</th>
+                <th className="p-3 border-b border-[#22304a] text-center text-sm px-2 py-2">Featured</th>
                 <th className="p-3 border-b border-[#22304a] text-center text-sm px-2 py-2">Actions</th>
               </tr>
             </thead>
@@ -203,40 +211,29 @@ export default function AdminProductsPage() {
                                     newSizes.splice(i, 1);
                                     setEditValues(v => ({ ...v, sizes: newSizes }));
                                   }}
-                                  disabled={(editValues.sizes || []).length === 1}
                                 >
                                   ×
                                 </button>
                               </div>
                             );
                           })}
-                          <button
-                            type="button"
-                            className="mt-2 px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-xs w-fit"
-                            onClick={() => setEditValues(v => ({ ...v, sizes: [...(v.sizes || []), { size: '', stock: 0 }] }))}
-                          >
-                            + Add Size
-                          </button>
                         </div>
-                      ) : (
-                        <input
-                          type="number"
-                          className="bg-[#22304a] border border-[#22304a] px-2 py-1 rounded w-16 text-white text-xs px-1 py-1 h-7 w-20 sm:w-auto"
-                          value={editValues.stock ?? ""}
-                          onChange={e => setEditValues(v => ({ ...v, stock: Number(e.target.value) }))}
-                        />
-                      )
+                      ) : null
                     ) : (
-                      product.sizes && product.sizes.length > 0 ? (
-                        <div className="flex flex-wrap gap-1">
-                          {product.sizes.map((s, i) => (
-                            <span key={i} className="text-xs bg-[#22304a] text-[#8ec0ff] rounded px-2 py-1 inline-block font-semibold">{s.size}: {s.stock}</span>
-                          ))}
-                        </div>
-                      ) : (
-                        <span className="text-white">{product.stock}</span>
-                      )
+                      <div className="flex flex-wrap gap-1">
+                        {(product.sizes || []).map((s, i) => (
+                          <span key={i} className="bg-[#22304a] text-[#60A5FA] px-2 py-1 rounded text-xs font-semibold">{s.size}: {s.stock}</span>
+                        ))}
+                      </div>
                     )}
+                  </td>
+                  <td className="p-3 text-center text-sm px-2 py-1">
+                    <input
+                      type="checkbox"
+                      checked={!!product.isFeaturedProduct}
+                      onChange={e => toggleFeatured(product.id, e.target.checked)}
+                      className="accent-[#3390ff] w-4 h-4"
+                    />
                   </td>
                   <td className="p-3 text-sm px-2 py-1">
                     {editingId === product.id ? (
