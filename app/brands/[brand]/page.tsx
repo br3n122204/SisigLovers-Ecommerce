@@ -322,9 +322,16 @@ export default function BrandPage() {
           <div className="grid grid-cols-3 md:grid-cols-4 gap-4 md:gap-8 max-w-7xl mx-auto px-2 sm:px-4 md:px-0">
             {filteredProducts.map(product => (
               <div key={product.id} className="bg-[#19223a] rounded-2xl shadow-lg p-3 sm:p-6 flex flex-col items-center w-full max-w-[150px] sm:max-w-xs mx-auto">
-                <div className="relative w-[110px] h-[90px] sm:w-[220px] sm:h-[180px] flex items-center justify-center">
+                <div className="relative w-[100px] h-[100px] sm:w-[180px] sm:h-[180px] md:w-[200px] md:h-[200px] flex items-center justify-center">
                   <Link href={`/products/${product.id}`}> 
-                    <Image src={product.imageUrls?.[0] || product.image || "/placeholder.jpg"} alt={product.name} width={110} height={90} className="object-contain rounded-lg bg-white w-full h-full" priority />
+                    <Image
+                      src={product.imageUrls?.[0] || product.image || "/placeholder.jpg"}
+                      alt={product.name}
+                      fill
+                      className="object-contain rounded-lg bg-white"
+                      priority
+                      sizes="(max-width: 640px) 100px, (max-width: 1024px) 180px, 200px"
+                    />
                   </Link>
                   {(
                     (typeof product.totalStock === 'number' && product.totalStock === 0) ||
