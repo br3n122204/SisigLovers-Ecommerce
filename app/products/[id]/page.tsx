@@ -93,7 +93,26 @@ export default function ProductDetailPage() {
     fetchProduct();
   }, [productId]);
 
+  // Add this helper to get available stock for selected size
+  const getAvailableStock = () => {
+    if (!product) return 0;
+    if (product.sizes && selectedSize) {
+      const found = product.sizes.find((s: any) => s.size === selectedSize);
+      return found ? Number(found.stock) : 0;
+    }
+    return typeof product.totalStock === 'number' ? product.totalStock : 0;
+  };
+
   const handleAddToCart = () => {
+    const maxStock = getAvailableStock();
+    if (quantity > maxStock) {
+      toast({
+        title: "Not enough stock!",
+        description: `Only ${maxStock} left in stock for this size.`,
+        variant: "destructive",
+      });
+      return;
+    }
     if (!user) {
       if (!selectedSize) {
         alert('Please select a size.');
@@ -187,7 +206,13 @@ export default function ProductDetailPage() {
   };
 
   const handleQuantityChange = (change: number) => {
-    setQuantity(prev => Math.max(1, prev + change));
+    const maxStock = getAvailableStock();
+    setQuantity(prev => {
+      const next = prev + change;
+      if (next < 1) return 1;
+      if (maxStock && next > maxStock) return maxStock;
+      return next;
+    });
   };
 
   const handlePrevImage = () => {
@@ -337,13 +362,18 @@ export default function ProductDetailPage() {
                     {["S", "M", "L", "XL", "2XL"].map(sizeLabel => {
                       const found = product.sizes.find((entry: { size: string, stock: number }) => entry.size === sizeLabel);
                       const isOutOfStock = !found || found.stock === 0;
+                      const isSelected = selectedSize === sizeLabel;
                       return (
                         <Button
                           key={sizeLabel}
                           variant="outline"
-                          onClick={() => !isOutOfStock && setSelectedSize(sizeLabel)}
+                          onClick={() => {
+                            if (isOutOfStock) return;
+                            if (isSelected) setSelectedSize(undefined);
+                            else setSelectedSize(sizeLabel);
+                          }}
                           className={`border-[#60A5FA] text-[#60A5FA] transition-colors
-                            ${selectedSize === sizeLabel ? 'bg-[#60A5FA] text-[#101828]' : ''}
+                            ${isSelected ? 'bg-[#60A5FA] text-[#101828]' : ''}
                             ${isOutOfStock ? 'opacity-50 cursor-not-allowed bg-gray-700 text-[#60A5FA]' : 'hover:bg-[#60A5FA] hover:text-[#101828]'}
                           `}
                           disabled={isOutOfStock}
@@ -353,6 +383,18 @@ export default function ProductDetailPage() {
                       );
                     })}
                   </div>
+                  {/* Show low stock message only if a specific size is selected and its stock is low */}
+                  {selectedSize && (() => {
+                    const found = product.sizes.find((entry: { size: string, stock: number }) => entry.size === selectedSize);
+                    if (found && found.stock > 0 && found.stock <= 5) {
+                      return (
+                        <div className="mt-2 text-orange-400 text-xs font-semibold">
+                          Low stock: {found.stock} left
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
                 </div>
               )}
               {/* Color Selection */}
@@ -399,6 +441,7 @@ export default function ProductDetailPage() {
                     <Button
                       className="w-full bg-[#60A5FA] text-[#101828] py-3 rounded-md hover:bg-[#3380c0] transition-colors"
                       onClick={handleAddToCart}
+                      disabled={isSoldOut || getAvailableStock() === 0}
                     >
                       Add to cart
                     </Button>
