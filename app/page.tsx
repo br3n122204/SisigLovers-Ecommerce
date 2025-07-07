@@ -212,6 +212,11 @@ export default function DPTOneFashion() {
                       // Sold out logic
                       const isSoldOut = (typeof product.totalStock === 'number' && product.totalStock === 0) ||
                         (Array.isArray(product.sizes) && product.sizes.reduce((sum: number, s: { stock: number }) => sum + (s.stock || 0), 0) === 0);
+                      // Low stock logic
+                      const totalStock = Array.isArray(product.sizes)
+                        ? product.sizes.reduce((sum: number, s: { stock: number }) => sum + (s.stock || 0), 0)
+                        : (typeof product.totalStock === 'number' ? product.totalStock : 0);
+                      const isLowStock = !isSoldOut && totalStock > 0 && totalStock <= 5;
                       return (
                         <Link key={product.id} href={`/products/${product.id}`} className="w-full">
                           <div
@@ -233,6 +238,9 @@ export default function DPTOneFashion() {
                               />
                               {isSoldOut && (
                                 <span className="absolute top-1 right-1 bg-red-600 text-white text-xs sm:text-sm font-semibold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full z-10">Sold out</span>
+                              )}
+                              {isLowStock && !isSoldOut && (
+                                <span className="absolute top-1 left-1 bg-orange-400 text-white text-xs sm:text-sm font-semibold px-2 sm:px-3 py-0.5 sm:py-1 rounded-full z-10">Low stock</span>
                               )}
                             </div>
                             <h3 className="font-bold text-base sm:text-lg text-center mb-1">{product.name}</h3>
