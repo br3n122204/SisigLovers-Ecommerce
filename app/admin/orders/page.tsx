@@ -174,40 +174,6 @@ export default function AdminOrdersPage() {
     setFilteredOrders(filtered);
   }, [orders, searchTerm, statusFilter, sortBy]);
 
-  const exportToCSV = () => {
-    const headers = [
-      "Order Number", "Status", "Order Date", "Customer Name", "Customer Email", "Customer Phone", "Payment Method", "Payment Status", "Subtotal", "Shipping", "Tax", "Total", "Tracking Number", "Estimated Delivery", "Shipping Address", "Billing Address", "Items"
-    ];
-    const rows = filteredOrders.map(order => [
-      order.orderNumber,
-      order.status,
-      formatDate(order.dateOrdered ? order.dateOrdered : new Date(0), true),
-      order.userName,
-      order.userEmail,
-      order.userPhone,
-      order.paymentMethod,
-      order.paymentStatus,
-      order.subtotal,
-      order.shipping,
-      order.tax,
-      order.total,
-      order.trackingNumber || "",
-      order.estimatedDelivery ? formatDate(order.estimatedDelivery, true) : "",
-      formatAddress(order.shippingAddress),
-      formatAddress(order.billingAddress),
-      order.items.map(i => `${i.name} (x${i.quantity})`).join("; ")
-    ]);
-    const csvContent = [headers, ...rows].map(e => e.map(x => `"${(x ?? '').toString().replace(/"/g, '""')}"`).join(",")).join("\n");
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", `orders_export_${Date.now()}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   const formatDate = (date: Date | string | undefined | null, withTime = false) => {
     if (!date) return "N/A";
     let d: Date;
@@ -458,12 +424,6 @@ export default function AdminOrdersPage() {
               </div>
             )}
           </div>
-          <button
-            onClick={exportToCSV}
-            className="flex items-center justify-center gap-2 px-4 py-2 bg-[#3390ff] text-white rounded-md hover:bg-[#2360b7] w-full"
-          >
-            <Download className="w-4 h-4" /> Export CSV
-          </button>
         </div>
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-[#3390ff] mb-2">All Orders</h1>
