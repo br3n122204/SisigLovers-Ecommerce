@@ -17,6 +17,7 @@ import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tool
 import React from "react";
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@/components/ui/select';
 import { Menu, ChevronLeft } from "lucide-react";
+import { getDocs as fsGetDocs } from "firebase/firestore";
 
 interface User {
   id: string;
@@ -139,7 +140,7 @@ function AnalyticsSection() {
   const [products, setProducts] = React.useState<any[]>([]);
   const [lowStockProducts, setLowStockProducts] = React.useState<any[]>([]);
   const [outOfStockProducts, setOutOfStockProducts] = React.useState<any[]>([]);
-  const [bestSelling, setBestSelling] = React.useState<any | null>(null);
+  const [bestSellingTshirts, setBestSellingTshirts] = React.useState<any[]>([]);
   const [loadingInventory, setLoadingInventory] = React.useState(false);
   const { recentUsers = [], totalProducts = 0, totalSalesAmount = 0 } = React.useContext(AdminAnalyticsContext) || {};
   const [weeklySalesData, setWeeklySalesData] = React.useState<{ day: string; sales: number }[]>([]);
@@ -244,29 +245,36 @@ function AnalyticsSection() {
         }
       });
       setOutOfStockProducts(outOfStock);
-      // Best selling product: aggregate sales by product id/name from 'sales' collection
-      const salesRef = collection(db, 'sales');
-      const salesSnap = await getDocs(salesRef);
-      const salesMap: Record<string, { name: string; quantity: number; imageUrl?: string }> = {};
-      salesSnap.forEach(doc => {
-        const data = doc.data();
-        if (Array.isArray(data.items)) {
-          data.items.forEach((item: any) => {
-            if (!item.name) return;
-            if (!salesMap[item.name]) {
-              salesMap[item.name] = { name: item.name, quantity: 0, imageUrl: item.imageUrl };
-            }
-            salesMap[item.name].quantity += Number(item.quantity) || 0;
-          });
+      // Only consider products from adminProducts that have been purchased >= 20 times (using purchasedCount)
+      const tshirtSales = allProducts
+        .filter(p => (p.purchasedCount || 0) >= 20)
+        .map(p => ({
+          name: p.name,
+          quantity: p.purchasedCount || 0,
+          imageUrl: Array.isArray(p.imageUrls) && p.imageUrls.length > 0 ? p.imageUrls[0] : (p.imageUrl || p.image || null),
+          productId: p.id
+        }))
+        .sort((a, b) => b.quantity - a.quantity)
+        .slice(0, 10);
+      setBestSellingTshirts(tshirtSales);
+
+      // Update AdminAnalytics/bestSellingShirts subcollection
+      try {
+        const analyticsDocRef = doc(db, "AdminAnalytics", "main");
+        const bestSellingShirtsColRef = collection(analyticsDocRef, "bestSellingShirts");
+        // Remove previous docs in the subcollection
+        const prevDocs = await fsGetDocs(bestSellingShirtsColRef);
+        for (const d of prevDocs.docs) {
+          await deleteDoc(d.ref);
         }
-      });
-      // Only consider tshirts/shirts
-      const tshirtSales = Object.values(salesMap).filter(s => s.name.toLowerCase().includes('shirt'));
-      let best = null;
-      if (tshirtSales.length > 0) {
-        best = tshirtSales.reduce((a, b) => (a.quantity > b.quantity ? a : b));
+        // Add new top products
+        for (const shirt of tshirtSales) {
+          await setDoc(doc(bestSellingShirtsColRef, shirt.productId), shirt);
+        }
+      } catch (err) {
+        console.error("Failed to update bestSellingShirts subcollection:", err);
       }
-      setBestSelling(best);
+
       setLoadingInventory(false);
     }
     fetchInventoryAnalytics();
@@ -466,18 +474,18 @@ function AnalyticsSection() {
   return (
     <div className="w-full h-full flex flex-col gap-8 text-[#8ec0ff]">
       {/* Top Stats */}
-      <div className="flex flex-wrap gap-6 justify-center mb-8">
-        <div className="bg-[#22304a] rounded-lg p-6 min-w-[180px] text-center shadow">
+      <div className="flex flex-row w-full gap-2 mb-8 md:flex-wrap md:gap-6 md:justify-center">
+        <div className="flex-1 min-w-0 bg-[#22304a] rounded-lg p-6 text-center shadow">
           <div className="text-lg font-semibold">Customers</div>
           <div className="text-3xl font-bold mt-2">{recentUsers.length}</div>
         </div>
-        <div className="bg-[#22304a] rounded-lg p-6 min-w-[180px] text-center shadow">
+        <div className="flex-1 min-w-0 bg-[#22304a] rounded-lg p-6 text-center shadow">
           <div className="text-lg font-semibold">Products</div>
           <div className="text-3xl font-bold mt-2">{totalProducts}</div>
         </div>
-        <div className="bg-[#22304a] rounded-lg p-6 min-w-[180px] text-center shadow">
+        <div className="flex-1 min-w-0 bg-[#22304a] rounded-lg p-6 text-center shadow">
           <div className="text-lg font-semibold">Total Sales</div>
-          <div className="text-3xl font-bold mt-2">₱{totalSalesAmount.toLocaleString()}</div>
+          <div className="text-xl md:text-3xl font-bold mt-2">₱{totalSalesAmount.toLocaleString()}</div>
         </div>
       </div>
       {/* Chart Type Selector */}
@@ -520,7 +528,7 @@ function AnalyticsSection() {
         <div className="bg-[#22304a] rounded-lg p-6 w-full max-w-3xl mx-auto shadow flex flex-col gap-6">
           <div className="flex flex-col md:flex-row gap-6">
             {/* Low Stock Alerts */}
-            <div className="flex-1 bg-[#19223a] rounded-lg p-4 shadow flex flex-col">
+            <div className="flex-1 bg-[#19223a] rounded-lg p-4 shadow flex flex-col" style={{ minHeight: '120px' }}>
               <div className="text-lg font-semibold mb-2 text-[#8ec0ff]">Low Stock Alerts (≤ 5)</div>
               {loadingInventory ? (
                 <div className="text-[#8ec0ff]">Loading...</div>
@@ -561,7 +569,7 @@ function AnalyticsSection() {
               )}
             </div>
             {/* Out of Stock Products */}
-            <div className="flex-1 bg-[#19223a] rounded-lg p-4 shadow flex flex-col">
+            <div className="flex-1 bg-[#19223a] rounded-lg p-4 shadow flex flex-col" style={{ minHeight: '120px' }}>
               <div className="text-lg font-semibold mb-2 text-[#8ec0ff]">Out of Stock Products</div>
               {loadingInventory ? (
                 <div className="text-[#8ec0ff]">Loading...</div>
@@ -595,26 +603,25 @@ function AnalyticsSection() {
               )}
             </div>
           </div>
-          {/* Best Selling T-shirt (full width) */}
-          <div className="bg-[#19223a] rounded-lg p-4 shadow flex flex-col items-center">
-            <div className="text-lg font-semibold mb-2 text-[#8ec0ff]">Best Selling T-shirt</div>
+          {/* Best Selling Products (full width) */}
+          <div className="bg-[#19223a] rounded-lg p-4 shadow flex flex-col items-center" style={{ minHeight: '220px' }}>
+            <div className="text-lg font-semibold mb-2 text-[#8ec0ff]">Best Selling Products</div>
             {loadingInventory ? (
               <div className="text-[#8ec0ff]">Loading...</div>
-            ) : bestSelling ? (
-              <div className="flex flex-col md:flex-row items-center gap-4 mt-2 w-full justify-center">
-                {bestSelling.imageUrl && <img src={bestSelling.imageUrl} alt={bestSelling.name} className="w-16 h-16 object-contain rounded bg-[#161e2e]" />}
-                <div className="flex flex-col items-center md:items-start">
-                  <span className="font-semibold text-lg text-white text-center md:text-left">{bestSelling.name}</span>
-                  <span className="text-[#60A5FA] text-base">{bestSelling.quantity} sold</span>
-                  {/* Show best selling sizes if available */}
-                  {bestSelling.sizes && Array.isArray(bestSelling.sizes) && bestSelling.sizes.length > 0 && (
-                    <div className="mt-2 text-sm text-[#8ec0ff]">
-                      Best Selling Sizes: {bestSelling.sizes.map((s: any) => `${s.size}: ${s.quantity}`).join(', ')}
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : <div className="text-[#8ec0ff]">No t-shirt sales data.</div>}
+            ) : bestSellingTshirts.length > 0 ? (
+              <ul className="w-full max-w-md mx-auto overflow-y-auto" style={{ maxHeight: '400px' }}>
+                {bestSellingTshirts.map((t, idx) => (
+                  <li key={t.productId} className="flex items-center gap-4 mb-2 p-2 rounded bg-[#22304a]">
+                    <span className="font-bold text-xl text-[#60A5FA]">{idx + 1}.</span>
+                    {t.imageUrl && <img src={t.imageUrl} alt={t.name} className="w-10 h-10 object-contain rounded bg-[#161e2e]" />}
+                    <span className="font-semibold text-white">{t.name}</span>
+                    <span className="text-[#60A5FA] ml-auto">Purchased: {t.quantity}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <div className="text-[#8ec0ff]">No product sales data.</div>
+            )}
           </div>
         </div>
       ) : chartType === 'feedback' ? (

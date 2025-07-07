@@ -56,7 +56,7 @@ function ImageSlider() {
   const goToNext = () => setCurrentSlide((prev) => (prev + 1) % sliderImages.length)
 
   return (
-    <div className="relative w-full h-[70vh] min-h-[500px] bg-[#101828] overflow-hidden flex items-center justify-center">
+    <div className="relative w-full max-w-xs mx-auto h-[44vh] min-h-[200px] sm:max-w-full sm:h-[70vh] sm:min-h-[500px] bg-[#101828] overflow-hidden flex items-center justify-center">
       {/* Slider Images */}
       <div
         className="flex transition-transform duration-700 ease-in-out h-full w-full"
@@ -80,7 +80,7 @@ function ImageSlider() {
                 alt={slide.title}
                 width={480}
                 height={480}
-                className="rounded-2xl shadow-2xl object-cover w-[480px] h-[480px]"
+                className="rounded-2xl shadow-2xl object-cover w-45 h-45 sm:w-[480px] sm:h-[480px]"
                 priority={slide.id === 1}
               />
             </div>
