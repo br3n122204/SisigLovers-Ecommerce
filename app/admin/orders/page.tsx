@@ -312,9 +312,11 @@ export default function AdminOrdersPage() {
 
       // Update the user's order as well
       // First, find the user's order document using the globalOrderId (which is orderId here)
+      console.log('Updating user order:', { userId, orderId });
       const userOrdersCollectionRef = collection(db, 'users', userId, 'orders');
       const q = query(userOrdersCollectionRef, where('globalOrderId', '==', orderId));
       const userOrderSnapshot = await getDocs(q);
+      console.log('User order found:', !userOrderSnapshot.empty);
 
       if (!userOrderSnapshot.empty) {
         const userOrderIdToUpdate = userOrderSnapshot.docs[0].id;
@@ -324,9 +326,9 @@ export default function AdminOrdersPage() {
           ...deliveredAtUpdate,
           statusHistory: [...((userOrderSnapshot.docs[0].data().statusHistory) || []), newHistoryEntry],
         });
-        console.log("User's order status updated successfully in Firestore!");
+        console.log('User order updated!');
       } else {
-        console.warn("User's order document not found with globalOrderId:", orderId, "for userId:", userId);
+        console.warn('User order NOT found for globalOrderId:', orderId, 'userId:', userId);
       }
 
       console.log("Order status updated successfully in Firestore!");

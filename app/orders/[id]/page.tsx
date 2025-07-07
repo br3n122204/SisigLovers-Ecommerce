@@ -218,14 +218,13 @@ export default function OrderDetailsPage() {
     if (!user || !order) return;
     try {
       const userOrderRef = doc(db, 'users', user.uid, 'orders', order.id);
-      await updateDoc(userOrderRef, { status: 'completed' });
+      await updateDoc(userOrderRef, { status: 'returned/refunded' });
       const userOrderSnap = await getDoc(userOrderRef);
       const globalOrderId = userOrderSnap.data()?.globalOrderId;
-      if (globalOrderId) {
-        // const orderDetailsRef = collection(db, 'productsOrder', globalOrderId, 'orderDetails');
-        // await addDoc(orderDetailsRef, { ... })
-        // Instead, use adminProducts/*/productsOrder/{orderId}/orderDetails
-        // TODO: Implement logic to add to adminProducts/*/productsOrder/{orderId}/orderDetails
+      const adminProductId = userOrderSnap.data()?.adminProductId;
+      if (globalOrderId && adminProductId) {
+        const adminOrderRef = doc(db, 'adminProducts', adminProductId, 'productsOrder', globalOrderId);
+        await updateDoc(adminOrderRef, { status: 'returned/refunded' });
       }
       // Store the return/refund reason in a new collection
       const returnReasonsRef = collection(db, 'returnRefundReasons');
@@ -250,15 +249,19 @@ export default function OrderDetailsPage() {
     try {
       const userOrderRef = doc(db, 'users', user.uid, 'orders', order.id);
       await updateDoc(userOrderRef, { status: 'completed', rating, feedback, actionCompleted: true });
-
+      const userOrderSnap = await getDoc(userOrderRef);
+      const globalOrderId = userOrderSnap.data()?.globalOrderId;
+      const adminProductId = userOrderSnap.data()?.adminProductId;
+      if (globalOrderId && adminProductId) {
+        const adminOrderRef = doc(db, 'adminProducts', adminProductId, 'productsOrder', globalOrderId);
+        await updateDoc(adminOrderRef, { status: 'completed' });
+      }
       for (const item of order.items) {
         const q = query(collection(db, "adminProducts"), where("name", "==", item.name));
         const querySnapshot = await getDocs(q);
-
         if (!querySnapshot.empty) {
           const productDoc = querySnapshot.docs[0];
           const productId = productDoc.id;
-
           await addDoc(collection(db, "adminProducts", productId, "ratings"), {
             userId: user.uid,
             orderId: order.id,
@@ -270,8 +273,6 @@ export default function OrderDetailsPage() {
             productName: item.name,
             productId: productId
           });
-
-          // --- Add review to AdminAnalytics/reviews ---
           await addDoc(collection(db, "AdminAnalytics", "main", "reviews"), {
             userId: user.uid,
             userEmail: user.email || null,
@@ -283,9 +284,6 @@ export default function OrderDetailsPage() {
             orderId: order.id,
             orderNumber: order.orderNumber
           });
-
-          // --- Update average rating in AdminAnalytics/averageRating/averageRating/{productId} ---
-          // Fetch all ratings for this product
           const ratingsSnapshot = await getDocs(collection(db, "adminProducts", productId, "ratings"));
           const ratingsList = ratingsSnapshot.docs.map(doc => doc.data().rating).filter(r => typeof r === 'number');
           const reviewCount = ratingsList.length;
@@ -314,11 +312,9 @@ export default function OrderDetailsPage() {
       for (const item of order.items) {
         const q = query(collection(db, "adminProducts"), where("name", "==", item.name));
         const querySnapshot = await getDocs(q);
-
         if (!querySnapshot.empty) {
           const productDoc = querySnapshot.docs[0];
           const productId = productDoc.id;
-
           await addDoc(collection(db, "adminProducts", productId, "returnRefundReasons"), {
             userId: user.uid,
             orderId: order.id,
@@ -333,8 +329,14 @@ export default function OrderDetailsPage() {
         }
       }
       const userOrderRef = doc(db, 'users', user.uid, 'orders', order.id);
-      await updateDoc(userOrderRef, { status: 'completed', actionCompleted: true });
-
+      await updateDoc(userOrderRef, { status: 'returned/refunded', actionCompleted: true });
+      const userOrderSnap = await getDoc(userOrderRef);
+      const globalOrderId = userOrderSnap.data()?.globalOrderId;
+      const adminProductId = userOrderSnap.data()?.adminProductId;
+      if (globalOrderId && adminProductId) {
+        const adminOrderRef = doc(db, 'adminProducts', adminProductId, 'productsOrder', globalOrderId);
+        await updateDoc(adminOrderRef, { status: 'returned/refunded' });
+      }
       setActionCompleted(true);
       router.push('/orders');
     } catch (err) {
