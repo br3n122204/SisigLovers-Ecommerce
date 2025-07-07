@@ -9,7 +9,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import { db } from '@/lib/firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, onSnapshot } from 'firebase/firestore';
 import { signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 
@@ -34,15 +34,14 @@ export default function Header() {
 
   // Fetch all products from Firestore once on mount
   useEffect(() => {
-    const fetchProducts = async () => {
-      const querySnapshot = await getDocs(collection(db, 'adminProducts'));
+    const unsubscribe = onSnapshot(collection(db, 'adminProducts'), (querySnapshot) => {
       const items: any[] = [];
       querySnapshot.forEach((docSnap) => {
         items.push({ id: docSnap.id, ...docSnap.data() });
       });
       setAllProducts(items);
-    };
-    fetchProducts();
+    });
+    return () => unsubscribe();
   }, []);
 
   const handleSearch = (e: React.FormEvent) => {

@@ -13,6 +13,7 @@ import jsPDF from "jspdf";
 import { supabase } from '@/lib/supabase';
 import robotoFont from '@/components/roboto-regular.js';
 import { getMonthKey, getWeekKey } from '@/lib/utils';
+import { AnimatePresence, motion } from 'framer-motion';
 
 function deepCleanUndefined(obj: any): any {
   if (Array.isArray(obj)) {
@@ -529,18 +530,33 @@ export default function GCashFakePage() {
           </Button>
         </div>
         {/* Success Modal/Animation */}
+        <AnimatePresence>
         {showSuccess && !showReceipt && (
-          <div className="absolute inset-0 bg-[#101828cc] flex flex-col items-center justify-center z-10 animate-fade-in pointer-events-auto">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.3 }}
+            className="absolute inset-0 bg-[#101828cc] flex flex-col items-center justify-center z-10 pointer-events-auto"
+          >
             <div className="bg-white rounded-full p-4 mb-4 shadow-lg">
               <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="24" fill="#60A5FA"/><path d="M16 25l6 6 10-12" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/></svg>
             </div>
             <div className="text-xl font-bold text-white mb-2">Payment Successful!</div>
             <div className="text-[#93c5fd]">Redirecting to your orders...</div>
-          </div>
+          </motion.div>
         )}
+        </AnimatePresence>
         {/* Receipt Modal */}
+        <AnimatePresence>
         {showReceipt && receipt && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 pointer-events-auto">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.3 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-70 pointer-events-auto"
+          >
             <div className="bg-white text-black rounded-lg shadow-lg p-8 max-w-2xl w-full relative">
               <button onClick={() => { setShowReceipt(false); router.push("/orders"); }} className="absolute top-2 right-2 text-gray-500 hover:text-gray-800">✕</button>
               <div className="flex justify-end mb-2">
@@ -594,8 +610,9 @@ export default function GCashFakePage() {
                 </button>
               </div>
             </div>
-          </div>
+          </motion.div>
         )}
+        </AnimatePresence>
       </div>
       <style>{`
         @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }

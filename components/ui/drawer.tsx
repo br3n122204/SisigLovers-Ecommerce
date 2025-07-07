@@ -2,8 +2,8 @@
 
 import * as React from "react"
 import { Drawer as DrawerPrimitive } from "vaul"
-
 import { cn } from "@/lib/utils"
+import { AnimatePresence, motion } from "framer-motion"
 
 const Drawer = ({
   shouldScaleBackground = true,
@@ -40,17 +40,26 @@ const DrawerContent = React.forwardRef<
 >(({ className, children, ...props }, ref) => (
   <DrawerPortal>
     <DrawerOverlay />
-    <DrawerPrimitive.Content
-      ref={ref}
-      className={cn(
-        "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-[10px] border bg-background",
-        className
-      )}
-      {...props}
-    >
-      <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
-      {children}
-    </DrawerPrimitive.Content>
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ duration: 0.2 }}
+      >
+        <DrawerPrimitive.Content
+          ref={ref}
+          className={cn(
+            "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto flex-col rounded-t-[10px] border bg-background",
+            className
+          )}
+          {...props}
+        >
+          <div className="mx-auto mt-4 h-2 w-[100px] rounded-full bg-muted" />
+          {children}
+        </DrawerPrimitive.Content>
+      </motion.div>
+    </AnimatePresence>
   </DrawerPortal>
 ))
 DrawerContent.displayName = "DrawerContent"
