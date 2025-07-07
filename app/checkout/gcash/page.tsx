@@ -6,12 +6,13 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { db } from "@/lib/firebase";
-import { collection, addDoc, serverTimestamp, doc, getDoc, updateDoc } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, doc, getDoc, updateDoc, setDoc } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from "@/components/ui/table";
 import jsPDF from "jspdf";
 import { supabase } from '@/lib/supabase';
 import robotoFont from '@/components/roboto-regular.js';
+import { getMonthKey, getWeekKey } from '@/lib/utils';
 
 function deepCleanUndefined(obj: any): any {
   if (Array.isArray(obj)) {
@@ -126,17 +127,31 @@ export default function GCashFakePage() {
         subtotal,
         shipping: getShippingPrice(),
         tax: 0,
-        items: selectedCartItems.map((item: any) => ({
-          id: item.id,
-          name: item.name,
-          price: typeof item.price === "string"
-            ? parseFloat(item.price.replace(/[^\d.]/g, ''))
-            : item.price,
-          quantity: item.quantity,
-          image: item.image,
-          size: item.selectedSize,
-          color: item.color || 'N/A'
-        })),
+        items: selectedCartItems.map((item: any) => {
+          let color = item.selectedColor || item.color;
+          // Try to infer color from product if missing
+          if (!color && item.id) {
+            // Try to get the product from cartItems or selectedCartItems
+            const product = cartItems.find(p => p.id === item.id) || item;
+            if (product && product.color && typeof product.color === 'string') {
+              const colorOptions = product.color.split(',').map((c: string) => c.trim()).filter(Boolean);
+              if (colorOptions.length === 1) {
+                color = colorOptions[0];
+              }
+            }
+          }
+          return {
+            id: item.id,
+            name: item.name,
+            price: typeof item.price === "string"
+              ? parseFloat(item.price.replace(/[^\d.]/g, ''))
+              : item.price,
+            quantity: item.quantity,
+            image: item.image,
+            size: item.selectedSize,
+            color: color || 'N/A',
+          };
+        }),
         shippingAddress: deliveryDetails,
         billingAddress: billingDetails,
         paymentMethod: 'gcash',
@@ -172,6 +187,119 @@ export default function GCashFakePage() {
         userOrderId: userOrderDoc.id,
       });
       console.log("Updated global order with userOrderId");
+
+      // Calculate total quantity purchased
+      const totalQuantity = Array.isArray(cleanOrderData.items)
+        ? cleanOrderData.items.reduce((sum: number, item: any) => sum + (item.quantity || 0), 0)
+        : 0;
+      
+      // Add to sales collection for analytics
+      await addDoc(collection(db, 'sales'), {
+        timestamp: cleanOrderData.dateOrdered || serverTimestamp(),
+        total: cleanOrderData.total,
+        quantity: totalQuantity,
+        userId: user.uid,
+        orderId: globalOrderDoc.id,
+      });
+      console.log("Sales analytics data saved");
+
+      // --- AdminAnalytics Monthly and Weekly Aggregation ---
+      try {
+        const now = new Date();
+        const monthKey = getMonthKey(now);
+        const weekKey = getWeekKey(now);
+        const dayOfWeek = now.toLocaleString('en-US', { weekday: 'short' }); // 'Sun', 'Mon', ...
+        const dayOfMonth = String(now.getDate()); // '1', '2', ...
+        // --- Weekly ---
+        const weeklyRef = doc(db, 'AdminAnalytics', 'weekly_' + weekKey);
+        const weeklySnap = await getDoc(weeklyRef);
+        const allWeekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        let weeklyDays = Object.fromEntries(allWeekDays.map(d => [d, 0]));
+        let weeklyTotal = cleanOrderData.total;
+        let weeklyQuantity = totalQuantity;
+        if (weeklySnap.exists()) {
+          const data = weeklySnap.data();
+          weeklyDays = { ...weeklyDays, ...(data.days || {}) };
+          weeklyDays[dayOfWeek] = (weeklyDays[dayOfWeek] || 0) + cleanOrderData.total;
+          weeklyTotal = (data.total || 0) + cleanOrderData.total;
+          weeklyQuantity = (data.quantity || 0) + totalQuantity;
+        } else {
+          weeklyDays[dayOfWeek] = cleanOrderData.total;
+        }
+        await setDoc(weeklyRef, {
+          days: weeklyDays,
+          total: weeklyTotal,
+          quantity: weeklyQuantity,
+          updatedAt: serverTimestamp(),
+        });
+        // --- Monthly ---
+        const monthlyRef = doc(db, 'AdminAnalytics', 'monthly_' + monthKey);
+        const monthlySnap = await getDoc(monthlyRef);
+        const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+        let monthlyDays = Object.fromEntries(Array.from({length: 31}, (_, i) => [String(i+1), 0]));
+        let monthlyTotal = cleanOrderData.total;
+        let monthlyQuantity = totalQuantity;
+        if (monthlySnap.exists()) {
+          const data = monthlySnap.data();
+          monthlyDays = { ...monthlyDays, ...(data.days || {}) };
+          monthlyDays[dayOfMonth] = (monthlyDays[dayOfMonth] || 0) + cleanOrderData.total;
+          monthlyTotal = (data.total || 0) + cleanOrderData.total;
+          monthlyQuantity = (data.quantity || 0) + totalQuantity;
+        } else {
+          monthlyDays[dayOfMonth] = cleanOrderData.total;
+        }
+        // Zero out days not in this month
+        for (let d = daysInMonth + 1; d <= 31; d++) monthlyDays[String(d)] = 0;
+        await setDoc(monthlyRef, {
+          days: monthlyDays,
+          total: monthlyTotal,
+          quantity: monthlyQuantity,
+          updatedAt: serverTimestamp(),
+        });
+        console.log('AdminAnalytics monthly and weekly sales updated');
+      } catch (err) {
+        console.error('Error updating AdminAnalytics monthly/weekly sales:', err);
+      }
+
+      // Update product stock (totalStock and sizes) for each item
+      for (const item of cleanOrderData.items) {
+        const productRef = doc(db, 'adminProducts', item.id);
+        const productSnap = await getDoc(productRef);
+        if (productSnap.exists()) {
+          const productData = productSnap.data();
+          let updatedSizes = Array.isArray(productData.sizes) ? [...productData.sizes] : [];
+          let updatedTotalStock = typeof productData.totalStock === 'number' ? productData.totalStock : null;
+          // Update the size stock
+          if (item.size) {
+            updatedSizes = updatedSizes.map((size: any) => {
+              if (size.size === item.size) {
+                return { ...size, stock: Math.max(0, Number(size.stock) - Number(item.quantity)) };
+              }
+              return size;
+            });
+            // Recalculate totalStock
+            updatedTotalStock = updatedSizes.reduce((sum: number, s: any) => sum + Number(s.stock), 0);
+          }
+          await updateDoc(productRef, {
+            sizes: updatedSizes,
+            totalStock: updatedTotalStock,
+          });
+          console.log("Updated stock for product:", item.id);
+        }
+      }
+
+      // Log a 'purchase' activity to Firestore
+      await addDoc(collection(db, "activities"), {
+        type: "purchase",
+        email: user.email,
+        uid: user.uid,
+        orderId: globalOrderDoc.id,
+        timestamp: serverTimestamp(),
+        items: cleanOrderData.items,
+        total: cleanOrderData.total,
+      });
+      console.log("Purchase activity logged");
+
       removeFromCartByIds(selectedCartItems.map((item: any) => item.id));
       console.log("Removed checked-out items from cart");
       const receiptData = {
