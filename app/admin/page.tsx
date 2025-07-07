@@ -238,9 +238,9 @@ function AnalyticsSection() {
         }
       });
       setOutOfStockProducts(outOfStock);
-      // Only consider t-shirts/shirts from adminProducts that have been purchased >= 20 times (using purchasedCount)
+      // Only consider products from adminProducts that have been purchased >= 20 times (using purchasedCount)
       const tshirtSales = allProducts
-        .filter(p => p.name && p.name.toLowerCase().includes('shirt') && (p.purchasedCount || 0) >= 20)
+        .filter(p => (p.purchasedCount || 0) >= 20)
         .map(p => ({
           name: p.name,
           quantity: p.purchasedCount || 0,
@@ -248,7 +248,7 @@ function AnalyticsSection() {
           productId: p.id
         }))
         .sort((a, b) => b.quantity - a.quantity)
-        .slice(0, 5);
+        .slice(0, 10);
       setBestSellingTshirts(tshirtSales);
 
       // Update AdminAnalytics/bestSellingShirts subcollection
@@ -260,7 +260,7 @@ function AnalyticsSection() {
         for (const d of prevDocs.docs) {
           await deleteDoc(d.ref);
         }
-        // Add new top t-shirts
+        // Add new top products
         for (const shirt of tshirtSales) {
           await setDoc(doc(bestSellingShirtsColRef, shirt.productId), shirt);
         }
@@ -445,7 +445,7 @@ function AnalyticsSection() {
         <div className="bg-[#22304a] rounded-lg p-6 w-full max-w-3xl mx-auto shadow flex flex-col gap-6">
           <div className="flex flex-col md:flex-row gap-6">
             {/* Low Stock Alerts */}
-            <div className="flex-1 bg-[#19223a] rounded-lg p-4 shadow flex flex-col">
+            <div className="flex-1 bg-[#19223a] rounded-lg p-4 shadow flex flex-col" style={{ minHeight: '120px' }}>
               <div className="text-lg font-semibold mb-2 text-[#8ec0ff]">Low Stock Alerts (≤ 5)</div>
               {loadingInventory ? (
                 <div className="text-[#8ec0ff]">Loading...</div>
@@ -486,7 +486,7 @@ function AnalyticsSection() {
               )}
             </div>
             {/* Out of Stock Products */}
-            <div className="flex-1 bg-[#19223a] rounded-lg p-4 shadow flex flex-col">
+            <div className="flex-1 bg-[#19223a] rounded-lg p-4 shadow flex flex-col" style={{ minHeight: '120px' }}>
               <div className="text-lg font-semibold mb-2 text-[#8ec0ff]">Out of Stock Products</div>
               {loadingInventory ? (
                 <div className="text-[#8ec0ff]">Loading...</div>
@@ -520,13 +520,13 @@ function AnalyticsSection() {
               )}
             </div>
           </div>
-          {/* Best Selling T-shirt (full width) */}
-          <div className="bg-[#19223a] rounded-lg p-4 shadow flex flex-col items-center">
-            <div className="text-lg font-semibold mb-2 text-[#8ec0ff]">Top 5 Best Selling T-shirts (Purchased Count ≥ 20)</div>
+          {/* Best Selling Products (full width) */}
+          <div className="bg-[#19223a] rounded-lg p-4 shadow flex flex-col items-center" style={{ minHeight: '220px' }}>
+            <div className="text-lg font-semibold mb-2 text-[#8ec0ff]">Best Selling Products</div>
             {loadingInventory ? (
               <div className="text-[#8ec0ff]">Loading...</div>
             ) : bestSellingTshirts.length > 0 ? (
-              <ul className="w-full max-w-md mx-auto">
+              <ul className="w-full max-w-md mx-auto overflow-y-auto" style={{ maxHeight: '400px' }}>
                 {bestSellingTshirts.map((t, idx) => (
                   <li key={t.productId} className="flex items-center gap-4 mb-2 p-2 rounded bg-[#22304a]">
                     <span className="font-bold text-xl text-[#60A5FA]">{idx + 1}.</span>
@@ -537,7 +537,7 @@ function AnalyticsSection() {
                 ))}
               </ul>
             ) : (
-              <div className="text-[#8ec0ff]">No t-shirt sales data.</div>
+              <div className="text-[#8ec0ff]">No product sales data.</div>
             )}
           </div>
         </div>
