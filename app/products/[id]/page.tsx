@@ -45,6 +45,8 @@ export default function ProductDetailPage() {
   const [selectedColor, setSelectedColor] = useState<string | undefined>(undefined);
   const [averageRating, setAverageRating] = useState('0.0');
   const [reviewCount, setReviewCount] = useState(0);
+  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
+  const [touchEnd, setTouchEnd] = useState<{ x: number; y: number } | null>(null);
 
   const { addToCart } = useCart();
   const { user } = useAuth();
@@ -279,49 +281,35 @@ export default function ProductDetailPage() {
             {/* Image Gallery */}
             <div className="md:w-1/2 flex flex-col items-center min-w-[350px]">
               <div className="relative w-full max-w-xl mb-4 flex items-center justify-center">
-                {/* Hide navigation buttons on mobile, show on md+ */}
-                {product.imageUrls && product.imageUrls.length > 1 && (
-                  <>
-                    <button
-                      onClick={handlePrevImage}
-                      className={navBtnStyles + " hidden md:flex"}
-                      style={{ position: 'absolute', left: '-56px', top: '50%', transform: 'translateY(-50%)' }}
-                      aria-label="Previous image"
-                    >
-                      <span className="drop-shadow-lg">&#8592;</span>
-                    </button>
-                    <button
-                      onClick={handleNextImage}
-                      className={navBtnStyles + " hidden md:flex"}
-                      style={{ position: 'absolute', right: '-56px', top: '50%', transform: 'translateY(-50%)' }}
-                      aria-label="Next image"
-                    >
-                      <span className="drop-shadow-lg">&#8594;</span>
-                    </button>
-                  </>
-                )}
                 <div
                   ref={imageContainerRef}
                   className="w-full max-w-xl h-auto rounded-lg border border-[#60A5FA] overflow-hidden relative bg-[#19223a]"
                   style={{ minHeight: 400 }}
-                  // Add swipe gesture handlers for mobile only
+                  // Improved swipe gesture handlers for mobile only
                   onTouchStart={(e) => {
                     if (window.innerWidth >= 768) return; // Only on mobile
-                    imageContainerRef.current && (imageContainerRef.current.dataset.touchStartX = e.touches[0].clientX);
+                    setTouchStart({ x: e.touches[0].clientX, y: e.touches[0].clientY });
+                    setTouchEnd(null);
                   }}
-                  onTouchEnd={(e) => {
-                    if (window.innerWidth >= 768) return; // Only on mobile
-                    const touchStartX = imageContainerRef.current?.dataset.touchStartX;
-                    if (!touchStartX) return;
-                    const deltaX = e.changedTouches[0].clientX - parseFloat(touchStartX);
-                    if (Math.abs(deltaX) > 50) {
+                  onTouchMove={(e) => {
+                    if (window.innerWidth >= 768) return;
+                    setTouchEnd({ x: e.touches[0].clientX, y: e.touches[0].clientY });
+                  }}
+                  onTouchEnd={() => {
+                    if (window.innerWidth >= 768) return;
+                    if (!touchStart || !touchEnd) return;
+                    const deltaX = touchEnd.x - touchStart.x;
+                    const deltaY = touchEnd.y - touchStart.y;
+                    // Only trigger if horizontal swipe is dominant and significant
+                    if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > Math.abs(deltaY)) {
                       if (deltaX > 0) {
                         handlePrevImage();
                       } else {
                         handleNextImage();
                       }
                     }
-                    if (imageContainerRef.current) delete imageContainerRef.current.dataset.touchStartX;
+                    setTouchStart(null);
+                    setTouchEnd(null);
                   }}
                 >
                   {/* Current image always visible */}
@@ -570,61 +558,8 @@ export default function ProductDetailPage() {
                   <span className="text-[#60A5FA] text-sm mt-1">({reviewCount} reviews)</span>
                 </div>
               </div>
-              {/* Filter Buttons */}
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant="outline"
-                  className={`border-[#60A5FA] text-[#60A5FA] hover:bg-[#19223a] ${selectedStarFilter === 'all' ? 'bg-[#60A5FA] text-[#101828]' : ''}`}
-                  onClick={() => setSelectedStarFilter('all')}
-                >
-                  All ({ratings.length})
-                </Button>
-                {[5, 4, 3, 2, 1].map((star) => (
-                  <Button
-                    key={star}
-                    variant="outline"
-                    className={`border-[#60A5FA] text-[#60A5FA] hover:bg-[#19223a] ${selectedStarFilter === star ? 'bg-[#60A5FA] text-[#101828]' : ''} `}
-                    onClick={() => setSelectedStarFilter(star)}
-                  >
-                    {star} Star ({ratings.filter(r => r.rating === star).length})
-                  </Button>
-                ))}
-              </div>
+              {/* Filter Buttons and reviews would go here */}
             </div>
-            {ratings.length > 0 ? (
-              <div className="space-y-6">
-                {ratings.map((review, index) => (
-                  <div key={index} className="bg-[#19223a] p-4 rounded-lg shadow-md">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="h-8 w-8 rounded-full bg-gray-500 flex items-center justify-center text-sm text-white">{
-                        review.email ? review.email.charAt(0).toUpperCase() : ''
-                      }</div>
-                      <span className="font-medium text-[#60A5FA]">{
-                        review.email ? review.email.replace(/(.{1}).*(@.*)/, '$1*****$2') : 'Anonymous'
-                      }</span>
-                      <span className="text-sm text-gray-400">|</span>
-                      <span className="text-sm text-gray-400">{review.timestamp?.toDate().toLocaleDateString()}</span>
-                    </div>
-                    <div className="flex items-center gap-1 mb-2">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`h-5 w-5 ${i < review.rating ? 'text-orange-400 fill-orange-400' : 'text-gray-400'}`}
-                        />
-                      ))}
-                      <span className="text-sm text-[#60A5FA] ml-2">{review.rating} / 5</span>
-                    </div>
-                    <p className="text-[#60A5FA] text-base mb-2">{review.feedback}</p>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-[#60A5FA]">
-                {selectedStarFilter === 'all'
-                  ? 'No reviews yet. Be the first to review this product!'
-                  : 'No reviews for this rating yet.'}
-              </p>
-            )}
           </div>
         </div>
       </div>

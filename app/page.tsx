@@ -43,6 +43,8 @@ const sliderImages = [
 // HERO / SLIDER SECTION
 function ImageSlider() {
   const [currentSlide, setCurrentSlide] = useState(0)
+  const [touchStart, setTouchStart] = useState<{ x: number; y: number } | null>(null);
+  const [touchEnd, setTouchEnd] = useState<{ x: number; y: number } | null>(null);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -55,8 +57,39 @@ function ImageSlider() {
   const goToPrevious = () => setCurrentSlide((prev) => (prev - 1 + sliderImages.length) % sliderImages.length)
   const goToNext = () => setCurrentSlide((prev) => (prev + 1) % sliderImages.length)
 
+  // Swipe handlers for mobile
+  const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (window.innerWidth >= 768) return;
+    setTouchStart({ x: e.touches[0].clientX, y: e.touches[0].clientY });
+    setTouchEnd(null);
+  };
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (window.innerWidth >= 768) return;
+    setTouchEnd({ x: e.touches[0].clientX, y: e.touches[0].clientY });
+  };
+  const handleTouchEnd = () => {
+    if (window.innerWidth >= 768) return;
+    if (!touchStart || !touchEnd) return;
+    const deltaX = touchEnd.x - touchStart.x;
+    const deltaY = touchEnd.y - touchStart.y;
+    if (Math.abs(deltaX) > 50 && Math.abs(deltaX) > Math.abs(deltaY)) {
+      if (deltaX > 0) {
+        goToPrevious();
+      } else {
+        goToNext();
+      }
+    }
+    setTouchStart(null);
+    setTouchEnd(null);
+  };
+
   return (
-    <div className="relative w-full max-w-xs mx-auto h-[44vh] min-h-[200px] sm:max-w-full sm:h-[70vh] sm:min-h-[500px] bg-[#101828] overflow-hidden flex items-center justify-center">
+    <div
+      className="relative w-full max-w-xs mx-auto h-[44vh] min-h-[200px] sm:max-w-full sm:h-[70vh] sm:min-h-[500px] bg-[#101828] overflow-hidden flex items-center justify-center"
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+    >
       {/* Slider Images */}
       <div
         className="flex transition-transform duration-700 ease-in-out h-full w-full"
@@ -88,20 +121,22 @@ function ImageSlider() {
         ))}
       </div>
       {/* Navigation Arrows */}
-      <button
-        onClick={goToPrevious}
-        className="absolute left-6 top-1/2 -translate-y-1/2 bg-[#19223a] bg-opacity-70 hover:bg-opacity-90 text-[#60A5FA] p-2 rounded-full shadow transition-all z-30"
-        aria-label="Previous Slide"
-      >
-        <ChevronLeft className="h-7 w-7" />
-      </button>
-      <button
-        onClick={goToNext}
-        className="absolute right-6 top-1/2 -translate-y-1/2 bg-[#19223a] bg-opacity-70 hover:bg-opacity-90 text-[#60A5FA] p-2 rounded-full shadow transition-all z-30"
-        aria-label="Next Slide"
-      >
-        <ChevronRight className="h-7 w-7" />
-      </button>
+      <div className="hidden md:block">
+        <button
+          onClick={goToPrevious}
+          className="absolute left-6 top-1/2 -translate-y-1/2 bg-[#19223a] bg-opacity-70 hover:bg-opacity-90 text-[#60A5FA] p-2 rounded-full shadow transition-all z-30"
+          aria-label="Previous Slide"
+        >
+          <ChevronLeft className="h-7 w-7" />
+        </button>
+        <button
+          onClick={goToNext}
+          className="absolute right-6 top-1/2 -translate-y-1/2 bg-[#19223a] bg-opacity-70 hover:bg-opacity-90 text-[#60A5FA] p-2 rounded-full shadow transition-all z-30"
+          aria-label="Next Slide"
+        >
+          <ChevronRight className="h-7 w-7" />
+        </button>
+      </div>
       {/* Dots Navigation */}
       <div className="absolute left-1/2 -translate-x-1/2 z-30 flex flex-col items-center" style={{ bottom: '1rem' }}>
         <div className="flex space-x-2 mb-2">
