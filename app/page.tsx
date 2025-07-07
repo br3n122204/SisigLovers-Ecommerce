@@ -9,7 +9,7 @@ import { useCart } from '@/context/CartContext'
 import { useAuth } from '@/context/AuthContext'
 import { useRouter } from 'next/navigation'
 import { db } from '@/lib/firebase'
-import { collection, getDocs } from 'firebase/firestore'
+import { collection, getDocs, onSnapshot } from 'firebase/firestore'
 import WelcomeCard from '@/components/WelcomeCard'
 
 // Sample slider images data
@@ -130,25 +130,21 @@ export default function DPTOneFashion() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
-    const fetchProducts = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const querySnapshot = await getDocs(collection(db, 'adminProducts'))
-        const items: any[] = []
-        querySnapshot.forEach((docSnap) => {
-          items.push({ id: docSnap.id, ...docSnap.data() })
-        })
-        setProducts(items)
-      } catch (err: any) {
-        setError('Failed to load products. Please try again later.');
-        console.error('Error fetching products:', err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchProducts()
-  }, [])
+    setLoading(true);
+    setError(null);
+    const unsubscribe = onSnapshot(collection(db, 'adminProducts'), (querySnapshot) => {
+      const items: any[] = [];
+      querySnapshot.forEach((docSnap) => {
+        items.push({ id: docSnap.id, ...docSnap.data() })
+      });
+      setProducts(items);
+      setLoading(false);
+    }, (err) => {
+      setError('Failed to load products. Please try again later.');
+      setLoading(false);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const handleAddToCart = (product: any) => {
     if (!user) {

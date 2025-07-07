@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 import { useCart } from '@/context/CartContext';
 import { db } from '@/lib/firebase';
-import { doc, getDoc, collection, query, orderBy, getDocs } from 'firebase/firestore';
+import { doc, getDoc, collection, query, orderBy, getDocs, onSnapshot } from 'firebase/firestore';
 import '../../../styles/slide-animations.css';
 import { useAuth } from '@/context/AuthContext';
 import { Star } from 'lucide-react';
@@ -50,9 +50,8 @@ export default function ProductDetailPage() {
   const { user } = useAuth();
 
   useEffect(() => {
-    const fetchProduct = async () => {
-      const docRef = doc(db, 'adminProducts', productId);
-      const docSnap = await getDoc(docRef);
+    const docRef = doc(db, 'adminProducts', productId);
+    const unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
         setProduct(data);
@@ -64,33 +63,38 @@ export default function ProductDetailPage() {
           setMainImage(data.imageUrl);
           setMainImageIdx(0);
         }
-
-        // Fetch ratings for the product
-        const ratingsCollectionRef = collection(db, 'adminProducts', productId, 'ratings');
-        const q = query(ratingsCollectionRef, orderBy('timestamp', 'desc'));
-        const querySnapshot = await getDocs(q);
-        const fetchedRatings = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setRatings(fetchedRatings);
-
-        // Fetch average rating and review count from AdminAnalytics/averageRating/averageRating/{productId}
-        const avgDocRef = doc(db, 'AdminAnalytics', 'averageRating', 'averageRating', productId);
-        const avgDocSnap = await getDoc(avgDocRef);
-        if (avgDocSnap.exists()) {
-          const avgData = avgDocSnap.data();
-          setAverageRating(Number(avgData.averageRating).toFixed(1));
-          setReviewCount(avgData.reviewCount || 0);
-        } else {
-          setAverageRating('0.0');
-          setReviewCount(0);
-        }
       } else {
         setProduct(null);
       }
+    });
+    // Ratings listener
+    const ratingsCollectionRef = collection(db, 'adminProducts', productId, 'ratings');
+    const q = query(ratingsCollectionRef, orderBy('timestamp', 'desc'));
+    const unsubscribeRatings = onSnapshot(q, (querySnapshot) => {
+      const fetchedRatings = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setRatings(fetchedRatings);
+    });
+    return () => {
+      unsubscribe();
+      unsubscribeRatings();
     };
-    fetchProduct();
+  }, [productId]);
+
+  useEffect(() => {
+    // Fetch average rating and review count from AdminAnalytics/averageRating/averageRating/{productId}
+    const fetchAverageRating = async () => {
+      const avgDocRef = doc(db, 'AdminAnalytics', 'averageRating', 'averageRating', productId);
+      const avgDocSnap = await getDoc(avgDocRef);
+      if (avgDocSnap.exists()) {
+        const avgData = avgDocSnap.data();
+        setAverageRating(Number(avgData.averageRating).toFixed(1));
+        setReviewCount(avgData.reviewCount || 0);
+      } else {
+        setAverageRating('0.0');
+        setReviewCount(0);
+      }
+    };
+    fetchAverageRating();
   }, [productId]);
 
   // Add this helper to get available stock for selected size
