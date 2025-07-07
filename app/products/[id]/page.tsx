@@ -43,16 +43,8 @@ export default function ProductDetailPage() {
   const [ratings, setRatings] = useState<any[]>([]);
   const [selectedStarFilter, setSelectedStarFilter] = useState<number | 'all' | 'comments' | 'media' | 'local'>('all');
   const [selectedColor, setSelectedColor] = useState<string | undefined>(undefined);
-
-  // Calculate average rating and total reviews
-  const totalRatings = ratings.length;
-  const averageRating = totalRatings > 0
-    ? (ratings.reduce((sum, review) => sum + review.rating, 0) / totalRatings).toFixed(1)
-    : '0.0';
-
-  const filteredRatings = selectedStarFilter === 'all'
-    ? ratings
-    : ratings.filter(r => r.rating === selectedStarFilter);
+  const [averageRating, setAverageRating] = useState('0.0');
+  const [reviewCount, setReviewCount] = useState(0);
 
   const { addToCart } = useCart();
   const { user } = useAuth();
@@ -83,6 +75,17 @@ export default function ProductDetailPage() {
         }));
         setRatings(fetchedRatings);
 
+        // Fetch average rating and review count from AdminAnalytics/averageRating/averageRating/{productId}
+        const avgDocRef = doc(db, 'AdminAnalytics', 'averageRating', 'averageRating', productId);
+        const avgDocSnap = await getDoc(avgDocRef);
+        if (avgDocSnap.exists()) {
+          const avgData = avgDocSnap.data();
+          setAverageRating(Number(avgData.averageRating).toFixed(1));
+          setReviewCount(avgData.reviewCount || 0);
+        } else {
+          setAverageRating('0.0');
+          setReviewCount(0);
+        }
       } else {
         setProduct(null);
       }
@@ -498,7 +501,7 @@ export default function ProductDetailPage() {
                       />
                     ))}
                   </div>
-                  <span className="text-[#60A5FA] text-sm mt-1">({totalRatings} reviews)</span>
+                  <span className="text-[#60A5FA] text-sm mt-1">({reviewCount} reviews)</span>
                 </div>
               </div>
               {/* Filter Buttons */}
@@ -508,7 +511,7 @@ export default function ProductDetailPage() {
                   className={`border-[#60A5FA] text-[#60A5FA] hover:bg-[#19223a] ${selectedStarFilter === 'all' ? 'bg-[#60A5FA] text-[#101828]' : ''}`}
                   onClick={() => setSelectedStarFilter('all')}
                 >
-                  All ({totalRatings})
+                  All ({ratings.length})
                 </Button>
                 {[5, 4, 3, 2, 1].map((star) => (
                   <Button
@@ -522,9 +525,9 @@ export default function ProductDetailPage() {
                 ))}
               </div>
             </div>
-            {filteredRatings.length > 0 ? (
+            {ratings.length > 0 ? (
               <div className="space-y-6">
-                {filteredRatings.map((review, index) => (
+                {ratings.map((review, index) => (
                   <div key={index} className="bg-[#19223a] p-4 rounded-lg shadow-md">
                     <div className="flex items-center gap-3 mb-2">
                       <div className="h-8 w-8 rounded-full bg-gray-500 flex items-center justify-center text-sm text-white">{
