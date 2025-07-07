@@ -248,7 +248,7 @@ export default function DPTOneFashion() {
                   <span className="ml-4 text-lg text-[#60A5FA]">Loading products...</span>
                 </div>
               ) : (
-                <div className="grid grid-cols-3 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-10 px-2 sm:px-4 md:px-0">
+                <div className="grid grid-cols-3 gap-4 px-2 sm:px-4 md:px-0">
                   {products.filter(product => product.isFeaturedProduct === true).length === 0 ? (
                     <div className="col-span-4 text-center text-[#60A5FA]">No featured products.</div>
                   ) : (
@@ -266,7 +266,7 @@ export default function DPTOneFashion() {
                         return (
                           <Link key={product.id} href={`/products/${product.id}`} className="w-full">
                             <div
-                              className="bg-[#19223a] rounded-2xl shadow-lg p-3 sm:p-4 flex flex-col items-center cursor-pointer hover:shadow-xl transition text-[#60A5FA] relative max-w-[170px] sm:max-w-full mx-auto h-[220px] sm:h-[340px]"
+                              className="bg-[#19223a] rounded-2xl shadow-lg p-3 sm:p-4 flex flex-col justify-between items-center cursor-pointer hover:shadow-xl transition text-[#60A5FA] relative max-w-[170px] sm:max-w-full mx-auto h-[260px]"
                               onMouseEnter={() => setHoveredProduct(product.id)}
                               onMouseLeave={() => setHoveredProduct(null)}
                             >
