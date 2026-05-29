@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useCart } from "@/context/CartContext";
 import { useToast } from "@/hooks/use-toast";
@@ -14,6 +13,16 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import type { CartItem } from "@/context/CartContext";
 import { getMonthKey, getWeekKey } from '@/lib/utils';
+import {
+  PENDING_QRPH_ORDER_KEY,
+  PERSONAL_GCASH_QR_PATH,
+} from "@/lib/payment/personal-qr";
+import type {
+  PaymentMethod,
+  CheckoutProcessingState,
+  PendingQrphOrder,
+} from "@/lib/checkout/types";
+import { CheckoutSubmitButton } from "@/components/checkout/CheckoutSubmitButton";
 
 function deepCleanUndefined(obj: any): any {
   if (Array.isArray(obj)) {
@@ -92,8 +101,11 @@ export default function CheckoutPage() {
 
   const [addresses, setAddresses] = useState<any[]>([]);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
-  const [isProcessing, setIsProcessing] = useState(false);
+  /** Drives checkout button spinner: idle | cod | qrph */
+  const [checkoutProcessing, setCheckoutProcessing] =
+    useState<CheckoutProcessingState>("idle");
   const [showFieldErrors, setShowFieldErrors] = useState(false);
+  const isCheckoutBusy = checkoutProcessing !== "idle";
 
   const [deliveryDetails, setDeliveryDetails] = useState({
     firstName: user?.displayName?.split(" ")[0] || "",
@@ -108,7 +120,7 @@ export default function CheckoutPage() {
     emailOffers: false,
   });
 
-  const [paymentMethod, setPaymentMethod] = useState("gcash"); // 'gcash' or 'cod'
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("qrph");
   const [sameAsShipping, setSameAsShipping] = useState(true);
 
   const [billingDetails, setBillingDetails] = useState({
@@ -197,6 +209,15 @@ export default function CheckoutPage() {
       }));
     }
   }, [user]);
+
+  useEffect(() => {
+    if (searchParams.get("payment") === "cancelled") {
+      toast({
+        title: "Payment cancelled",
+        description: "Your online payment was not completed. You can try again.",
+      });
+    }
+  }, [searchParams, toast]);
 
   // Add a useEffect to keep billingDetails in sync if sameAsShipping is true
   useEffect(() => {
@@ -441,124 +462,170 @@ export default function CheckoutPage() {
     }
   };
 
-  const handleProceedToPayment = async () => {
-    console.log('Checkout button clicked');
+  // Order totals (used by both COD and QR Ph flows)
+  const calculateSelectedTotal = (): string => {
+    return selectedCartItems
+      .reduce((total, item) => {
+        const price =
+          typeof item.price === "string"
+            ? parseFloat(item.price.replace(/[^\d.]/g, ""))
+            : Number(item.price);
+        return total + price * item.quantity;
+      }, 0)
+      .toFixed(2);
+  };
+  const totalAmount = (
+    parseFloat(calculateSelectedTotal()) + getShippingPrice()
+  ).toFixed(2);
+  const totalAmountPhp = parseFloat(totalAmount);
+
+  /** Validates delivery/billing before COD or online (QR Ph) checkout */
+  const validateCheckoutForm = (): boolean => {
+    const requiredDeliveryFields = [
+      "firstName",
+      "lastName",
+      "address1",
+      "city",
+      "postalCode",
+      "phone",
+    ] as const;
+    const missingDelivery = requiredDeliveryFields.filter(
+      (field) => !deliveryDetails[field]
+    );
+
+    let missingBilling: string[] = [];
+    if (!sameAsShipping) {
+      const requiredBillingFields = [
+        "lastName",
+        "address1",
+        "city",
+        "postalCode",
+        "phone",
+      ] as const;
+      missingBilling = requiredBillingFields.filter(
+        (field) => !billingDetails[field]
+      );
+    }
+
+    const deliveryPhoneInvalid = !isValidPHPhone(deliveryDetails.phone || "");
+    const billingPhoneInvalid =
+      !sameAsShipping && !isValidPHPhone(billingDetails.phone || "");
+
+    if (
+      missingDelivery.length > 0 ||
+      missingBilling.length > 0 ||
+      deliveryPhoneInvalid ||
+      billingPhoneInvalid
+    ) {
+      setShowFieldErrors(true);
+      let errorMsg = "Please fill in all required fields in the form.";
+      if (deliveryPhoneInvalid || billingPhoneInvalid) {
+        errorMsg =
+          "Please enter a valid Philippine phone number (e.g. +639XXXXXXXXX).";
+      }
+      toast({ title: "Error", description: errorMsg });
+      return false;
+    }
+
+    setShowFieldErrors(false);
+    return true;
+  };
+
+  /**
+   * COD: save order to Firebase, clear cart, go to orders page.
+   */
+  const handleCodCheckout = async (): Promise<void> => {
+    const billingToSend = sameAsShipping
+      ? { ...deliveryDetails, country: "Philippines" }
+      : billingDetails;
+
+    setCheckoutProcessing("cod");
+    try {
+      const orderId = await saveOrderToFirebase(billingToSend);
+      if (orderId) {
+        removeFromCartByIds(selectedCartItems.map((item) => item.id));
+        router.push("/orders");
+      } else {
+        toast({
+          title: "Error",
+          description: "Order was not saved. Please try again.",
+        });
+      }
+    } finally {
+      setCheckoutProcessing("idle");
+    }
+  };
+
+  /**
+   * QR Ph flow with your personal GCash QR (not PayMongo hosted QR).
+   * Saves order draft → /checkout/qrph-pay to scan and upload proof.
+   */
+  const handleQrphCheckout = async (): Promise<void> => {
+    const orderReference = `ORD-${Date.now()}`;
+    const billingToSend = sameAsShipping
+      ? { ...deliveryDetails, country: "Philippines" }
+      : billingDetails;
+
+    const pendingOrder: PendingQrphOrder = {
+      reference: orderReference,
+      deliveryDetails,
+      billingDetails: billingToSend,
+      shippingMethod,
+      items: selectedCartItems,
+      selectedIds: selectedCartItems.map((item) => item.id),
+      amount: totalAmount,
+      buyNow: buyNowParam === "1",
+    };
+
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem(
+        PENDING_QRPH_ORDER_KEY,
+        JSON.stringify(pendingOrder)
+      );
+    }
+
+    setCheckoutProcessing("qrph");
+    router.push("/checkout/qrph-pay");
+    setCheckoutProcessing("idle");
+  };
+
+  /**
+   * Main checkout handler — branches on payment method (COD vs QR Ph).
+   */
+  const handleProceedToPayment = async (): Promise<void> => {
     if (!user) {
       toast({
         title: "Error",
         description: "Please log in to place an order",
       });
-      console.error("User not logged in");
       return;
     }
 
     if (selectedCartItems.length === 0) {
-      toast({
-        title: "Error",
-        description: "Your cart is empty",
-      });
-      console.error("Cart is empty");
+      toast({ title: "Error", description: "Your cart is empty" });
       return;
     }
 
-    // Validate required delivery fields
-    const requiredDeliveryFields = [
-      'firstName', 'lastName', 'address1', 'city', 'postalCode', 'phone'
-    ];
-    const missingDelivery = requiredDeliveryFields.filter(
-      (field) => !deliveryDetails[field as keyof typeof deliveryDetails]
-    );
-
-    // Validate required billing fields if not same as shipping
-    let missingBilling: string[] = [];
-    if (!sameAsShipping) {
-      const requiredBillingFields = [
-        'lastName', 'address1', 'city', 'postalCode', 'phone'
-      ];
-      missingBilling = requiredBillingFields.filter(
-        (field) => !billingDetails[field as keyof typeof billingDetails]
-      );
-    }
-
-    // Enhanced phone validation
-    const deliveryPhoneInvalid = !isValidPHPhone(deliveryDetails.phone || '');
-    const billingPhoneInvalid = !sameAsShipping && !isValidPHPhone(billingDetails.phone || '');
-
-    if (missingDelivery.length > 0 || missingBilling.length > 0 || deliveryPhoneInvalid || billingPhoneInvalid) {
-      setShowFieldErrors(true);
-      let errorMsg = "Please fill in all required fields in the form.";
-      if (deliveryPhoneInvalid || billingPhoneInvalid) {
-        errorMsg = "Please enter a valid Philippine phone number (e.g. +639XXXXXXXXX).";
-      }
-      toast({
-        title: "Error",
-        description: errorMsg,
-      });
+    if (!validateCheckoutForm()) {
       return;
     }
-    setShowFieldErrors(false);
 
-    setIsProcessing(true);
     try {
-      if (paymentMethod === 'cod') {
-        // Ensure billingDetails is complete if sameAsShipping is true
-        const billingToSend = sameAsShipping ? { ...deliveryDetails, country: 'Philippines' } : billingDetails;
-        // Save order to Firebase, passing billingToSend directly
-        const orderId = await saveOrderToFirebase(billingToSend);
-        if (orderId) {
-          // Remove only checked-out items from cart
-          removeFromCartByIds(selectedCartItems.map(item => item.id));
-          // Navigate to orders page
-          router.push('/orders');
-        } else {
-          toast({
-            title: "Error",
-            description: "Order was not saved. Please try again.",
-          });
-          console.error("Order was not saved (no orderId returned)");
-        }
+      if (paymentMethod === "cod") {
+        await handleCodCheckout();
       } else {
-        // Pass full order info to GCash page via query string
-        let orderInfo;
-        if (buyNowParam === '1') {
-          orderInfo = encodeURIComponent(JSON.stringify({
-            deliveryDetails,
-            billingDetails: billingDetails,
-            shippingMethod,
-            items: selectedCartItems, // pass the full item for Buy Now
-            amount: totalAmount
-          }));
-        } else {
-          orderInfo = encodeURIComponent(JSON.stringify({
-            deliveryDetails,
-            billingDetails: billingDetails,
-            shippingMethod,
-            selectedIds: selectedCartItems.map(item => item.id),
-            amount: totalAmount
-          }));
-        }
-        router.push(`/checkout/gcash?orderInfo=${orderInfo}`);
-        return;
+        await handleQrphCheckout();
       }
     } catch (error) {
+      setCheckoutProcessing("idle");
       toast({
         title: "Error",
-        description: "Error processing order: " + (error instanceof Error ? error.message : String(error)),
+        description:
+          "Error processing order: " +
+          (error instanceof Error ? error.message : String(error)),
       });
-      console.error("Error processing order:", error);
-    } finally {
-      setIsProcessing(false);
     }
   };
-
-  // Calculate total for only selectedCartItems
-  const calculateSelectedTotal = () => {
-    return selectedCartItems.reduce((total, item) => {
-      let price = typeof item.price === 'string' ? parseFloat(item.price.replace(/[^\d.]/g, '')) : Number(item.price);
-      return total + (price * item.quantity);
-    }, 0).toFixed(2);
-  };
-  const totalAmount = (parseFloat(calculateSelectedTotal()) + getShippingPrice()).toFixed(2);
 
   return (
     <div className="min-h-screen bg-[#101828] text-[#60A5FA] py-8 px-4 sm:px-6 lg:px-8">
@@ -759,23 +826,44 @@ export default function CheckoutPage() {
           <div className="mb-8 pb-4 border-b border-gray-200">
             <h2 className="text-xl font-semibold text-[#60A5FA] mb-4">Payment</h2>
             <p className="text-[#60A5FA] mb-2">All transactions are secure and encrypted.</p>
-            <RadioGroup value={paymentMethod} onValueChange={setPaymentMethod} className="space-y-2">
-              <label className="flex items-center cursor-pointer">
-                <RadioGroupItem value="gcash" id="payment-gcash" className="accent-[#60A5FA] focus:ring-[#60A5FA] border-[#60A5FA]" />
-                <span className="ml-2 flex items-center">
-                  GCash
-                  <img
-                    src="https://ltfzekatcjpltiighukw.supabase.co/storage/v1/object/public/product-images/GCash_Logo.jpg"
-                    alt="GCash Logo"
-                    className="ml-2 h-6 w-6 object-contain"
-                  />
+            <RadioGroup
+              value={paymentMethod}
+              onValueChange={(value) => setPaymentMethod(value as PaymentMethod)}
+              className="space-y-3"
+              disabled={isCheckoutBusy}
+            >
+              <label className="flex items-center cursor-pointer rounded-md border border-transparent hover:border-[#60A5FA]/30 p-2 transition-colors">
+                <RadioGroupItem value="qrph" id="payment-qrph" className="accent-[#60A5FA] focus:ring-[#60A5FA] border-[#60A5FA]" />
+                <span className="ml-2 flex flex-col sm:flex-row sm:items-center gap-0.5 sm:gap-2 text-sm sm:text-base">
+                  <span className="font-medium">QR Ph (GCash / Maya / Banks)</span>
+                  <span className="text-xs text-[#93c5fd]">
+                    My personal GCash QR
+                  </span>
                 </span>
               </label>
-              <label className="flex items-center cursor-pointer">
+              <label className="flex items-center cursor-pointer rounded-md border border-transparent hover:border-[#60A5FA]/30 p-2 transition-colors">
                 <RadioGroupItem value="cod" id="payment-cod" className="accent-[#60A5FA] focus:ring-[#60A5FA] border-[#60A5FA]" />
-                <span className="ml-2">Cash on delivery (COD)</span>
+                <span className="ml-2 text-sm sm:text-base">Cash on delivery (COD)</span>
               </label>
             </RadioGroup>
+            {paymentMethod === "qrph" && (
+              <div className="mt-4 flex flex-col sm:flex-row items-center gap-4 p-4 rounded-lg bg-[#101828] border border-[#60A5FA]/20">
+                <div className="bg-white rounded-lg p-2 shrink-0">
+                  <Image
+                    src={PERSONAL_GCASH_QR_PATH}
+                    alt="Personal QR Ph / GCash QR preview"
+                    width={96}
+                    height={96}
+                    className="w-24 h-24 object-contain"
+                  />
+                </div>
+                <p className="text-xs sm:text-sm text-[#93c5fd]/90 leading-relaxed text-center sm:text-left">
+                  QR Ph payment using my personal GCash QR. After checkout,
+                  scan the code, pay the exact total, then submit your reference
+                  or screenshot.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Billing Address */}
@@ -950,14 +1038,13 @@ export default function CheckoutPage() {
             </div>
           )}
 
-          {/* Pay Now Button */}
-          <Button
-            className="w-full bg-[#60A5FA] text-[#101828] py-3 rounded-md hover:bg-[#3380c0] transition-colors"
+          {/* Checkout CTA — spinner + disabled while COD or QR Ph is processing */}
+          <CheckoutSubmitButton
+            paymentMethod={paymentMethod}
+            processingState={checkoutProcessing}
             onClick={handleProceedToPayment}
-            disabled={isProcessing}
-          >
-            {isProcessing ? "Processing..." : "Checkout"}
-          </Button>
+            disabled={selectedCartItems.length === 0}
+          />
         </div>
 
         {/* Right Column: Order Summary */}
